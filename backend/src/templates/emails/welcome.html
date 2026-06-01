@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #6c63ff; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .button { display: inline-block; padding: 10px 20px; background: #6c63ff; color: white; text-decoration: none; border-radius: 5px; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to Bravo Music! 🎵</h1>
+        </div>
+        <div class="content">
+            <h2>Hello {{username}},</h2>
+            <p>Welcome to Bravo Music, Zambia's premier music platform! We're thrilled to have you join our community of music lovers and creators.</p>
+            
+            <h3>What you can do on Bravo Music:</h3>
+            <ul>
+                <li>🎧 Stream the latest Zambian and African music</li>
+                <li>📱 Create and share playlists</li>
+                <li>💬 Connect with artists and fans</li>
+                <li>💰 Earn money from your music (for artists)</li>
+                <li>📊 Track your music analytics</li>
+            </ul>
+            
+            <p>Ready to start your musical journey?</p>
+            <p style="text-align: center;">
+                <a href="{{exploreUrl}}" class="button">Explore Music</a>
+            </p>
+        </div>
+        <div class="footer">
+            <p>© 2024 Bravo Music. All rights reserved.</p>
+            <p>Zambia's Premier Music Platform</p>
+        </div>
+    </div>
+</body>
+</html>

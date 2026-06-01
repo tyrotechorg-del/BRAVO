@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #6c63ff, #5a52d6); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; background: #f9f9f9; }
+        .renewal-box { background: #fff3cd; border: 1px solid #ffc107; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
+        .button { display: inline-block; padding: 12px 30px; background: #6c63ff; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Subscription Renewal</h1>
+        </div>
+        <div class="content">
+            <h2>Hello {{username}},</h2>
+            <p>Your {{plan}} subscription is set to renew on {{expiryDate}}.</p>
+            
+            <div class="renewal-box">
+                <h3>Subscription Details</h3>
+                <p><strong>Plan:</strong> {{plan}}</p>
+                <p><strong>Price:</strong> K{{price}}/month</p>
+                <p><strong>Next Billing Date:</strong> {{expiryDate}}</p>
+                <p><strong>Auto-Renew:</strong> {{autoRenew}}</p>
+            </div>
+            
+            <p>To avoid interruption of service, please ensure you have sufficient funds in your wallet or update your payment method.</p>
+            
+            <p style="text-align: center;">
+                <a href="{{dashboardUrl}}" class="button">Manage Subscription</a>
+            </p>
+            
+            <hr>
+            <p style="font-size: 12px; color: #666;">If you wish to cancel auto-renewal, please update your subscription settings before the renewal date.</p>
+        </div>
+        <div class="footer">
+            <p>© 2024 Bravo Music. All rights reserved.</p>
+            <p>Lusaka, Zambia</p>
+        </div>
+    </div>
+</body>
+</html>

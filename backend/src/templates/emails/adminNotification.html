@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #ff4757; color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; background: #f9f9f9; }
+        .alert-box { background: #fff3cd; border: 1px solid #ffc107; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .details-box { margin: 20px 0; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd; }
+        .button { display: inline-block; padding: 12px 30px; background: #6c63ff; color: white; text-decoration: none; border-radius: 5px; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+        .priority-high { color: #ff4757; }
+        .priority-medium { color: #ffc107; }
+        .priority-low { color: #00c853; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Admin Notification</h1>
+            <p>{{type}}</p>
+        </div>
+        <div class="content">
+            <div class="alert-box">
+                <h3>{{title}}</h3>
+                <p>{{message}}</p>
+            </div>
+            
+            <div class="details-box">
+                <h3>Details</h3>
+                <p><strong>Priority:</strong> <span class="priority-{{priority}}">{{priority}}</span></p>
+                <p><strong>Time:</strong> {{timestamp}}</p>
+                <p><strong>Source:</strong> {{source}}</p>
+                {{#if user}}
+                <p><strong>User:</strong> {{user}}</p>
+                {{/if}}
+                {{#if actionRequired}}
+                <p><strong>Action Required:</strong> Yes</p>
+                {{/if}}
+            </div>
+            
+            {{#if actionRequired}}
+            <p style="text-align: center;">
+                <a href="{{actionUrl}}" class="button">Take Action</a>
+            </p>
+            {{/if}}
+            
+            <p>This is an automated notification from the Bravo Music platform.</p>
+        </div>
+        <div class="footer">
+            <p>Bravo Music Admin Team</p>
+            <p>© 2024 Bravo Music. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
