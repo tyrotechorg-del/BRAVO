@@ -1,23 +1,79 @@
-/* Mobile First Responsive Design */
+/* Mobile First Responsive Design - Enhanced Version */
 
-/* Small devices (phones, 576px and down) */
-@media (max-width: 576px) {
-    .songs-grid, .albums-grid, .artists-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 10px;
+/* Base responsive settings */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Viewport meta already in index.html - ensure it's there */
+
+/* ========== CONTAINER ADJUSTMENTS ========== */
+.container, 
+.main-content,
+#main-content {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* ========== EXTRA SMALL DEVICES (320px - 480px) ========== */
+@media (max-width: 480px) {
+    /* Typography */
+    body {
+        font-size: 14px;
     }
     
+    h1 {
+        font-size: 22px !important;
+    }
+    
+    h2, .section-header h2 {
+        font-size: 18px !important;
+    }
+    
+    h3 {
+        font-size: 16px !important;
+    }
+    
+    /* Main content padding */
+    #main-content {
+        padding: 12px !important;
+        margin-bottom: 130px !important;
+    }
+    
+    /* Grid layouts */
+    .songs-grid, 
+    .albums-grid, 
+    .artists-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+    
+    /* Dashboard stats */
     .dashboard-stats {
-        grid-template-columns: 1fr;
-        gap: 10px;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+    
+    .stat-card {
+        padding: 15px !important;
+    }
+    
+    .stat-card .value {
+        font-size: 24px !important;
+    }
+    
+    /* Hero section */
+    .hero-section {
+        padding: 30px 16px !important;
+        border-radius: 16px !important;
     }
     
     .hero-section h1 {
-        font-size: 28px;
+        font-size: 24px !important;
     }
     
     .hero-section p {
-        font-size: 14px;
+        font-size: 13px !important;
     }
     
     .hero-buttons {
@@ -25,93 +81,533 @@
         gap: 10px;
     }
     
-    .modal-content {
-        width: 95%;
-        margin: 10px;
+    .hero-buttons .btn-primary,
+    .hero-buttons .btn-outline {
+        width: 100%;
+        text-align: center;
     }
     
-    .form-group input, 
-    .form-group select, 
+    .hero-logo-img {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    
+    /* Genre filters - horizontal scroll */
+    .genre-filters {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        scrollbar-width: thin;
+    }
+    
+    .genre-filter {
+        white-space: nowrap;
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+    
+    /* Forms */
+    .form-container {
+        padding: 20px 16px !important;
+        margin: 20px auto !important;
+    }
+    
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .form-group input,
+    .form-group select,
     .form-group textarea {
-        font-size: 16px;
+        padding: 10px 12px;
+        font-size: 14px;
     }
     
-    .section-header h2 {
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .form-actions button {
+        width: 100%;
+    }
+    
+    /* Modal */
+    .modal-content {
+        width: 95% !important;
+        margin: 10px !important;
+        max-height: 85vh;
+    }
+    
+    .modal-header {
+        padding: 15px;
+    }
+    
+    .modal-header h2 {
         font-size: 18px;
     }
     
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 15px;
+        flex-direction: column;
+    }
+    
+    .modal-footer button {
+        width: 100%;
+    }
+    
+    /* Upload area */
+    .upload-area {
+        padding: 30px 16px !important;
+    }
+    
     .upload-area i {
-        font-size: 36px;
-    }
-}
-
-/* Medium devices (tablets, 768px and up) */
-@media (min-width: 577px) and (max-width: 768px) {
-    .songs-grid, .albums-grid, .artists-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 15px;
+        font-size: 36px !important;
     }
     
-    .dashboard-stats {
-        grid-template-columns: repeat(2, 1fr);
+    .upload-area p {
+        font-size: 13px;
     }
     
-    .hero-section h1 {
-        font-size: 32px;
+    .upload-preview {
+        padding: 16px;
     }
-}
-
-/* Tablet specific adjustments */
-@media (max-width: 768px) {
-    .navbar {
+    
+    /* Buttons */
+    .btn-primary, 
+    .btn-secondary, 
+    .btn-outline, 
+    .btn-danger, 
+    .btn-success {
+        padding: 10px 16px;
+        font-size: 13px;
+        width: auto;
+    }
+    
+    /* Song detail page */
+    .song-detail-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px !important;
+    }
+    
+    .song-detail-cover {
+        width: 150px !important;
+        height: 150px !important;
+        margin: 0 auto;
+    }
+    
+    .song-detail-info h1 {
+        font-size: 20px !important;
+    }
+    
+    .song-detail-stats {
+        justify-content: center;
+        gap: 12px;
         flex-wrap: wrap;
     }
     
-    .nav-search {
+    .song-detail-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    /* Comments section */
+    .comment-item {
+        flex-direction: column !important;
+        text-align: center;
+    }
+    
+    .comment-avatar {
+        margin: 0 auto 10px;
+    }
+    
+    .comment-content {
+        text-align: center;
+    }
+    
+    .comment-actions {
+        justify-content: center;
+    }
+    
+    /* Pagination */
+    .pagination-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .page-btn {
+        min-width: 36px;
+        height: 36px;
+        font-size: 12px;
+    }
+    
+    /* Tables - make scrollable */
+    .data-table-container,
+    .users-table-container,
+    .songs-table-container,
+    .artists-table-container,
+    .albums-table-container,
+    .videos-table-container,
+    .comments-table-container,
+    .withdrawals-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .data-table {
+        min-width: 600px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    /* Admin tabs */
+    .admin-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        gap: 4px;
+    }
+    
+    .admin-tab {
+        white-space: nowrap;
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+    
+    /* Stats cards */
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px;
+    }
+    
+    .stat-card-sm {
+        padding: 12px;
+    }
+    
+    .stat-card-sm .stat-value {
+        font-size: 20px;
+    }
+    
+    /* Bulk actions */
+    .bulk-actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .bulk-actions {
+        flex-direction: column;
+    }
+    
+    .bulk-actions select,
+    .bulk-actions button {
         width: 100%;
-        order: 3;
-        margin-top: 10px;
+    }
+    
+    /* Filter bar */
+    .filters-bar {
+        padding: 15px;
+    }
+    
+    .filter-group {
+        flex-direction: column;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+        width: 100%;
+    }
+    
+    /* Search */
+    .search-box {
+        flex-direction: column;
+    }
+    
+    .search-box input {
+        width: 100%;
+    }
+    
+    /* CTA section */
+    .cta-section {
+        padding: 30px 20px;
+        margin-top: 30px;
+    }
+    
+    .cta-content h2 {
+        font-size: 20px;
+    }
+    
+    /* Toast notifications */
+    .toast-container {
+        right: 10px;
+        left: 10px;
+        top: 70px;
+    }
+    
+    .toast {
+        max-width: none;
+        width: calc(100% - 20px);
+        font-size: 13px;
+    }
+}
+
+/* ========== SMALL DEVICES (481px - 640px) ========== */
+@media (min-width: 481px) and (max-width: 640px) {
+    #main-content {
+        padding: 16px !important;
+        margin-bottom: 120px !important;
+    }
+    
+    .songs-grid, 
+    .albums-grid, 
+    .artists-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px !important;
+    }
+    
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .hero-section {
+        padding: 35px 24px !important;
+    }
+    
+    .hero-section h1 {
+        font-size: 28px !important;
+    }
+    
+    .genre-filters {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .filter-group {
+        flex-wrap: wrap;
+    }
+}
+
+/* ========== MEDIUM DEVICES (641px - 768px) ========== */
+@media (min-width: 641px) and (max-width: 768px) {
+    #main-content {
+        padding: 20px !important;
+    }
+    
+    .songs-grid, 
+    .albums-grid, 
+    .artists-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 15px !important;
+    }
+    
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .stats-cards {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    
+    .hero-section h1 {
+        font-size: 32px !important;
+    }
+}
+
+/* ========== TABLET LANDSCAPE (769px - 1024px) ========== */
+@media (min-width: 769px) and (max-width: 1024px) {
+    #main-content {
+        padding: 24px !important;
+    }
+    
+    .songs-grid, 
+    .albums-grid, 
+    .artists-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 18px !important;
+    }
+    
+    .dashboard-stats {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    
+    .stats-cards {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+}
+
+/* ========== LARGE DESKTOP (1440px and up) ========== */
+@media (min-width: 1440px) {
+    .container,
+    #main-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+    }
+}
+
+/* ========== SIDEBAR RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .app-container {
+        position: relative;
     }
     
     .sidebar {
         position: fixed;
         left: -280px;
-        transition: left 0.3s ease;
-        z-index: 1000;
-        top: 70px;
+        top: 60px;
         bottom: 0;
-        width: 280px;
+        width: 260px;
+        transition: left 0.3s ease;
+        z-index: 950;
+        background: var(--darker-bg);
+        overflow-y: auto;
     }
     
     .sidebar.active {
         left: 0;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
     }
     
-    .main-content {
-        margin-left: 0;
-        padding: 15px;
+    /* Sidebar overlay */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 940;
+        display: none;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    #main-content {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+}
+
+/* ========== NAVBAR RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 8px 12px !important;
+        flex-wrap: wrap;
+    }
+    
+    .logo {
+        font-size: 18px !important;
+    }
+    
+    .logo i {
+        font-size: 20px !important;
+    }
+    
+    .nav-search {
+        order: 3;
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .nav-menu {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        background: var(--darker-bg);
+        flex-direction: column;
+        padding: 16px;
+        gap: 12px;
+        border-bottom: 1px solid var(--border-color);
+        display: none;
+        z-index: 100;
+    }
+    
+    .nav-menu.active {
+        display: flex;
+    }
+    
+    .mobile-menu-btn {
+        display: block !important;
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 20px;
+        cursor: pointer;
+        padding: 8px;
     }
     
     .dropdown-menu {
+        position: static;
+        width: 100%;
+        box-shadow: none;
+        margin-top: 8px;
+        background: var(--card-bg);
+    }
+    
+    .user-menu {
+        justify-content: space-between;
+    }
+}
+
+/* ========== AUDIO PLAYER RESPONSIVE ========== */
+@media (max-width: 576px) {
+    #audio-player-container {
         position: fixed;
-        top: 60px;
-        right: 10px;
-        left: auto;
-        min-width: 280px;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
     }
     
     .player-container {
-        flex-wrap: wrap;
-        gap: 10px;
+        flex-direction: column !important;
+        padding: 10px !important;
+        gap: 8px !important;
     }
     
     .player-info {
         width: 100%;
-        order: 1;
+        justify-content: flex-start;
+    }
+    
+    .player-cover {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .player-title {
+        font-size: 13px;
+    }
+    
+    .player-artist {
+        font-size: 11px;
     }
     
     .player-controls {
         order: 2;
+        width: 100%;
+        justify-content: center;
     }
     
     .player-progress {
@@ -119,67 +615,198 @@
         width: 100%;
     }
     
-    .player-volume {
+    .player-extra {
         order: 4;
+        width: 100%;
+        justify-content: center;
     }
 }
 
-/* Large devices (desktops) */
-@media (min-width: 769px) and (max-width: 1200px) {
-    .songs-grid, .albums-grid, .artists-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    }
-}
-
-/* Extra large devices */
-@media (min-width: 1201px) {
-    .container {
-        max-width: 1400px;
-        margin: 0 auto;
-    }
-}
-
-/* Landscape mode */
-@media (max-width: 768px) and (orientation: landscape) {
+/* ========== LANDSCAPE MODE FIXES ========== */
+@media (max-width: 900px) and (orientation: landscape) {
     .hero-section {
-        min-height: 300px;
-        padding: 30px 20px;
+        min-height: auto;
+        padding: 20px !important;
     }
     
-    .player-container {
-        padding: 5px 10px;
+    .hero-section h1 {
+        font-size: 22px !important;
+    }
+    
+    .songs-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    
+    .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    #audio-player-container {
+        position: fixed;
     }
 }
 
-/* Touch device optimizations */
+/* ========== TOUCH DEVICE OPTIMIZATIONS ========== */
 @media (hover: none) and (pointer: coarse) {
-    .song-card-overlay {
-        opacity: 1;
-        background: rgba(0, 0, 0, 0.7);
-    }
-    
+    /* Larger touch targets */
     button, 
-    .clickable {
+    .btn, 
+    .player-btn,
+    .sidebar-item,
+    .nav-link,
+    .song-card,
+    .album-card {
         min-height: 44px;
     }
+    
+    /* Always show overlay on touch devices? No - keep hidden until tap */
+    .song-card-overlay {
+        transition: none;
+    }
+    
+    /* Remove hover effects that might cause issues */
+    .song-card:hover {
+        transform: none;
+    }
+    
+    /* Better tap feedback */
+    button:active,
+    .btn:active,
+    .sidebar-item:active {
+        opacity: 0.7;
+        transform: scale(0.98);
+    }
 }
 
-/* Print styles */
+/* ========== HIGH DPI SCREENS ========== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .hero-logo-img,
+    .user-avatar,
+    .song-card img {
+        image-rendering: -webkit-optimize-contrast;
+    }
+}
+
+/* ========== PRINT STYLES ========== */
 @media print {
     .navbar, 
     .sidebar, 
     #audio-player-container,
-    .hero-section {
-        display: none;
+    .hero-section,
+    .player-container,
+    .toast-container,
+    .modal {
+        display: none !important;
     }
     
     #main-content {
-        margin: 0;
-        padding: 0;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     
-    body {
+    body, .app-container {
         background: white;
         color: black;
+    }
+    
+    a {
+        text-decoration: none;
+        color: black;
+    }
+}
+
+/* ========== UTILITY CLASSES ========== */
+.hide-on-mobile {
+    display: block;
+}
+
+.show-on-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .hide-on-mobile {
+        display: none !important;
+    }
+    
+    .show-on-mobile {
+        display: block !important;
+    }
+    
+    .text-center-mobile {
+        text-align: center !important;
+    }
+    
+    .full-width-mobile {
+        width: 100% !important;
+    }
+    
+    .flex-column-mobile {
+        flex-direction: column !important;
+    }
+}
+
+/* ========== SAFE AREA INSETS (Notch devices) ========== */
+@supports (padding: max(0px)) {
+    .navbar {
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+        padding-top: max(8px, env(safe-area-inset-top));
+    }
+    
+    #audio-player-container {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .modal-content {
+        margin-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* ========== SCROLL BEHAVIOR ========== */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Disable smooth scroll on reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ========== FOCUS VISIBLE (Accessibility) ========== */
+:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Remove outline for mouse users */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* ========== LOADING STATES ========== */
+.loading-skeleton {
+    background: linear-gradient(90deg, var(--card-bg) 25%, var(--hover-bg) 50%, var(--card-bg) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s ease-in-out infinite;
+    border-radius: 8px;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
     }
 }
