@@ -1,0 +1,87 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install Backend Dependencies
+        run: |
+          cd backend
+          npm ci
+          
+      - name: Run Backend Tests
+        run: |
+          cd backend
+          npm test
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test_secret
+          
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm ci
+          
+      - name: Run Frontend Tests
+        run: |
+          cd frontend
+          npm test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          
+      - name: Deploy to Server
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
+            cd /var/www/bravo-music-platform
+            git pull origin main
+            docker-compose -f docker-compose.prod.yml down
+            docker-compose -f docker-compose.prod.yml build
+            docker-compose -f docker-compose.prod.yml up -d
+            docker system prune -f
+          '
+          
+      - name: Health Check
+        run: |
+          sleep 30
+          curl -f https://api.bravomusic.com/api/health || exit 1
+          
+      - name: Notify Deployment Success
+        uses: actions-cool/notify@v1
+        if: success()
+        with:
+          title: 'Deployment Successful'
+          body: 'Bravo Music Platform has been deployed to production'
+          icon: '✅'
+          
+      - name: Notify Deployment Failure
+        uses: actions-cool/notify@v1
+        if: failure()
+        with:
+          title: 'Deployment Failed'
+          body: 'Bravo Music Platform deployment failed. Please check logs.'
+          icon: '❌'
