@@ -1,0 +1,88 @@
+/* Settings Page Styles */
+.settings-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.settings-container h1 {
+    margin-bottom: 30px;
+}
+
+.settings-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.settings-tab {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+    border-bottom: 2px solid transparent;
+}
+
+.settings-tab:hover {
+    color: var(--primary-color);
+}
+
+.settings-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.settings-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.settings-pane.active {
+    display: block;
+}
+
+.settings-pane h3 {
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+.settings-pane hr {
+    margin: 30px 0;
+    border: none;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Danger Zone */
+.danger-zone {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.danger-zone h3 {
+    color: var(--danger-color);
+    margin-bottom: 8px;
+}
+
+.danger-zone p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+    .settings-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+    
+    .settings-tab {
+        white-space: nowrap;
+    }
+}

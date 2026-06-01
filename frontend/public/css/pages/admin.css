@@ -1,0 +1,2233 @@
+/* Admin Dashboard Styles */
+.admin-dashboard {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.admin-dashboard h1 {
+    margin-bottom: 30px;
+    font-size: 28px;
+}
+
+/* Admin Tabs */
+.admin-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.admin-tab {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-tab:hover {
+    color: var(--primary-color);
+}
+
+.admin-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+/* Admin Panes */
+.admin-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.admin-pane.active {
+    display: block;
+}
+
+/* Section Header */
+.admin-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.user-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.user-filters input,
+.user-filters select {
+    padding: 8px 12px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    min-width: 150px;
+}
+
+/* Data Table */
+.users-table-container {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th {
+    background: var(--darker-bg);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.data-table td {
+    font-size: 14px;
+}
+
+.user-avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Role Badges */
+.role-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.role-listener { background: #6c63ff; color: white; }
+.role-artist { background: #ff6584; color: white; }
+.role-admin { background: #00c853; color: white; }
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-badge.active { background: #00c853; color: white; }
+.status-badge.inactive { background: #ff4757; color: white; }
+
+.actions-cell {
+    display: flex;
+    gap: 8px;
+}
+
+/* Pending Songs, Withdrawals, Reports, Comments Lists */
+.pending-songs-list,
+.withdrawals-list,
+.reports-list,
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.pending-song-item,
+.withdrawal-item,
+.report-item,
+.comment-item {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.song-cover-sm {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.pending-song-item .song-info,
+.withdrawal-item .withdrawal-info,
+.report-item .report-info,
+.comment-item .comment-info {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.pending-song-item .song-info span,
+.withdrawal-item .withdrawal-info span,
+.report-item .report-info span,
+.comment-item .comment-info span {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.song-genre,
+.song-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.pending-song-item .song-actions,
+.withdrawal-item .withdrawal-actions,
+.report-item .report-actions,
+.comment-item .comment-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Settings Form */
+.settings-form {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.admin-upload-section {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.admin-upload-section h3 {
+    margin-bottom: 12px;
+}
+
+.admin-upload-section p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+/* Growth Stats */
+.growth-stats {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.growth-stats h3 {
+    margin-bottom: 15px;
+}
+
+.stats-row {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.stats-row span {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* Detail Sections */
+.detail-section {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-section h4 {
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+.detail-section p {
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+/* Pagination */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    align-items: center;
+}
+
+.page-info {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Admin Actions */
+.admin-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-dashboard {
+        padding: 15px;
+    }
+    
+    .admin-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+    
+    .admin-tab {
+        white-space: nowrap;
+        padding: 10px 16px;
+    }
+    
+    .pending-song-item,
+    .withdrawal-item,
+    .report-item,
+    .comment-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .pending-song-item .song-info,
+    .withdrawal-item .withdrawal-info {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .user-filters {
+        width: 100%;
+    }
+    
+    .user-filters input,
+    .user-filters select {
+        flex: 1;
+        min-width: auto;
+    }
+    
+    .admin-actions {
+        flex-direction: column;
+    }
+    
+    .admin-actions button {
+        width: 100%;
+    }
+}
+
+/* Admin All Songs Page */
+.admin-all-songs-page {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+}
+
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card-sm {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    border-left: 4px solid var(--primary-color);
+}
+
+.stat-card-sm.pending {
+    border-left-color: var(--warning-color);
+}
+
+.stat-card-sm.approved {
+    border-left-color: var(--success-color);
+}
+
+.stat-card-sm.rejected {
+    border-left-color: var(--danger-color);
+}
+
+.stat-card-sm.featured {
+    border-left-color: #ff6584;
+}
+
+.stat-card-sm.video {
+    border-left-color: #9c27b0;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.filters-bar {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.filter-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.filter-group input,
+.filter-group select {
+    padding: 10px 15px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    min-width: 150px;
+}
+
+.bulk-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.selected-count {
+    font-size: 14px;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.bulk-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.bulk-actions select {
+    padding: 8px 15px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+}
+
+.song-cover-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.type-badge.video {
+    background: #9c27b0;
+    color: white;
+}
+
+.type-badge.audio {
+    background: var(--primary-color);
+    color: white;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background: var(--warning-color);
+    color: #333;
+}
+
+.status-approved {
+    background: var(--success-color);
+    color: white;
+}
+
+.status-rejected {
+    background: var(--danger-color);
+    color: white;
+}
+
+.status-featured {
+    background: #ff6584;
+    color: white;
+}
+
+.genre-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: var(--hover-bg);
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.actions-cell {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.loading-cell, .empty-cell {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .stats-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .filter-group {
+        flex-direction: column;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+        width: 100%;
+    }
+    
+    .bulk-actions-bar {
+        flex-direction: column;
+    }
+    
+    .bulk-actions {
+        width: 100%;
+    }
+    
+    .bulk-actions select,
+    .bulk-actions button {
+        flex: 1;
+    }
+    
+    .data-table {
+        font-size: 12px;
+    }
+    
+    .actions-cell {
+        flex-direction: column;
+    }
+}
+
+/* ==================== ADMIN ARTISTS PAGE - SPECIFIC STYLES ==================== */
+
+.admin-artists-page {
+    padding: 20px;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.page-header {
+    margin-bottom: 24px;
+}
+
+.page-header h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Artists Stats Section */
+.artists-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.artists-stats .stat-card-sm {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.artists-stats .stat-card-sm .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.artists-stats .stat-card-sm .stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+}
+
+/* Artists Table Container - Make Scrollable */
+.artists-table-container {
+    overflow-x: auto;
+    overflow-y: visible;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    margin-bottom: 20px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Artists Data Table - Fixed Width for All Columns */
+.artists-table-container .data-table {
+    width: 100%;
+    min-width: 1300px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.artists-table-container .data-table th,
+.artists-table-container .data-table td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.artists-table-container .data-table th {
+    background: var(--darker-bg);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Column Widths for Artists Table */
+.artists-table-container .data-table th:nth-child(1),
+.artists-table-container .data-table td:nth-child(1) {
+    min-width: 200px;
+    max-width: 220px;
+}
+
+.artists-table-container .data-table th:nth-child(2),
+.artists-table-container .data-table td:nth-child(2) {
+    min-width: 50px;
+    width: 50px;
+}
+
+.artists-table-container .data-table th:nth-child(3),
+.artists-table-container .data-table td:nth-child(3) {
+    min-width: 130px;
+}
+
+.artists-table-container .data-table th:nth-child(4),
+.artists-table-container .data-table td:nth-child(4) {
+    min-width: 180px;
+}
+
+.artists-table-container .data-table th:nth-child(5),
+.artists-table-container .data-table td:nth-child(5) {
+    min-width: 120px;
+}
+
+.artists-table-container .data-table th:nth-child(6),
+.artists-table-container .data-table td:nth-child(6) {
+    min-width: 120px;
+}
+
+.artists-table-container .data-table th:nth-child(7),
+.artists-table-container .data-table td:nth-child(7) {
+    min-width: 80px;
+}
+
+.artists-table-container .data-table th:nth-child(8),
+.artists-table-container .data-table td:nth-child(8) {
+    min-width: 100px;
+}
+
+.artists-table-container .data-table th:nth-child(9),
+.artists-table-container .data-table td:nth-child(9) {
+    min-width: 90px;
+}
+
+.artists-table-container .data-table th:nth-child(10),
+.artists-table-container .data-table td:nth-child(10) {
+    min-width: 120px;
+}
+
+.artists-table-container .data-table th:nth-child(11),
+.artists-table-container .data-table td:nth-child(11) {
+    min-width: 180px;
+}
+
+/* Artist ID Styling */
+.artist-id {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    background: var(--darker-bg);
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    max-width: 180px;
+    overflow-x: auto;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.artist-id::-webkit-scrollbar {
+    height: 3px;
+}
+
+/* Avatar Images */
+.user-avatar-sm {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Badges */
+.genre-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: var(--hover-bg);
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.status-badge.active {
+    background: rgba(0, 200, 83, 0.15);
+    color: #00c853;
+}
+
+.status-badge.inactive {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.status-badge.verified {
+    background: rgba(0, 200, 83, 0.15);
+    color: #00c853;
+}
+
+.status-badge.unverified {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.status-badge.featured {
+    background: rgba(255, 101, 132, 0.15);
+    color: #ff6584;
+}
+
+.status-badge.normal {
+    background: rgba(179, 179, 179, 0.15);
+    color: #b3b3b3;
+}
+
+/* Action Buttons */
+.actions-cell {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-success {
+    background: #00c853;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+}
+
+.btn-success:hover {
+    background: #00a844;
+    transform: translateY(-1px);
+}
+
+.btn-success:disabled {
+    background: #666;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #333;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+}
+
+.btn-warning:hover {
+    background: #ffb300;
+    transform: translateY(-1px);
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--hover-bg);
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Filters Bar */
+.filters-bar {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.search-box {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-box input {
+    flex: 1;
+    min-width: 250px;
+    padding: 10px 14px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* Loading and Empty States */
+.loading-cell,
+.empty-cell {
+    text-align: center;
+    padding: 60px;
+    color: var(--text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+    .artists-stats {
+        gap: 15px;
+    }
+    
+    .artists-stats .stat-card-sm .stat-value {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .artists-stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-artists-page {
+        padding: 15px;
+    }
+    
+    .artists-stats .stat-card-sm {
+        padding: 15px;
+    }
+    
+    .artists-stats .stat-card-sm .stat-value {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-artists-page {
+        padding: 12px;
+    }
+    
+    .page-header h1 {
+        font-size: 20px;
+    }
+    
+    .artists-stats {
+        gap: 12px;
+    }
+    
+    .artists-stats .stat-card-sm {
+        padding: 12px;
+    }
+    
+    .artists-stats .stat-card-sm .stat-value {
+        font-size: 20px;
+    }
+    
+    .artists-stats .stat-card-sm .stat-label {
+        font-size: 11px;
+    }
+    
+    .search-box {
+        flex-direction: column;
+    }
+    
+    .search-box input {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .search-box button {
+        width: 100%;
+    }
+    
+    .actions-cell {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .btn-success,
+    .btn-warning {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .artists-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .artists-stats .stat-card-sm {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+    }
+    
+    .artists-stats .stat-card-sm .stat-value {
+        font-size: 24px;
+        margin: 0;
+    }
+    
+    .artists-stats .stat-card-sm .stat-label {
+        margin: 0;
+    }
+}
+
+/* Ensure table cells don't overflow */
+.artists-table-container .data-table td {
+    word-break: break-word;
+    white-space: normal;
+}
+
+/* Make artist ID cell scrollable on hover */
+.artists-table-container .data-table td:first-child {
+    max-width: 220px;
+}
+
+.artists-table-container .data-table td:first-child:hover .artist-id {
+    overflow-x: auto;
+}
+
+/* Scrollbar styling */
+.artists-table-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.artists-table-container::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.artists-table-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.artists-table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* ==================== ADMIN SONGS PAGE - PENDING SONGS (COMPACT VIEW) ==================== */
+
+.admin-songs-page {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.admin-songs-page .page-header {
+    margin-bottom: 20px;
+}
+
+.admin-songs-page .page-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-primary);
+}
+
+.admin-songs-page .page-header h1 i {
+    color: var(--primary-color);
+    font-size: 28px;
+}
+
+.admin-songs-page .page-header p {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+/* Pending Songs Container */
+.pending-songs-container {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.pending-songs-list {
+    padding: 16px;
+}
+
+.pending-songs-list h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-primary);
+}
+
+/* Songs Table Container */
+.pending-songs-list .songs-table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Data Table for Pending Songs - COMPACT ROWS */
+.pending-songs-list .data-table {
+    width: 100%;
+    min-width: 800px;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.pending-songs-list .data-table th,
+.pending-songs-list .data-table td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.pending-songs-list .data-table th {
+    background: var(--darker-bg);
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    padding: 10px 10px;
+}
+
+/* Column Widths */
+.pending-songs-list .data-table th:nth-child(1),
+.pending-songs-list .data-table td:nth-child(1) {
+    width: 60px;
+    min-width: 60px;
+}
+
+.pending-songs-list .data-table th:nth-child(2),
+.pending-songs-list .data-table td:nth-child(2) {
+    min-width: 160px;
+}
+
+.pending-songs-list .data-table th:nth-child(3),
+.pending-songs-list .data-table td:nth-child(3) {
+    min-width: 130px;
+}
+
+.pending-songs-list .data-table th:nth-child(4),
+.pending-songs-list .data-table td:nth-child(4) {
+    min-width: 90px;
+}
+
+.pending-songs-list .data-table th:nth-child(5),
+.pending-songs-list .data-table td:nth-child(5) {
+    min-width: 90px;
+}
+
+.pending-songs-list .data-table th:nth-child(6),
+.pending-songs-list .data-table td:nth-child(6) {
+    min-width: 200px;
+}
+
+/* Song Cover Image - SMALLER */
+.pending-songs-list .song-cover-sm {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+}
+
+/* Song Title */
+.pending-songs-list .data-table td:nth-child(2) strong {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+/* Artist Name */
+.pending-songs-list .data-table td:nth-child(3) {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+/* Genre Badge - SMALLER */
+.pending-songs-list .genre-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--hover-bg);
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* Upload Date */
+.pending-songs-list .data-table td:nth-child(5) {
+    color: var(--text-secondary);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+/* Action Buttons Cell - COMPACT */
+.pending-songs-list .actions-cell {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Approve Button - SMALLER */
+.pending-songs-list .btn-success {
+    background: #00c853;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.pending-songs-list .btn-success:hover {
+    background: #00a844;
+    transform: translateY(-1px);
+}
+
+.pending-songs-list .btn-success i {
+    font-size: 11px;
+}
+
+/* Reject Button - SMALLER */
+.pending-songs-list .btn-danger {
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.pending-songs-list .btn-danger:hover {
+    background: #e04353;
+    transform: translateY(-1px);
+}
+
+/* Preview Button - SMALLER */
+.pending-songs-list .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.pending-songs-list .btn-outline:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(108, 99, 255, 0.05);
+}
+
+/* Table Row Hover Effect */
+.pending-songs-list .data-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.pending-songs-list .data-table tbody tr:hover {
+    background: rgba(108, 99, 255, 0.03);
+}
+
+/* Empty State - COMPACT */
+.pending-songs-container .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--card-bg);
+    border-radius: 12px;
+}
+
+.pending-songs-container .empty-state i {
+    font-size: 48px;
+    color: var(--success-color);
+    margin-bottom: 12px;
+    opacity: 0.8;
+}
+
+.pending-songs-container .empty-state h3 {
+    font-size: 18px;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+}
+
+.pending-songs-container .empty-state p {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+/* Loading Container - COMPACT */
+.pending-songs-container .loading-container {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--card-bg);
+    border-radius: 12px;
+}
+
+.pending-songs-container .loading-container .spinner {
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 12px;
+}
+
+.pending-songs-container .loading-container p {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+@media (max-width: 1200px) {
+    .admin-songs-page {
+        padding: 16px;
+    }
+    
+    .pending-songs-list .data-table {
+        min-width: 750px;
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-songs-page .page-header h1 {
+        font-size: 22px;
+    }
+    
+    .pending-songs-list {
+        padding: 12px;
+    }
+    
+    .pending-songs-list h2 {
+        font-size: 15px;
+        margin-bottom: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-songs-page {
+        padding: 12px;
+    }
+    
+    .admin-songs-page .page-header {
+        margin-bottom: 16px;
+    }
+    
+    .admin-songs-page .page-header h1 {
+        font-size: 20px;
+    }
+    
+    .admin-songs-page .page-header p {
+        font-size: 12px;
+    }
+    
+    .pending-songs-list {
+        padding: 10px;
+    }
+    
+    .pending-songs-list h2 {
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+    
+    /* Action buttons stack on mobile */
+    .pending-songs-list .actions-cell {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .pending-songs-list .btn-success,
+    .pending-songs-list .btn-danger,
+    .pending-songs-list .btn-outline {
+        width: 100%;
+        justify-content: center;
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+    
+    .pending-songs-list .data-table th,
+    .pending-songs-list .data-table td {
+        padding: 6px 8px;
+    }
+    
+    .pending-songs-list .data-table th {
+        padding: 8px 8px;
+    }
+    
+    .pending-songs-list .song-cover-sm {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-songs-page {
+        padding: 10px;
+    }
+    
+    .admin-songs-page .page-header h1 {
+        font-size: 18px;
+    }
+    
+    .pending-songs-list .data-table {
+        min-width: 650px;
+    }
+    
+    .pending-songs-list .data-table th,
+    .pending-songs-list .data-table td {
+        padding: 5px 6px;
+        font-size: 11px;
+    }
+    
+    .pending-songs-list .genre-badge {
+        font-size: 9px;
+        padding: 2px 6px;
+    }
+    
+    .pending-songs-container .empty-state {
+        padding: 30px 16px;
+    }
+    
+    .pending-songs-container .empty-state i {
+        font-size: 40px;
+    }
+    
+    .pending-songs-container .empty-state h3 {
+        font-size: 16px;
+    }
+}
+
+/* Scrollbar Styling for Table Container */
+.pending-songs-list .songs-table-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.pending-songs-list .songs-table-container::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.pending-songs-list .songs-table-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.pending-songs-list .songs-table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* Animation for new pending songs */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pending-songs-list .data-table tbody tr {
+    animation: slideIn 0.2s ease;
+}
+
+/* ==================== ADMIN REPORTS PAGE ==================== */
+
+.admin-reports-page {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.reports-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.reports-stats .stat-card-sm {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.reports-stats .stat-card-sm.pending {
+    border-left: 4px solid var(--warning-color);
+}
+
+.reports-stats .stat-card-sm.resolved {
+    border-left: 4px solid var(--success-color);
+}
+
+.reports-stats .stat-card-sm.total {
+    border-left: 4px solid var(--primary-color);
+}
+
+.reports-stats .stat-card-sm .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.reports-stats .stat-card-sm .stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+}
+
+.reports-table-container {
+    overflow-x: auto;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.reports-table-container .data-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+}
+
+.reports-table-container .data-table th,
+.reports-table-container .data-table td {
+    padding: 12px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.reports-table-container .data-table th {
+    background: var(--darker-bg);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.type-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.type-badge.song { background: #6c63ff; color: white; }
+.type-badge.comment { background: #ff6584; color: white; }
+.type-badge.user { background: #00c853; color: white; }
+.type-badge.album { background: #ffc107; color: #333; }
+
+.resolved-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(0, 200, 83, 0.15);
+    color: #00c853;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* ==================== ADMIN ALBUMS PAGE ==================== */
+
+.admin-albums-page {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.albums-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.albums-stats .stat-card-sm {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.albums-stats .stat-card-sm.published {
+    border-left: 4px solid var(--success-color);
+}
+
+.albums-stats .stat-card-sm.draft {
+    border-left: 4px solid var(--warning-color);
+}
+
+.albums-table-container {
+    overflow-x: auto;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.albums-table-container .data-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+}
+
+.albums-table-container .data-table th,
+.albums-table-container .data-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.albums-table-container .data-table th {
+    background: var(--darker-bg);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.album-cover-sm {
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.type-badge.album { background: #6c63ff; color: white; }
+.type-badge.ep { background: #ff6584; color: white; }
+.type-badge.single { background: #00c853; color: white; }
+.type-badge.compilation { background: #ffc107; color: #333; }
+
+.status-badge.draft {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+}
+
+.status-badge.published {
+    background: rgba(0, 200, 83, 0.15);
+    color: #00c853;
+}
+
+/* ==================== ADMIN VIDEOS PAGE ==================== */
+
+.admin-videos-page {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.videos-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.videos-stats .stat-card-sm {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.videos-stats .stat-card-sm.approved {
+    border-left: 4px solid var(--success-color);
+}
+
+.videos-stats .stat-card-sm.pending {
+    border-left: 4px solid var(--warning-color);
+}
+
+.videos-table-container {
+    overflow-x: auto;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.videos-table-container .data-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+}
+
+.videos-table-container .data-table th,
+.videos-table-container .data-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.videos-table-container .data-table th {
+    background: var(--darker-bg);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.video-thumb-sm {
+    width: 60px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+/* ==================== ADMIN COMMENTS PAGE ==================== */
+
+.admin-comments-page {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.comments-stats {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+    max-width: 300px;
+}
+
+.comments-stats .stat-card-sm {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--danger-color);
+}
+
+.comments-table-container {
+    overflow-x: auto;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.comments-table-container .data-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+}
+
+.comments-table-container .data-table th,
+.comments-table-container .data-table td {
+    padding: 12px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.comments-table-container .data-table th {
+    background: var(--darker-bg);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.comment-text {
+    max-width: 300px;
+    white-space: normal;
+    word-break: break-word;
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
+/* ==================== ADMIN WITHDRAWALS PAGE ==================== */
+
+.admin-withdrawals-page {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.withdrawals-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.withdrawals-stats .stat-card-sm {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.withdrawals-stats .stat-card-sm.pending {
+    border-left: 4px solid var(--warning-color);
+}
+
+.withdrawals-stats .stat-card-sm.approved {
+    border-left: 4px solid var(--success-color);
+}
+
+.withdrawals-table-container {
+    overflow-x: auto;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.withdrawals-table-container .data-table {
+    width: 100%;
+    min-width: 1000px;
+    border-collapse: collapse;
+}
+
+.withdrawals-table-container .data-table th,
+.withdrawals-table-container .data-table td {
+    padding: 12px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.withdrawals-table-container .data-table th {
+    background: var(--darker-bg);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.amount {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 16px;
+}
+
+.method-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: var(--hover-bg);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.processed-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(0, 200, 83, 0.15);
+    color: #00c853;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* ==================== ADMIN SETTINGS PAGE ==================== */
+
+.admin-settings-page {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.settings-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.settings-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.settings-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-card h3 i {
+    color: var(--primary-color);
+}
+
+.settings-card .form-group {
+    margin-bottom: 20px;
+}
+
+.settings-card .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.settings-card .form-group .form-control {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px 14px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.settings-card .form-group .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.settings-card .form-group small {
+    display: block;
+    margin-top: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+/* Plans Grid */
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.plan-card {
+    background: var(--darker-bg);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease;
+}
+
+.plan-card:hover {
+    transform: translateY(-4px);
+}
+
+.plan-card.basic { border-top: 4px solid #6c63ff; }
+.plan-card.pro { border-top: 4px solid #ff6584; }
+.plan-card.vip { border-top: 4px solid #ffc107; }
+
+.plan-card h4 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.plan-price {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 16px;
+}
+
+.plan-price span {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.plan-features {
+    list-style: none;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.plan-features li {
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.plan-features li i {
+    color: var(--success-color);
+    width: 18px;
+}
+
+/* Maintenance Options */
+.maintenance-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.option-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.checkbox-label input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Settings Actions */
+.settings-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-large {
+    padding: 12px 28px;
+    font-size: 16px;
+}
+
+/* ==================== FILTER SELECT ==================== */
+
+.filter-select {
+    padding: 8px 16px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 1200px) {
+    .reports-stats,
+    .albums-stats,
+    .videos-stats,
+    .withdrawals-stats {
+        gap: 15px;
+    }
+}
+
+@media (max-width: 992px) {
+    .reports-stats .stat-card-sm .stat-value,
+    .albums-stats .stat-card-sm .stat-value,
+    .videos-stats .stat-card-sm .stat-value,
+    .withdrawals-stats .stat-card-sm .stat-value {
+        font-size: 24px;
+    }
+    
+    .plans-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .reports-stats,
+    .albums-stats,
+    .videos-stats,
+    .withdrawals-stats {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .admin-reports-page,
+    .admin-albums-page,
+    .admin-videos-page,
+    .admin-comments-page,
+    .admin-withdrawals-page,
+    .admin-settings-page {
+        padding: 12px;
+    }
+    
+    .settings-card {
+        padding: 16px;
+    }
+    
+    .settings-card .form-group .form-control {
+        max-width: 100%;
+    }
+    
+    .settings-actions {
+        flex-direction: column;
+    }
+    
+    .settings-actions button {
+        width: 100%;
+    }
+    
+    .plan-card {
+        padding: 16px;
+    }
+    
+    .plan-price {
+        font-size: 28px;
+    }
+    
+    .option-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 576px) {
+    .reports-table-container .data-table,
+    .albums-table-container .data-table,
+    .videos-table-container .data-table,
+    .comments-table-container .data-table,
+    .withdrawals-table-container .data-table {
+        min-width: 700px;
+    }
+    
+    .comment-text {
+        max-width: 200px;
+    }
+    
+    .stats-card-sm .stat-value {
+        font-size: 20px;
+    }
+}
+
+/* ==================== ANIMATIONS ==================== */
+
+.pending-row {
+    animation: highlight 0.5s ease;
+}
+
+@keyframes highlight {
+    from {
+        background: rgba(255, 193, 7, 0.1);
+    }
+    to {
+        background: transparent;
+    }
+}
+
+/* ==================== SCROLLBAR ==================== */
+
+.reports-table-container::-webkit-scrollbar,
+.albums-table-container::-webkit-scrollbar,
+.videos-table-container::-webkit-scrollbar,
+.comments-table-container::-webkit-scrollbar,
+.withdrawals-table-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.reports-table-container::-webkit-scrollbar-track,
+.albums-table-container::-webkit-scrollbar-track,
+.videos-table-container::-webkit-scrollbar-track,
+.comments-table-container::-webkit-scrollbar-track,
+.withdrawals-table-container::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.reports-table-container::-webkit-scrollbar-thumb,
+.albums-table-container::-webkit-scrollbar-thumb,
+.videos-table-container::-webkit-scrollbar-thumb,
+.comments-table-container::-webkit-scrollbar-thumb,
+.withdrawals-table-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}

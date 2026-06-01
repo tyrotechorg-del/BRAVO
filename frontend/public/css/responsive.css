@@ -1,0 +1,185 @@
+/* Mobile First Responsive Design */
+
+/* Small devices (phones, 576px and down) */
+@media (max-width: 576px) {
+    .songs-grid, .albums-grid, .artists-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+    }
+    
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .hero-section h1 {
+        font-size: 28px;
+    }
+    
+    .hero-section p {
+        font-size: 14px;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10px;
+    }
+    
+    .form-group input, 
+    .form-group select, 
+    .form-group textarea {
+        font-size: 16px;
+    }
+    
+    .section-header h2 {
+        font-size: 18px;
+    }
+    
+    .upload-area i {
+        font-size: 36px;
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 577px) and (max-width: 768px) {
+    .songs-grid, .albums-grid, .artists-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 15px;
+    }
+    
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .hero-section h1 {
+        font-size: 32px;
+    }
+}
+
+/* Tablet specific adjustments */
+@media (max-width: 768px) {
+    .navbar {
+        flex-wrap: wrap;
+    }
+    
+    .nav-search {
+        width: 100%;
+        order: 3;
+        margin-top: 10px;
+    }
+    
+    .sidebar {
+        position: fixed;
+        left: -280px;
+        transition: left 0.3s ease;
+        z-index: 1000;
+        top: 70px;
+        bottom: 0;
+        width: 280px;
+    }
+    
+    .sidebar.active {
+        left: 0;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 15px;
+    }
+    
+    .dropdown-menu {
+        position: fixed;
+        top: 60px;
+        right: 10px;
+        left: auto;
+        min-width: 280px;
+    }
+    
+    .player-container {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .player-info {
+        width: 100%;
+        order: 1;
+    }
+    
+    .player-controls {
+        order: 2;
+    }
+    
+    .player-progress {
+        order: 3;
+        width: 100%;
+    }
+    
+    .player-volume {
+        order: 4;
+    }
+}
+
+/* Large devices (desktops) */
+@media (min-width: 769px) and (max-width: 1200px) {
+    .songs-grid, .albums-grid, .artists-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+}
+
+/* Extra large devices */
+@media (min-width: 1201px) {
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+}
+
+/* Landscape mode */
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero-section {
+        min-height: 300px;
+        padding: 30px 20px;
+    }
+    
+    .player-container {
+        padding: 5px 10px;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .song-card-overlay {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.7);
+    }
+    
+    button, 
+    .clickable {
+        min-height: 44px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .navbar, 
+    .sidebar, 
+    #audio-player-container,
+    .hero-section {
+        display: none;
+    }
+    
+    #main-content {
+        margin: 0;
+        padding: 0;
+    }
+    
+    body {
+        background: white;
+        color: black;
+    }
+}

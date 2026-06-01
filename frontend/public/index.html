@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="description" content="Bravo Music - Zambia's Premier Music Streaming Platform">
+    <title>Bravo Music - Zambia's Premier Music Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/themes/dark.css">
+    <link rel="stylesheet" href="css/themes/light.css">
+    <link rel="stylesheet" href="css/components/navbar.css">
+    <link rel="stylesheet" href="css/components/sidebar.css">
+    <link rel="stylesheet" href="css/components/player.css">
+    <link rel="stylesheet" href="css/components/cards.css">
+    <link rel="stylesheet" href="css/components/button.css">
+    <link rel="stylesheet" href="css/components/modals.css">
+    <link rel="stylesheet" href="css/components/forms.css">
+    <link rel="stylesheet" href="css/pages/home.css">
+    <link rel="stylesheet" href="css/pages/browse.css">
+    <link rel="stylesheet" href="css/pages/dashboard.css">
+    <link rel="stylesheet" href="css/pages/upload.css">
+    <link rel="stylesheet" href="css/pages/settings.css">
+    <link rel="stylesheet" href="css/pages/artist.css">
+    <link rel="stylesheet" href="css/pages/album.css">
+    <link rel="stylesheet" href="css/pages/downloads.css">
+    <link rel="stylesheet" href="css/pages/search.css">
+    <link rel="stylesheet" href="css/pages/admin.css">
+    <link rel="stylesheet" href="css/pages/song.css">
+    <link rel="stylesheet" href="css/pages/verify.css">
+</head>
+<body>
+    <div id="app">
+        <div id="navbar-container"></div>
+        <div class="app-container">
+            <div id="sidebar-container"></div>
+            <main id="main-content">
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p>Loading Bravo Music...</p>
+                </div>
+            </main>
+        </div>
+        <div id="audio-player-container"></div>
+    </div>
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Config -->
+    <script src="js/config.js"></script>
+    
+    <!-- Utils -->
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/validators.js"></script>
+    <script src="js/utils/storage.js"></script>
+    
+    <!-- API Clients -->
+    <script src="js/api/auth.js"></script>
+    <script src="js/api/songs.js"></script>
+    <script src="js/api/artists.js"></script>
+    <script src="js/api/admin.js"></script>
+    <script src="js/api/upload.js"></script>
+    <script src="js/api/user.js"></script>
+    <script src="js/api/albums.js"></script>
+    <script src="js/api/playlists.js"></script>
+    <script src="js/api/payments.js"></script>
+    <script src="js/api/subscriptions.js"></script>
+    
+    <!-- Components -->
+    <script src="js/components/Toast.js"></script>
+    <script src="js/components/Modal.js"></script>
+    <script src="js/components/AudioPlayer.js"></script>
+    <script src="js/components/Navbar.js"></script>
+    <script src="js/components/Sidebar.js"></script>
+    <script src="js/components/SongCard.js"></script>
+    <script src="js/components/PlaylistCard.js"></script>
+    <script src="js/components/CommentSection.js"></script>
+    <script src="js/components/Waveform.js"></script>
+    <script src="js/components/UploadForm.js"></script>
+    <script src="js/components/Notification.js"></script>
+    <script src="js/components/DownloadManager.js"></script>
+    <script src="js/components/ShareModal.js"></script>
+    
+    <!-- Pages -->
+    <script src="js/pages/Home.js"></script>
+    <script src="js/pages/Browse.js"></script>
+    <script src="js/pages/Login.js"></script>
+    <script src="js/pages/Register.js"></script>
+    <script src="js/pages/UploadPage.js"></script>
+    <script src="js/pages/ArtistDashboard.js"></script>
+    <script src="js/pages/ListenerDashboard.js"></script>
+    <script src="js/pages/AdminDashboard.js"></script>
+    <script src="js/pages/AdminSongsPage.js"></script>
+    <script src="js/pages/AdminUsersPage.js"></script>
+    <script src="js/pages/Settings.js"></script>
+    <script src="js/pages/Earnings.js"></script>
+    <script src="js/pages/Downloads.js"></script>
+    <script src="js/pages/ArtistProfile.js"></script>
+    <script src="js/pages/AlbumView.js"></script>
+    <script src="js/pages/SongDetailPage.js"></script>
+    <script src="js/pages/TrendingPage.js"></script>
+    <script src="js/pages/LikedPage.js"></script>
+    <script src="js/pages/RecentPage.js"></script>
+    <script src="js/pages/VerifyEmail.js"></script>
+    <script src="js/pages/AlbumsPage.js"></script>
+    <script src="js/pages/AdminAllSongsPage.js"></script>
+    <script src="js/pages/AdminArtistsPage.js"></script>
+    
+    <!-- Services -->
+    <script src="js/services/authService.js"></script>
+    <script src="js/services/playerService.js"></script>
+    <script src="js/services/cacheService.js"></script>
+    <script src="js/services/notificationService.js"></script>
+    <script src="js/services/analyticsService.js"></script>
+    
+    <!-- Main App -->
+     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

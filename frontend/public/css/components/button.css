@@ -1,0 +1,23 @@
+/* Download Button Styles */
+.download-btn {
+    background: rgba(255, 255, 255, 0.2);
+    transition: all 0.3s;
+}
+
+.download-btn:hover {
+    background: var(--success-color);
+    transform: scale(1.1);
+}
+
+.download-btn.downloaded {
+    background: var(--success-color);
+}
+
+.download-btn.downloaded i {
+    color: white;
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 12px;
+}

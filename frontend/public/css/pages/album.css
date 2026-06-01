@@ -1,0 +1,236 @@
+/* Albums Page Styles */
+.albums-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.albums-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.albums-header h1 {
+    font-size: 28px;
+}
+
+.albums-tabs {
+    display: flex;
+    gap: 10px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+.albums-tab {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+    border-bottom: 2px solid transparent;
+}
+
+.albums-tab:hover {
+    color: var(--primary-color);
+}
+
+.albums-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.albums-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.albums-pane.active {
+    display: block;
+}
+
+.albums-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.album-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.album-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.album-card img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+}
+
+.album-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.album-card:hover .album-overlay {
+    opacity: 1;
+}
+
+.album-overlay button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.album-overlay button:hover {
+    transform: scale(1.1);
+}
+
+.album-info {
+    padding: 12px;
+}
+
+.album-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.album-info p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.album-status {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--warning-color);
+    color: white;
+}
+
+.album-detail-view {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.album-detail-cover {
+    width: 200px;
+    height: 200px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.album-detail-info {
+    flex: 1;
+}
+
+.album-detail-info p {
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.album-songs-section h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.album-songs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.album-song-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    background: var(--darker-bg);
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+
+.album-song-item:hover {
+    background: var(--hover-bg);
+}
+
+.song-number {
+    width: 30px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.song-info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.song-title {
+    font-weight: 500;
+}
+
+.song-duration {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .albums-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+    
+    .albums-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .album-detail-view {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .song-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}

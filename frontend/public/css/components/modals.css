@@ -1,0 +1,211 @@
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: 16px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Song Menu */
+.song-menu {
+    position: fixed;
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
+    z-index: 2001;
+    overflow: hidden;
+}
+
+.menu-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.menu-item:hover {
+    background: var(--hover-bg);
+}
+
+.menu-item i {
+    width: 20px;
+}
+
+/* Playlist Modal */
+.playlist-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+.playlist-item {
+    padding: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.playlist-item:hover {
+    background: var(--hover-bg);
+}
+
+/* Confirm Modal */
+.confirm-modal .modal-content {
+    max-width: 400px;
+    text-align: center;
+}
+
+.confirm-modal .confirm-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.confirm-modal .confirm-icon.warning {
+    color: var(--warning-color);
+}
+
+.confirm-modal .confirm-icon.danger {
+    color: var(--danger-color);
+}
+
+.confirm-modal .confirm-icon.success {
+    color: var(--success-color);
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Share Options Styles */
+.share-options {
+    padding: 10px 0;
+}
+
+.share-url-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.share-url-container input {
+    flex: 1;
+    padding: 10px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 12px;
+}
+
+.share-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.share-platform {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    background: var(--hover-bg);
+    border: none;
+    border-radius: 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.share-platform:hover {
+    background: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.share-platform i {
+    font-size: 16px;
+}
+
+.share-platform[data-platform="facebook"]:hover { background: #1877f2; }
+.share-platform[data-platform="twitter"]:hover { background: #1da1f2; }
+.share-platform[data-platform="whatsapp"]:hover { background: #25d366; }
+.share-platform[data-platform="telegram"]:hover { background: #0088cc; }
+.share-platform[data-platform="email"]:hover { background: #ea4335; }

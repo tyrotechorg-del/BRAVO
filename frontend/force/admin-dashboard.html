@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Bravo Music</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar"><div class="nav-container"><!-- Same navbar content --></div></nav>
+    
+    <div class="dashboard-container">
+        <h1>Admin Dashboard</h1>
+        
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="overview">Overview</button>
+            <button class="admin-tab" data-tab="users">Users</button>
+            <button class="admin-tab" data-tab="pending">Pending Songs</button>
+            <button class="admin-tab" data-tab="withdrawals">Withdrawals</button>
+            <button class="admin-tab" data-tab="reports">Reports</button>
+            <button class="admin-tab" data-tab="comments">Reported Comments</button>
+            <button class="admin-tab" data-tab="settings">Settings</button>
+        </div>
+        
+        <div id="overview-pane" class="admin-pane active">
+            <div class="dashboard-stats" id="stats-container">
+                <div class="loading-container"><div class="spinner"></div></div>
+            </div>
+            <div class="admin-actions">
+                <button class="btn-primary" id="refresh-btn">Refresh Data</button>
+                <button class="btn-outline" id="backup-btn">Backup Database</button>
+                <button class="btn-outline" id="upload-song-btn">Upload Song</button>
+            </div>
+        </div>
+        
+        <div id="users-pane" class="admin-pane">
+            <div class="user-filters" style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <select id="role-filter"><option value="">All Roles</option><option value="listener">Listeners</option><option value="artist">Artists</option><option value="admin">Admins</option></select>
+                <input type="text" id="user-search" placeholder="Search...">
+                <button id="search-users" class="btn-secondary">Search</button>
+                <button id="reset-users" class="btn-outline">Reset</button>
+            </div>
+            <div id="users-table"></div>
+        </div>
+        
+        <div id="pending-pane" class="admin-pane">
+            <div id="pending-songs-table"></div>
+        </div>
+        
+        <div id="withdrawals-pane" class="admin-pane">
+            <div id="withdrawals-table"></div>
+        </div>
+        
+        <div id="reports-pane" class="admin-pane">
+            <div id="reports-table"></div>
+        </div>
+        
+        <div id="comments-pane" class="admin-pane">
+            <div id="comments-table"></div>
+        </div>
+        
+        <div id="settings-pane" class="admin-pane">
+            <form id="settings-form" class="settings-form">
+                <div class="form-group"><label>Commission Rate (%)</label><input type="number" name="platformCommission" value="20" step="0.5"></div>
+                <div class="form-group"><label>Min Withdrawal (K)</label><input type="number" name="minWithdrawalAmount" value="50"></div>
+                <div class="form-group"><label>Max Upload Size (MB)</label><input type="number" name="maxUploadSize" value="50"></div>
+                <button type="submit" class="btn-primary">Save Settings</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/components.js"></script>
+    <script>
+        let currentTab = 'overview';
+        let users = [];
+        let pendingSongs = [];
+        let withdrawals = [];
+        let reports = [];
+        let comments = [];
+        let analytics = null;
+        
+        async function loadData() {
+            try {
+                if (currentTab === 'overview') {
+                    analytics = await AdminAPI.getPlatformAnalytics();
+                    renderOverview();
+                }
+                if (currentTab === 'users') {
+                    const result = await AdminAPI.getAllUsers(1, 50);
+                    users = result.users || [];
+                    renderUsers();
+                }
+                if (currentTab === 'pending') {
+                    pendingSongs = await AdminAPI.getPendingSongs();
+                    renderPendingSongs();
+                }
+                if (currentTab === 'withdrawals') {
+                    withdrawals = await AdminAPI.getWithdrawals('pending');
+                    renderWithdrawals();
+                }
+                if (currentTab === 'reports') {
+                    reports = await AdminAPI.getReports();
+                    renderReports();
+                }
+                if (currentTab === 'comments') {
+                    comments = await AdminAPI.getReportedComments();
+                    renderComments();
+                }
+            } catch (error) {
+                Toast.show('Failed to load data', 'error');
+            }
+        }
+        
+        function renderOverview() {
+            const overview = analytics?.overview || {};
+            document.getElementById('stats-container').innerHTML = `
+                <div class="stat-card"><h3>Total Users</h3><div class="value">${overview.totalUsers || 0}</div></div>
+                <div class="stat-card"><h3>Total Artists</h3><div class="value">${overview.totalArtists || 0}</div></div>
+                <div class="stat-card"><h3>Total Songs</h3><div class="value">${overview.totalSongs || 0}</div></div>
+                <div class="stat-card"><h3>Pending Songs</h3><div class="value">${overview.totalPending || 0}</div></div>
+                <div class="stat-card"><h3>Total Revenue</h3><div class="value">K${(overview.totalRevenue || 0).toLocaleString()}</div></div>
+            `;
+        }
+        
+        function renderUsers() {
+            const html = `
+                <table class="data-table">
+                    <thead><tr><th>Avatar</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${users.map(user => `
+                            <tr>
+                                <td><img src="${user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=32'}" style="width: 32px; height: 32px; border-radius: 50%;"></td>
+                                <td>${escapeHtml(user.username)}</td>
+                                <td>${escapeHtml(user.email)}</td>
+                                <td><span class="role-badge">${user.role}</span></td>
+                                <td><span class="status-badge ${user.isActive ? 'active' : 'inactive'}">${user.isActive ? 'Active' : 'Inactive'}</span></td>
+                                <td><button class="btn-icon edit-user" data-id="${user._id}"><i class="fas fa-edit"></i></button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('users-table').innerHTML = html;
+        }
+        
+        function renderPendingSongs() {
+            const html = `
+                <table class="data-table">
+                    <thead><tr><th>Cover</th><th>Title</th><th>Artist</th><th>Genre</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${pendingSongs.map(song => `
+                            <tr>
+                                <td><img src="${API.getFullUrl(song.coverArt)}" style="width: 40px; height: 40px; border-radius: 4px;"></td>
+                                <td>${escapeHtml(song.title)}</td>
+                                <td>${song.artist?.stageName || 'Unknown'}</td>
+                                <td>${song.genre || 'Various'}</td>
+                                <td>
+                                    <button class="btn-success approve-song" data-id="${song._id}">Approve</button>
+                                    <button class="btn-danger reject-song" data-id="${song._id}">Reject</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('pending-songs-table').innerHTML = html;
+        }
+        
+        function renderWithdrawals() {
+            const html = `
+                <table class="data-table">
+                    <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Date</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${withdrawals.map(w => `
+                            <tr>
+                                <td>${w.user?.username || 'Unknown'}</td>
+                                <td>K${w.amount}</td>
+                                <td>${w.method}</td>
+                                <td>${new Date(w.createdAt).toLocaleDateString()}</td>
+                                <td>
+                                    <button class="btn-success approve-withdrawal" data-id="${w._id}">Approve</button>
+                                    <button class="btn-danger reject-withdrawal" data-id="${w._id}">Reject</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('withdrawals-table').innerHTML = html;
+        }
+        
+        function renderReports() {
+            const html = `
+                <table class="data-table">
+                    <thead><tr><th>Reporter</th><th>Type</th><th>Reason</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${reports.map(r => `
+                            <tr>
+                                <td>${r.reporter?.username}</td>
+                                <td>${r.type}</td>
+                                <td>${r.reason}</td>
+                                <td>
+                                    <button class="btn-success resolve" data-id="${r._id}" data-action="dismiss">Dismiss</button>
+                                    <button class="btn-danger resolve" data-id="${r._id}" data-action="remove">Remove</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('reports-table').innerHTML = html;
+        }
+        
+        function renderComments() {
+            const html = `
+                <table class="data-table">
+                    <thead><tr><th>User</th><th>Comment</th><th>Reason</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${comments.map(c => `
+                            <tr>
+                                <td>${c.user?.username}</td>
+                                <td>${escapeHtml(c.content)}</td>
+                                <td>${c.flaggedReason}</td>
+                                <td><button class="btn-danger delete-comment" data-id="${c._id}">Delete</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('comments-table').innerHTML = html;
+        }
+        
+        // Event listeners
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                currentTab = tab.dataset.tab;
+                document.getElementById(`${currentTab}-pane`).classList.add('active');
+                loadData();
+            });
+        });
+        
+        document.getElementById('refresh-btn')?.addEventListener('click', () => loadData());
+        
+        document.getElementById('settings-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            await AdminAPI.updateSystemSettings({
+                platformCommission: parseFloat(formData.get('platformCommission')),
+                minWithdrawalAmount: parseFloat(formData.get('minWithdrawalAmount')),
+                maxUploadSize: parseFloat(formData.get('maxUploadSize'))
+            });
+            Toast.show('Settings updated', 'success');
+        });
+        
+        document.getElementById('backup-btn')?.addEventListener('click', async () => {
+            await AdminAPI.triggerBackup();
+            Toast.show('Backup initiated', 'success');
+        });
+        
+        loadData();
+        initNavbar();
+    </script>
+</body>
+</html>
