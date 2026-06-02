@@ -45,7 +45,7 @@ const allowedOrigins = [
     'https://www.bravomusics.com',
     'https://api.bravomusics.com',
     'http://localhost:3000',
-    'http://localhost:5000',
+    'http://localhost:1000',
     'http://localhost:5500'
 ];
 
@@ -153,7 +153,7 @@ app.use('*', (req, res) => {
 app.use(errorHandler);
 
 // Database connection and server start
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 1000;
 
 const startServer = async () => {
     try {
