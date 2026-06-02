@@ -2,8 +2,8 @@
 // ==================== CONFIGURATION ====================
 
 // API URLs - Change for production
-const API_BASE_URL = "https://api.bravomusicblog.tyrotech.org/api";
-const WS_BASE_URL = "ws://api.bravomusicblog.tyrotech.org";
+const API_BASE_URL = "https://api.bravomusics.com/api";
+const WS_BASE_URL = "ws://api.bravomusics.com";
 
 // Export for other scripts
 window.API_BASE_URL = API_BASE_URL;
@@ -12,8 +12,8 @@ window.WS_BASE_URL = WS_BASE_URL;
 window.APP_CONFIG = {
     API_URL: API_BASE_URL,
     WS_URL: WS_BASE_URL,
-    STATIC_URL: 'https://api.bravomusicblog.tyrotech.org',
-    FRONTEND_URL: 'https://bravomusicblog.tyrotech.org',
+    STATIC_URL: 'https://api.bravomusics.com',
+    FRONTEND_URL: 'https://bravomusics.com',
     APP_NAME: 'Bravo Music',
     APP_VERSION: '2.0.0',
     APP_DESCRIPTION: "Zambia's Premier Music Platform",
