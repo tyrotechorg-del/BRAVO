@@ -14,7 +14,7 @@ const artistSchema = new mongoose.Schema({
   },
   genres: [{
     type: String,
-    enum: ['Afrobeat', 'Hip Hop', 'R&B', 'Dancehall', 'Reggae', 'Gospel', 'Traditional', 'Amapiano', 'Other']
+    enum: ['Afrobeat', 'Hip Hop', 'R&B', 'Dancehall', 'Reggae', 'Cuundu', 'Kalindula', 'Gospel', 'Traditional', 'Amapiano', 'Other']
   }],
   verified: {
     type: Boolean,
