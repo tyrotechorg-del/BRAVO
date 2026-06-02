@@ -1,5 +1,5 @@
 /**
- * Audio Player Component - SEQUENTIAL DEFAULT WITH WORKING RANDOM MODE
+ * Audio Player Component - FULLY UPDATED AND FIXED
  */
 
 class AudioPlayer {
@@ -10,12 +10,12 @@ class AudioPlayer {
         this.playlist = [];
         this.currentIndex = -1;
         this.isPlaying = false;
-        this.isShuffled = false; // FALSE = Sequential mode (DEFAULT)
+        this.isShuffled = false;
         this.isRepeating = false;
         this.shuffledPlaylist = [];
         this.originalPlaylist = [];
         this.apiUrl = window.API_BASE_URL;
-        this.staticUrl = window.APP_CONFIG.STATIC_URL;
+        this.staticUrl = window.APP_CONFIG?.STATIC_URL || window.location.origin;
         this.init();
     }
 
@@ -39,7 +39,7 @@ class AudioPlayer {
         this.container.innerHTML = `
             <div class="player-container">
                 <div class="player-info">
-                    <img class="player-cover" id="player-cover" src="${window.getDefaultImage()}">
+                    <img class="player-cover" id="player-cover" src="${window.getDefaultImage ? window.getDefaultImage() : '/js/images/bravo.png'}">
                     <div class="player-details">
                         <div class="player-title" id="player-title">Select a song</div>
                         <div class="player-artist" id="player-artist">Bravo Music</div>
@@ -122,9 +122,43 @@ class AudioPlayer {
         this.audio.addEventListener('ended', () => this.handleSongEnd());
         this.audio.addEventListener('play', () => this.updatePlayButton(true));
         this.audio.addEventListener('pause', () => this.updatePlayButton(false));
+        this.audio.addEventListener('canplay', () => {
+            console.log('Audio can play now');
+        });
+        this.audio.addEventListener('waiting', () => {
+            console.log('Audio buffering...');
+        });
+        this.audio.addEventListener('stalled', () => {
+            console.log('Audio stalled');
+        });
         this.audio.addEventListener('error', (e) => {
-            console.error('Audio error:', e);
-            Toast.show('Error playing audio. Please try again.', 'error');
+            console.error('Audio error event:', e);
+            console.error('Error code:', this.audio.error?.code);
+            console.error('Error message:', this.audio.error?.message);
+            
+            let errorMsg = 'Error playing audio. ';
+            switch(this.audio.error?.code) {
+                case 1:
+                    errorMsg += 'Playback aborted.';
+                    break;
+                case 2:
+                    errorMsg += 'Network error. Please check your connection.';
+                    break;
+                case 3:
+                    errorMsg += 'Audio decoding error. File may be corrupted.';
+                    break;
+                case 4:
+                    errorMsg += 'Audio format not supported.';
+                    break;
+                default:
+                    errorMsg += 'Please try again.';
+            }
+            
+            if (window.Toast) {
+                Toast.show(errorMsg, 'error');
+            } else {
+                console.error(errorMsg);
+            }
         });
     }
 
@@ -142,46 +176,39 @@ class AudioPlayer {
         const shuffleBtn = document.getElementById('shuffle-btn');
         
         if (this.isShuffled) {
-            // Enable shuffle mode - create shuffled playlist
             this.enableShuffleMode();
             if (shuffleBtn) {
                 shuffleBtn.style.color = '#6c63ff';
                 shuffleBtn.title = 'Shuffle Mode ON';
             }
-            Toast.show('Shuffle mode ON - songs will play randomly', 'success');
+            if (window.Toast) Toast.show('Shuffle mode ON - songs will play randomly', 'success');
         } else {
-            // Disable shuffle mode - restore sequential order
             this.disableShuffleMode();
             if (shuffleBtn) {
                 shuffleBtn.style.color = '';
                 shuffleBtn.title = 'Shuffle Mode OFF';
             }
-            Toast.show('Shuffle mode OFF - sequential play', 'info');
+            if (window.Toast) Toast.show('Shuffle mode OFF - sequential play', 'info');
         }
     }
 
     enableShuffleMode() {
         if (this.playlist.length === 0) return;
         
-        // Save original playlist order if not already saved
         if (this.originalPlaylist.length === 0) {
             this.originalPlaylist = [...this.playlist];
         }
         
-        // Create shuffled version of the playlist
         this.shuffledPlaylist = [...this.playlist];
         for (let i = this.shuffledPlaylist.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [this.shuffledPlaylist[i], this.shuffledPlaylist[j]] = [this.shuffledPlaylist[j], this.shuffledPlaylist[i]];
         }
         
-        // Find current song in shuffled playlist and update index
         const currentSongId = this.currentSong?._id;
         if (currentSongId) {
             this.currentIndex = this.shuffledPlaylist.findIndex(s => s._id === currentSongId);
-            if (this.currentIndex === -1) {
-                this.currentIndex = 0;
-            }
+            if (this.currentIndex === -1) this.currentIndex = 0;
         }
     }
 
@@ -190,13 +217,10 @@ class AudioPlayer {
             this.playlist = [...this.originalPlaylist];
             this.shuffledPlaylist = [];
             
-            // Find current song in original playlist
             const currentSongId = this.currentSong?._id;
             if (currentSongId) {
                 this.currentIndex = this.playlist.findIndex(s => s._id === currentSongId);
-                if (this.currentIndex === -1) {
-                    this.currentIndex = 0;
-                }
+                if (this.currentIndex === -1) this.currentIndex = 0;
             }
         }
     }
@@ -208,11 +232,11 @@ class AudioPlayer {
             if (this.isRepeating) {
                 repeatBtn.style.color = '#6c63ff';
                 repeatBtn.title = 'Repeat Mode ON';
-                Toast.show('Repeat ONE - current song will loop', 'success');
+                if (window.Toast) Toast.show('Repeat ONE - current song will loop', 'success');
             } else {
                 repeatBtn.style.color = '';
                 repeatBtn.title = 'Repeat Mode OFF';
-                Toast.show('Repeat OFF', 'info');
+                if (window.Toast) Toast.show('Repeat OFF', 'info');
             }
         }
     }
@@ -230,6 +254,7 @@ class AudioPlayer {
             return;
         }
         
+        console.log('Loading song:', song.title);
         this.currentSong = song;
         
         if (playlist) {
@@ -244,21 +269,41 @@ class AudioPlayer {
                 if (this.currentIndex === -1) this.currentIndex = 0;
             }
         } else {
-            // Update index in current playlist
             const currentPlaylist = this.getCurrentPlaylist();
             this.currentIndex = currentPlaylist.findIndex(s => s._id === song._id);
             if (this.currentIndex === -1) this.currentIndex = 0;
         }
         
+        // Proper URL construction
         let audioUrl = song.audioUrl;
-        if (audioUrl && !audioUrl.startsWith('http') && audioUrl.startsWith('/uploads')) {
-            audioUrl = `${this.staticUrl}${audioUrl}`;
+        if (audioUrl) {
+            if (audioUrl.startsWith('http')) {
+                // Keep as is
+            } 
+            else if (audioUrl.startsWith('/uploads')) {
+                audioUrl = `${this.staticUrl}${audioUrl}`;
+            }
+            else if (audioUrl.startsWith('/static')) {
+                audioUrl = `${this.staticUrl}${audioUrl}`;
+            }
+            else {
+                audioUrl = `${this.staticUrl}/uploads/audio/${audioUrl.split('/').pop()}`;
+            }
         }
         
-        console.log('Loading song:', song.title);
+        console.log('Final audio URL:', audioUrl);
+        
+        // IMPORTANT: Pause and clear current audio before loading new one
+        this.audio.pause();
+        this.audio.src = '';
+        this.audio.removeAttribute('src');
+        this.audio.load();
+        
+        // Set new source
         this.audio.src = audioUrl;
         this.audio.load();
         
+        // Update UI
         const titleEl = document.getElementById('player-title');
         const artistEl = document.getElementById('player-artist');
         const coverEl = document.getElementById('player-cover');
@@ -267,21 +312,54 @@ class AudioPlayer {
         if (artistEl) artistEl.textContent = song.artist?.stageName || 'Unknown Artist';
         
         let coverUrl = song.coverArt;
-        if (coverUrl && !coverUrl.startsWith('http') && coverUrl.startsWith('/uploads')) {
-            coverUrl = `${this.staticUrl}${coverUrl}`;
+        if (coverUrl) {
+            if (coverUrl.startsWith('/uploads')) {
+                coverUrl = `${this.staticUrl}${coverUrl}`;
+            } else if (coverUrl.startsWith('/static')) {
+                coverUrl = `${this.staticUrl}${coverUrl}`;
+            }
         }
-        if (coverEl) coverEl.src = coverUrl || window.getDefaultImage();
+        if (coverEl) coverEl.src = coverUrl || (window.getDefaultImage ? window.getDefaultImage() : '/js/images/bravo.png');
         
-        this.play();
+        // Wait for audio to be ready before playing
+        const playAfterLoad = () => {
+            this.audio.removeEventListener('canplay', playAfterLoad);
+            this.play();
+        };
+        
+        this.audio.addEventListener('canplay', playAfterLoad, { once: true });
+        
+        // Fallback: try to play after a short delay if canplay doesn't fire
+        setTimeout(() => {
+            if (!this.isPlaying && this.audio.readyState >= 2) {
+                this.play();
+            }
+        }, 500);
+        
         this.addToRecentlyPlayed(song);
     }
 
     play() {
-        this.audio.play().catch(error => {
-            console.error('Play failed:', error);
-            Toast.show('Cannot play this song. The file might be inaccessible.', 'error');
-        });
-        this.isPlaying = true;
+        if (!this.audio.src) {
+            console.warn('No audio source loaded');
+            return;
+        }
+        
+        const playPromise = this.audio.play();
+        if (playPromise !== undefined) {
+            playPromise
+                .then(() => {
+                    console.log('✅ Playing successfully');
+                    this.isPlaying = true;
+                })
+                .catch(error => {
+                    console.error('Play failed:', error);
+                    this.isPlaying = false;
+                    if (window.Toast) {
+                        Toast.show('Cannot play this song. The file might be inaccessible.', 'error');
+                    }
+                });
+        }
     }
 
     pause() {
@@ -304,12 +382,10 @@ class AudioPlayer {
         let nextIndex;
         
         if (this.isShuffled) {
-            // Random next for shuffle mode
             do {
                 nextIndex = Math.floor(Math.random() * currentPlaylist.length);
             } while (nextIndex === this.currentIndex && currentPlaylist.length > 1);
         } else {
-            // Sequential next - go to next song in order
             nextIndex = (this.currentIndex + 1) % currentPlaylist.length;
         }
         
@@ -329,12 +405,10 @@ class AudioPlayer {
         let prevIndex;
         
         if (this.isShuffled) {
-            // Random previous for shuffle mode (play a different random song)
             do {
                 prevIndex = Math.floor(Math.random() * currentPlaylist.length);
             } while (prevIndex === this.currentIndex && currentPlaylist.length > 1);
         } else {
-            // Sequential previous - go to previous song in order
             prevIndex = (this.currentIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
         }
         
@@ -349,23 +423,27 @@ class AudioPlayer {
 
     async downloadCurrentSong() {
         if (!this.currentSong) {
-            Toast.show('No song selected', 'warning');
+            if (window.Toast) Toast.show('No song selected', 'warning');
             return;
         }
         
         const token = localStorage.getItem('bravo_token');
         if (!token) {
-            Toast.show('Please login to download', 'info');
+            if (window.Toast) Toast.show('Please login to download', 'info');
             window.location.hash = 'login';
             return;
         }
         
-        Toast.show(`Downloading "${this.currentSong.title}"...`, 'info');
+        if (window.Toast) Toast.show(`Downloading "${this.currentSong.title}"...`, 'info');
         
         try {
             let audioUrl = this.currentSong.audioUrl;
-            if (audioUrl && !audioUrl.startsWith('http') && audioUrl.startsWith('/uploads')) {
-                audioUrl = `${this.staticUrl}${audioUrl}`;
+            if (audioUrl) {
+                if (audioUrl.startsWith('/uploads')) {
+                    audioUrl = `${this.staticUrl}${audioUrl}`;
+                } else if (audioUrl.startsWith('/static')) {
+                    audioUrl = `${this.staticUrl}${audioUrl}`;
+                }
             }
             
             const response = await fetch(audioUrl);
@@ -380,20 +458,30 @@ class AudioPlayer {
             window.URL.revokeObjectURL(url);
             
             this.saveToDownloads(this.currentSong);
-            Toast.show(`Downloaded "${this.currentSong.title}" successfully! 📥`, 'success');
+            if (window.Toast) Toast.show(`Downloaded "${this.currentSong.title}" successfully! 📥`, 'success');
         } catch (error) {
             console.error('Download failed:', error);
-            Toast.show('Download failed. Please try again.', 'error');
+            if (window.Toast) Toast.show('Download failed. Please try again.', 'error');
         }
     }
 
     shareCurrentSong() {
         if (!this.currentSong) {
-            Toast.show('No song selected', 'warning');
+            if (window.Toast) Toast.show('No song selected', 'warning');
             return;
         }
         
-        ShareModal.show(this.currentSong);
+        if (window.ShareModal) {
+            ShareModal.show(this.currentSong);
+        } else if (navigator.share) {
+            navigator.share({
+                title: this.currentSong.title,
+                text: `Check out ${this.currentSong.title} by ${this.currentSong.artist?.stageName}`,
+                url: window.location.href
+            }).catch(() => {});
+        } else {
+            if (window.Toast) Toast.show('Share feature not available', 'info');
+        }
     }
 
     saveToDownloads(song) {
@@ -431,7 +519,7 @@ class AudioPlayer {
 
     updateDuration() {
         const durationSpan = document.getElementById('duration');
-        if (durationSpan && this.audio.duration) {
+        if (durationSpan && this.audio.duration && !isNaN(this.audio.duration)) {
             const mins = Math.floor(this.audio.duration / 60);
             const secs = Math.floor(this.audio.duration % 60);
             durationSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -442,14 +530,16 @@ class AudioPlayer {
         const btn = document.getElementById('play-pause-btn');
         if (btn) {
             const icon = btn.querySelector('i');
-            icon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+            if (icon) {
+                icon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+            }
         }
     }
 
     seek(event) {
         const rect = event.currentTarget.getBoundingClientRect();
         const percent = (event.clientX - rect.left) / rect.width;
-        if (this.audio.duration) {
+        if (this.audio.duration && !isNaN(this.audio.duration)) {
             this.audio.currentTime = percent * this.audio.duration;
         }
     }
