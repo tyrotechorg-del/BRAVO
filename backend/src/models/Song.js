@@ -22,7 +22,10 @@ const songSchema = new mongoose.Schema({
   genre: {
     type: String,
     enum: ['Afrobeat', 'Hip Hop', 'R&B', 'Dancehall', 'Reggae', 'Gospel', 
-           'Traditional', 'Amapiano', 'Cuundu', 'Kalindula', 'Other'],
+           'Traditional', 'Amapiano', 'Cuundu', 'Kalindula', 'Other',
+        
+        'afrobeat', 'hip hop', 'r&b', 'dancehall', 'reggae', 'gospel', 
+        'traditional', 'amapiano', 'cuundu', 'Kalindula', 'other'],
     required: true
   },
   duration: {
