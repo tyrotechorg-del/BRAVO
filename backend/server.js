@@ -38,9 +38,40 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
+
+// ============ UPDATED CORS CONFIGURATION ============
+const allowedOrigins = [
+    'https://bravomusics.com',
+    'https://www.bravomusics.com',
+    'https://api.bravomusics.com',
+    'http://localhost:3000',
+    'http://localhost:5000',
+    'http://localhost:5500'
+];
+
+// CORS for Express
+app.use(cors({
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.warn(`❌ Blocked origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    exposedHeaders: ['Authorization']
+}));
+
+// Socket.IO with updated CORS
 const io = new Server(httpServer, {
     cors: {
-        origin: process.env.FRONTEND_URL,
+        origin: allowedOrigins,
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -51,12 +82,20 @@ const io = new Server(httpServer, {
 configureSocket(io);
 
 // Security middleware
-app.use(securityMiddleware);
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
+}));
 app.use(compression());
 app.use(express.json({ limit: '500mb' }));
 app.use(express.urlencoded({ extended: true, limit: '500mb' }));
+
+// Static file serving for uploads
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
+// IMPORTANT: Serve your music and images folders
+app.use('/static/music', express.static('/var/www/BRAVO/src/utils/music'));
+app.use('/static/images', express.static('/var/www/BRAVO/src/utils/images'));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -71,7 +110,8 @@ app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
+        allowedOrigins: allowedOrigins
     });
 });
 
@@ -99,7 +139,8 @@ app.get('/', (req, res) => {
         name: 'Bravo Music API',
         version: '2.0.0',
         status: 'running',
-        endpoints: '/api/'
+        endpoints: '/api/',
+        cors: allowedOrigins
     });
 });
 
@@ -112,24 +153,25 @@ app.use('*', (req, res) => {
 app.use(errorHandler);
 
 // Database connection and server start
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
     try {
         await connectDB();
         
-        httpServer.listen(PORT, '0.0.0.0',  () => {
+        httpServer.listen(PORT, '0.0.0.0', () => {
             console.log('\n' + '='.repeat(60));
             console.log('🎵 BRAVO MUSIC API SERVER');
             console.log('='.repeat(60));
             console.log(`📍 URL: http://localhost:${PORT}`);
             console.log(`📋 API: http://localhost:${PORT}/api`);
             console.log(`✅ Health: http://localhost:${PORT}/api/health`);
-            console.log('='.repeat(60));
-            console.log('\n🔐 Test Accounts (after seeding):');
-            console.log('   👤 Listener: demo@example.com / password123');
-            console.log('   🎨 Artist:   artist@example.com / password123');
-            console.log('   👑 Admin:    admin@bravomusic.com / Admin@123');
+            console.log('\n🌐 CORS Allowed Origins:');
+            allowedOrigins.forEach(origin => console.log(`   ${origin}`));
+            console.log('\n🔐 Test Accounts:');
+            console.log('   👤 Listener: listener@bravomusics.com / listener123');
+            console.log('   🎨 Artist:   artist@example.com / artist123');
+            console.log('   👑 Admin:    admin@bravomusic.com / Admin@comBravo');
             console.log('\n' + '='.repeat(60));
             console.log('✨ Server ready!\n');
         });
