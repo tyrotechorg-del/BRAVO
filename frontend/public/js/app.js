@@ -481,27 +481,89 @@ class BravoMusicApp {
 
     setupEventListeners() {
         document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && document.activeElement !== document.querySelector('input') && document.activeElement !== document.querySelector('textarea')) {
-                e.preventDefault();
-                if (this.audioPlayer) {
-                    this.audioPlayer.togglePlay();
+            // Get the currently focused element
+            const activeElement = document.activeElement;
+            
+            // Comprehensive check for typing contexts
+            const isTyping = activeElement && (
+                // Form elements
+                activeElement.tagName === 'INPUT' ||
+                activeElement.tagName === 'TEXTAREA' ||
+                activeElement.tagName === 'SELECT' ||
+                // Content editable divs
+                activeElement.isContentEditable ||
+                // Rich text editors
+                activeElement.closest('[contenteditable="true"]') ||
+                // Input types that accept text
+                (activeElement.tagName === 'INPUT' && (
+                    activeElement.type === 'text' ||
+                    activeElement.type === 'email' ||
+                    activeElement.type === 'password' ||
+                    activeElement.type === 'search' ||
+                    activeElement.type === 'tel' ||
+                    activeElement.type === 'url' ||
+                    activeElement.type === 'number'
+                ))
+            );
+            
+            // Space bar (key code 32)
+            if (e.code === 'Space' || e.keyCode === 32) {
+                if (!isTyping) {
+                    e.preventDefault();
+                    if (this.audioPlayer) {
+                        this.audioPlayer.togglePlay();
+                    }
                 }
+                // If typing, allow normal space input
+                return;
             }
-            if (e.code === 'ArrowRight') {
-                if (this.audioPlayer) {
-                    this.audioPlayer.playNext();
+            
+            // Arrow keys for media control (only when not typing)
+            if (!isTyping) {
+                // Right Arrow - Next song
+                if (e.code === 'ArrowRight' || e.keyCode === 39) {
+                    e.preventDefault();
+                    if (this.audioPlayer && this.audioPlayer.playNext) {
+                        this.audioPlayer.playNext();
+                    }
+                    return;
                 }
-            }
-            if (e.code === 'ArrowLeft') {
-                if (this.audioPlayer) {
-                    this.audioPlayer.playPrevious();
+                
+                // Left Arrow - Previous song
+                if (e.code === 'ArrowLeft' || e.keyCode === 37) {
+                    e.preventDefault();
+                    if (this.audioPlayer && this.audioPlayer.playPrevious) {
+                        this.audioPlayer.playPrevious();
+                    }
+                    return;
+                }
+                
+                // Up Arrow - Volume up
+                if (e.code === 'ArrowUp' || e.keyCode === 38) {
+                    e.preventDefault();
+                    if (this.audioPlayer && this.audioPlayer.increaseVolume) {
+                        this.audioPlayer.increaseVolume();
+                    }
+                    return;
+                }
+                
+                // Down Arrow - Volume down
+                if (e.code === 'ArrowDown' || e.keyCode === 40) {
+                    e.preventDefault();
+                    if (this.audioPlayer && this.audioPlayer.decreaseVolume) {
+                        this.audioPlayer.decreaseVolume();
+                    }
+                    return;
                 }
             }
         });
     }
 
     getPageFromHash() {
-        const hash = window.location.hash.slice(1);
+        let hash = window.location.hash.slice(1);
+        // Decode the hash to handle special characters
+        hash = decodeURIComponent(hash);
+        console.log('Page from hash:', hash);
         return hash || 'home';
     }
 
@@ -521,8 +583,9 @@ class BravoMusicApp {
             return;
         }
         
-        // Handle password reset routes
+        // Handle forgot password route
         if (page === 'forgot-password') {
+            console.log('Loading forgot password page...');
             const forgotPasswordPage = new ForgotPasswordPage();
             const content = await forgotPasswordPage.render();
             mainContent.innerHTML = content;
@@ -530,14 +593,57 @@ class BravoMusicApp {
             return;
         }
         
-        if (page.startsWith('reset-password/')) {
-            const token = page.split('/')[1];
-            const resetPasswordPage = new ResetPasswordPage(token);
-            const content = await resetPasswordPage.render();
-            mainContent.innerHTML = content;
-            if (resetPasswordPage.afterRender) await resetPasswordPage.afterRender();
+
+        // Handle reset password route
+    if (page.indexOf('reset-password') !== -1) {
+        console.log('🔄 Reset password route detected, page:', page);
+        
+        // Extract token - get everything after 'reset-password/'
+        let token = '';
+        if (page.includes('reset-password/')) {
+            token = page.split('reset-password/')[1];
+        } else if (page.includes('reset-password')) {
+            token = page.replace('reset-password', '').replace('/', '');
+        }
+        
+        // Clean up token (remove any leading slashes or hash)
+        token = token.replace(/^\/+/, '').replace(/#.*$/, '');
+        
+        console.log('📝 Extracted token:', token);
+        
+        if (!token || token.length < 10) {
+            console.error('❌ Invalid reset token');
+            mainContent.innerHTML = `
+                <div class="form-container animate-fade-in-up">
+                    <div class="error-icon" style="text-align: center; margin-bottom: 20px;">
+                        <i class="fas fa-exclamation-circle" style="font-size: 64px; color: #ff4757;"></i>
+                    </div>
+                    <h2 style="text-align: center;">Invalid Reset Link</h2>
+                    <p style="text-align: center;">The password reset link is invalid or has expired.</p>
+                    <div class="form-actions" style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                        <button class="btn-primary" onclick="window.bravoApp.navigateTo('forgot-password')">Request New Link</button>
+                        <button class="btn-outline" onclick="window.bravoApp.navigateTo('login')">Back to Login</button>
+                    </div>
+                </div>
+            `;
             return;
         }
+        
+        // Check if class exists
+        if (typeof ResetPasswordPage === 'undefined') {
+            console.error('❌ ResetPasswordPage class not defined!');
+            mainContent.innerHTML = '<div class="error">Page not loaded. Please refresh.</div>';
+            return;
+        }
+        
+        const resetPasswordPage = new ResetPasswordPage(token);
+        const content = resetPasswordPage.render();
+        mainContent.innerHTML = content;
+        if (resetPasswordPage.afterRender) {
+            await resetPasswordPage.afterRender();
+        }
+        return;
+    }
         
         // Handle admin routes
         if (page.startsWith('admin/')) {
@@ -1047,6 +1153,7 @@ class BravoMusicApp {
     }
 
     navigateTo(page) {
+        console.log('Navigating to:', page);
         window.location.hash = page;
     }
 
@@ -1068,4 +1175,4 @@ let bravoApp = null;
 document.addEventListener('DOMContentLoaded', () => {
     bravoApp = new BravoMusicApp();
     window.bravoApp = bravoApp;
-});
+});s

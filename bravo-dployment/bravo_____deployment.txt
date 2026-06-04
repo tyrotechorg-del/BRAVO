@@ -1,0 +1,347 @@
+
+>>>>>>> without ssl certificate<<<<<<<<<<<<<
+
+# Main domain - Frontend
+server {
+    listen 80;
+    server_name bravomusics.com www.bravomusics.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name bravomusics.com www.bravomusics.com;
+
+    root /var/www/bravomusics/frontend;
+    index index.html;
+
+    # Gzip compression
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache static assets
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+
+# API subdomain
+server {
+    listen 80;
+    server_name api.bravomusics.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name api.bravomusics.com;
+
+    location / {
+        proxy_pass http://localhost:1000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        
+        # Large file upload support
+        client_max_body_size 500M;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 75s;
+    }
+
+    # Uploads directory
+    location /uploads {
+        alias /var/www/bravomusics/uploads;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+}
+
+
+
+>>>>>>> with ssl certificate<<<<<<<<<<<<<
+
+
+# Main domain - Frontend (HTTPS)
+server {
+    listen 443 ssl http2;
+    server_name bravomusics.com www.bravomusics.com;
+
+    ssl_certificate /etc/letsencrypt/live/bravomusics.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/bravomusics.com/privkey.pem;
+    
+    root /var/www/BRAVO/frontend;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+
+server {
+    listen 80;
+    server_name bravomusics.com www.bravomusics.com;
+    return 301 https://$server_name$request_uri;
+}
+
+# API subdomain (HTTPS)
+server {
+    listen 443 ssl http2;
+    server_name api.bravomusics.com;
+
+    ssl_certificate /etc/letsencrypt/live/bravomusics.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/bravomusics.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:1000; 
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        
+        client_max_body_size 500M;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 75s;
+    }
+
+    # Fix: Point to the correct uploads directory
+    location /uploads/ {
+        alias /var/www/BRAVO/backend/uploads/;
+        
+        # Add CORS headers for audio files
+        add_header Access-Control-Allow-Origin https://bravomusics.com;
+        add_header Access-Control-Expose-Headers "Content-Length, Content-Range, Accept-Ranges";
+        add_header Accept-Ranges bytes;
+        
+        # Set correct content types
+        types {
+            audio/mpeg mp3;
+            audio/mp4 m4a;
+            image/png png;
+            image/jpeg jpg jpeg;
+        }
+        
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+}
+
+server {
+    listen 80;
+    server_name api.bravomusics.com;
+    return 301 https://$server_name$request_uri;
+}
+
+
+
+oot@Rent-Hub-server-001:/var/www/BRAVO# git stash
+Saved working directory and index state WIP on main: 8f4d967 responsive
+root@Rent-Hub-server-001:/var/www/BRAVO# git pull origin main
+From github.com:tyrotechorg-del/BRAVO
+ * branch            main       -> FETCH_HEAD
+Updating 8f4d967..876ef6e
+Fast-forward
+ .../beyonc\303\251 and jay-z forever young.png" | Bin 0 -> 71630 bytes
+ backend/src/utils/images/bravo.png              | Bin 0 -> 818734 bytes
+ backend/src/utils/images/celine dion.png        | Bin 0 -> 5891 bytes
+ backend/src/utils/images/chile one.png          | Bin 0 -> 5618 bytes
+ backend/src/utils/images/driemo pensulo.png     | Bin 0 -> 10645 bytes
+ backend/src/utils/images/enya.png               | Bin 0 -> 6477 bytes
+ backend/src/utils/images/real-jay_forster.png   | Bin 0 -> 9231 bytes
+ backend/src/utils/images/spy-dolllar.png        | Bin 0 -> 12437 bytes
+ ..._One_MrZambia_Official_Visualizer_(128k).m4a | Bin 0 -> 4627512 bytes
+ .../Beyonce_And_Jay_Z__Forever_Young_(128k).mp3 | Bin 0 -> 2592737 bytes
+ ...y__Official_HD_Video__ft._Bee_Gees(48k).m4a" | Bin 0 -> 1523125 bytes
+ ...223_Pensulo__Official_Music_Video_(48k).m4a" | Bin 0 -> 1106957 bytes
+ .../src/utils/music/Enya_-_One_By_One(128k).mp3 | Bin 0 -> 3792698 bytes
+ ...nly_Time__Official_4K_Music_Video_(256k).mp3 | Bin 0 -> 3452972 bytes
+ ...michaeltonkanya_#Realjay_#mudolopo(128k).mp3 | Bin 0 -> 6630223 bytes
+ .../SPY_DOLLAR_ft_Nawizy...kapondo.(128k).mp3   | Bin 0 -> 3519771 bytes
+ backend/src/utils/seedData.js                   | 134 ++++++++++++++++--
+ frontend/public/js/config.js                    |   8 +-
+ 18 files changed, 123 insertions(+), 19 deletions(-)
+ create mode 100644 "backend/src/utils/images/beyonc\303\251 and jay-z forever young.png"
+ create mode 100644 backend/src/utils/images/bravo.png
+ create mode 100644 backend/src/utils/images/celine dion.png
+ create mode 100644 backend/src/utils/images/chile one.png
+ create mode 100644 backend/src/utils/images/driemo pensulo.png
+ create mode 100644 backend/src/utils/images/enya.png
+ create mode 100644 backend/src/utils/images/real-jay_forster.png
+ create mode 100644 backend/src/utils/images/spy-dolllar.png
+ create mode 100644 backend/src/utils/music/Be_My_Teacher-Chile_One_MrZambia_Official_Visualizer_(128k).m4a
+ create mode 100644 backend/src/utils/music/Beyonce_And_Jay_Z__Forever_Young_(128k).mp3
+ create mode 100644 "backend/src/utils/music/C\303\251line_Dion_-_Immortality__Official_HD_Video__ft._Bee_Gees(48k).m4a"
+ create mode 100644 "backend/src/utils/music/Driemo_\342\200\223_Pensulo__Official_Music_Video_(48k).m4a"
+ create mode 100644 backend/src/utils/music/Enya_-_One_By_One(128k).mp3
+ create mode 100644 backend/src/utils/music/Enya_-_Only_Time__Official_4K_Music_Video_(256k).mp3
+ create mode 100644 backend/src/utils/music/Foster_Halyz_Ft_Real_Jay...Mudolopo__Official_Video_...#michaeltonkanya_#Realjay_#mudolopo(128k).mp3
+ create mode 100644 backend/src/utils/music/SPY_DOLLAR_ft_Nawizy...kapondo.(128k).mp3
+root@Rent-Hub-server-001:/var/www/BRAVO# git stash pop
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   backend/package-lock.json
+        modified:   backend/package.json
+        modified:   backend/src/config/database.js
+        modified:   frontend/README.md
+        modified:   frontend/force/admin-dashboard.html
+        modified:   frontend/force/artist-dashboard.html
+        modified:   frontend/force/browse.html
+        modified:   frontend/force/css/style.css
+        modified:   frontend/force/earnings.html
+        modified:   frontend/force/index.html
+        modified:   frontend/force/js/api.js
+        modified:   frontend/force/js/app.js
+        modified:   frontend/force/js/components.js
+        modified:   frontend/force/js/config.js
+        modified:   frontend/force/library.html
+        modified:   frontend/force/login.html
+        modified:   frontend/force/register.html
+        modified:   frontend/force/settings.html
+        modified:   frontend/force/trending.html
+        modified:   frontend/force/upload.html
+        modified:   frontend/npx
+        modified:   frontend/package-lock.json
+        modified:   frontend/package.json
+        modified:   frontend/public/assets/audio/Black_Mark_Beautiful_ladies(720p).mp4
+        modified:   frontend/public/assets/audio/preview.mp3
+        modified:   frontend/public/assets/images/default/album-cover.jpg
+        modified:   frontend/public/assets/images/default/artist-avatar.png
+        modified:   frontend/public/assets/images/default/waveform-placeholder.png
+        modified:   frontend/public/css/animations.css
+        modified:   frontend/public/css/components/button.css
+        modified:   frontend/public/css/components/cards.css
+        modified:   frontend/public/css/components/footer.css
+        modified:   frontend/public/css/components/forms.css
+        modified:   frontend/public/css/components/modals.css
+        modified:   frontend/public/css/components/navbar.css
+        modified:   frontend/public/css/components/player.css
+        modified:   frontend/public/css/components/sidebar.css
+        modified:   frontend/public/css/main.css
+        modified:   frontend/public/css/pages/admin.css
+        modified:   frontend/public/css/pages/album.css
+        modified:   frontend/public/css/pages/artist.css
+        modified:   frontend/public/css/pages/browse.css
+        modified:   frontend/public/css/pages/dashboard.css
+        modified:   frontend/public/css/pages/downloads.css
+        modified:   frontend/public/css/pages/home.css
+        modified:   frontend/public/css/pages/search.css
+        modified:   frontend/public/css/pages/settings.css
+        modified:   frontend/public/css/pages/song.css
+        modified:   frontend/public/css/pages/upload.css
+        modified:   frontend/public/css/pages/verify.css
+        modified:   frontend/public/css/responsive.css
+        modified:   frontend/public/css/style.css
+        modified:   frontend/public/css/themes/custom.css
+        modified:   frontend/public/css/themes/dark.css
+        modified:   frontend/public/css/themes/light.css
+        modified:   frontend/public/css/touch-fixes.css
+        modified:   frontend/public/favicon.ico
+        modified:   frontend/public/js/api/admin.js
+        modified:   frontend/public/js/api/albums.js
+        modified:   frontend/public/js/api/artists.js
+        modified:   frontend/public/js/api/auth.js
+        modified:   frontend/public/js/api/payments.js
+        modified:   frontend/public/js/api/playlists.js
+        modified:   frontend/public/js/api/songs.js
+        modified:   frontend/public/js/api/subscriptions.js
+        modified:   frontend/public/js/api/upload.js
+        modified:   frontend/public/js/api/user.js
+        modified:   frontend/public/js/api/wallet.js
+        modified:   frontend/public/js/app.js
+        modified:   frontend/public/js/components/AudioPlayer.js
+        modified:   frontend/public/js/components/CommentSection.js
+        modified:   frontend/public/js/components/DownloadManager.js
+        modified:   frontend/public/js/components/Modal.js
+        modified:   frontend/public/js/components/Navbar.js
+        modified:   frontend/public/js/components/Notification.js
+        modified:   frontend/public/js/components/PlaylistCard.js
+        modified:   frontend/public/js/components/ShareModal.js
+        modified:   frontend/public/js/components/Sidebar.js
+        modified:   frontend/public/js/components/SongCard.js
+        modified:   frontend/public/js/components/Toast.js
+        modified:   frontend/public/js/components/UploadForm.js
+        modified:   frontend/public/js/components/Waveform.js
+        modified:   frontend/public/js/config.js
+        modified:   frontend/public/js/images/bravo.png
+        modified:   frontend/public/js/pages/AdminAlbumsPage.js
+        modified:   frontend/public/js/pages/AdminAllSongsPage.js
+        modified:   frontend/public/js/pages/AdminArtistsPage.js
+        modified:   frontend/public/js/pages/AdminCommentsPage.js
+        modified:   frontend/public/js/pages/AdminDashboard.js
+        modified:   frontend/public/js/pages/AdminReportsPage.js
+        modified:   frontend/public/js/pages/AdminSettingsPage.js
+        modified:   frontend/public/js/pages/AdminSongsPage.js
+        modified:   frontend/public/js/pages/AdminUsersPage.js
+        modified:   frontend/public/js/pages/AdminVideosPage.js
+        modified:   frontend/public/js/pages/AdminWithdrawalsPage.js
+        modified:   frontend/public/js/pages/AlbumView.js
+        modified:   frontend/public/js/pages/AlbumsPage.js
+        modified:   frontend/public/js/pages/ArtistDashboard.js
+        modified:   frontend/public/js/pages/ArtistProfile.js
+        modified:   frontend/public/js/pages/Browse.js
+        modified:   frontend/public/js/pages/Downloads.js
+        modified:   frontend/public/js/pages/Earnings.js
+        modified:   frontend/public/js/pages/ForgotPassword.js
+        modified:   frontend/public/js/pages/Home.js
+        modified:   frontend/public/js/pages/LikedPage.js
+        modified:   frontend/public/js/pages/ListenerDashboard.js
+        modified:   frontend/public/js/pages/Login.js
+        modified:   frontend/public/js/pages/RecentPage.js
+        modified:   frontend/public/js/pages/Register.js
+        modified:   frontend/public/js/pages/ResetPassword.js
+        modified:   frontend/public/js/pages/Settings.js
+        modified:   frontend/public/js/pages/SongDetailPage.js
+        modified:   frontend/public/js/pages/TrendingPage.js
+        modified:   frontend/public/js/pages/UploadPage.js
+        modified:   frontend/public/js/pages/VerifyEmail.js
+        modified:   frontend/public/js/pages/downloads.css
+        modified:   frontend/public/js/pages/pages.txt
+        modified:   frontend/public/js/pages/song.css
+        modified:   frontend/public/js/services/analyticsService.js
+        modified:   frontend/public/js/services/authService.js
+        modified:   frontend/public/js/services/cacheService.js
+        modified:   frontend/public/js/services/notificationService.js
+        modified:   frontend/public/js/services/playerService.js
+        modified:   frontend/public/js/store/actions.js
+        modified:   frontend/public/js/store/reducers.js
+        modified:   frontend/public/js/store/state.js
+        modified:   frontend/public/js/utils/analytics.js
+        modified:   frontend/public/js/utils/formatters.js
+        modified:   frontend/public/js/utils/helpers.js
+        modified:   frontend/public/js/utils/socket.js
+        modified:   frontend/public/js/utils/storage.js
+        modified:   frontend/public/js/utils/validators.js
+        modified:   frontend/public/manifest.json
+        modified:   frontend/public/robots.txt
+        modified:   frontend/sw.js
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        frontend/public/udo systemctl start nginx
+
+no changes added to commit (use "git add" and/or "git commit -a")
+Dropped refs/stash@{0} (f36f033fb6a8ab9997ec157f1495c65c350343eb)
+root@Rent-Hub-server-001:/var/www/BRAVO# git add frontend/public/js/config.js
+root@Rent-Hub-server-001:/var/www/BRAVO#

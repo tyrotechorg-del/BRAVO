@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -52,9 +53,22 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  emailVerificationToken: String,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
+  emailVerificationToken: {
+    type: String,
+    default: null
+  },
+  emailVerificationExpires: {
+    type: Date,
+    default: null
+  },
+  passwordResetToken: {
+    type: String,
+    default: null
+  },
+  passwordResetExpires: {
+    type: Date,
+    default: null
+  },
   socialLinks: {
     facebook: String,
     twitter: String,
@@ -92,7 +106,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
-  lastLogin: Date,
+  lastLogin: {
+    type: Date,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -103,32 +120,71 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-userSchema.pre('save', function(next) {
+// Hash password before saving
+userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
     return next();
   }
   
-  const user = this;
-  bcrypt.genSalt(10, function(err, salt) {
-    if (err) return next(err);
-    
-    bcrypt.hash(user.password, salt, function(err, hash) {
-      if (err) return next(err);
-      user.password = hash;
-      user.updatedAt = Date.now();
-      next();
-    });
-  });
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    this.updatedAt = Date.now();
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
+// Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
+// Update password method
+userSchema.methods.updatePassword = async function(newPassword) {
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(newPassword, salt);
+  this.updatedAt = Date.now();
+  await this.save();
+};
+
+// Generate verification token
+userSchema.methods.generateVerificationToken = function() {
+  const token = crypto.randomBytes(32).toString('hex');
+  this.emailVerificationToken = token;
+  this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+  return token;
+};
+
+// Generate password reset token
+userSchema.methods.generatePasswordResetToken = function() {
+  const token = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = token;
+  this.passwordResetExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+  return token;
+};
+
+// Check if verification token is valid
+userSchema.methods.isVerificationTokenValid = function(token) {
+  return this.emailVerificationToken === token && 
+         this.emailVerificationExpires && 
+         this.emailVerificationExpires > Date.now();
+};
+
+// Check if reset token is valid
+userSchema.methods.isResetTokenValid = function(token) {
+  return this.passwordResetToken === token && 
+         this.passwordResetExpires && 
+         this.passwordResetExpires > Date.now();
+};
+
+// Clear sensitive data when converting to JSON
 userSchema.methods.toJSON = function() {
   const obj = this.toObject();
   delete obj.password;
   delete obj.emailVerificationToken;
+  delete obj.emailVerificationExpires;
   delete obj.passwordResetToken;
   delete obj.passwordResetExpires;
   return obj;

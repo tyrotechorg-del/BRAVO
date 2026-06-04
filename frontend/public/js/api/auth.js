@@ -78,6 +78,46 @@ class AuthAPI {
         }
     }
 
+    async forgotPassword(email) {
+        try {
+            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.AUTH}/forgot-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await response.json();
+            
+            // Always return success for security (don't reveal if email exists)
+            if (response.ok) {
+                return { success: true, message: data.message || 'Reset link sent if account exists' };
+            }
+            // Even on error, return success to prevent email enumeration
+            return { success: true, message: 'If an account exists, a reset link will be sent' };
+        } catch (error) {
+            console.error('Forgot password error:', error);
+            return { success: false, error: 'Network error. Please try again.' };
+        }
+    }
+
+    async resetPassword(token, password) {
+        try {
+            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.AUTH}/reset-password/${token}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                return { success: true, message: data.message || 'Password reset successful' };
+            }
+            return { success: false, error: data.error || 'Failed to reset password' };
+        } catch (error) {
+            console.error('Reset password error:', error);
+            return { success: false, error: 'Network error. Please try again.' };
+        }
+    }
+
     async logout() {
         try {
             const token = this.getToken();
