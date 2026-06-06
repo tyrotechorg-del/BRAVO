@@ -1,31 +1,41 @@
-/* Audio Player Component Styles - FULLY RESPONSIVE & MOBILE OPTIMIZED */
+/* Audio Player Component - ULTRA COMPACT MOBILE PLAYER */
+
+#audio-player-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(5, 5, 5, 0.98);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+}
 
 .player-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 15px;
-    background: linear-gradient(135deg, var(--darker-bg) 0%, var(--card-bg) 100%);
-    border-top: 1px solid var(--border-color);
-    padding: 12px 20px;
-    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.3);
-    flex-wrap: wrap;
+    gap: 12px;
+    background: transparent;
+    padding: 8px 16px;
     transition: all 0.3s ease;
 }
 
-/* Song Info Section */
+/* Song Info */
 .player-info {
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-width: 180px;
+    gap: 10px;
+    min-width: 130px;
     flex: 2;
+    cursor: pointer;
 }
 
 .player-cover {
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
     object-fit: cover;
     flex-shrink: 0;
 }
@@ -36,9 +46,9 @@
 }
 
 .player-title {
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 4px;
+    font-weight: 500;
+    font-size: 12px;
+    margin-bottom: 2px;
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
@@ -46,18 +56,18 @@
 }
 
 .player-artist {
-    font-size: 12px;
+    font-size: 10px;
     color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Controls Section */
+/* Controls - All buttons visible on desktop */
 .player-controls {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     flex-shrink: 0;
 }
 
@@ -65,13 +75,13 @@
     background: none;
     border: none;
     color: var(--text-primary);
-    font-size: 18px;
+    font-size: 15px;
     cursor: pointer;
-    padding: 8px;
+    padding: 5px;
     transition: all 0.2s ease;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -80,8 +90,7 @@
 
 .player-btn:hover {
     color: var(--primary-color);
-    transform: scale(1.1);
-    background: var(--hover-bg);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .player-btn:active {
@@ -90,132 +99,105 @@
 
 .play-pause {
     background: var(--primary-color);
-    width: 48px;
-    height: 48px;
+    width: 38px;
+    height: 38px;
 }
 
 .play-pause:hover {
     background: var(--primary-dark);
-    transform: scale(1.05);
-    color: white;
+    transform: scale(1.02);
 }
 
-.play-pause:active {
-    transform: scale(0.95);
+.play-pause i {
+    font-size: 16px;
 }
 
-/* Progress Section */
+/* Progress Bar */
 .player-progress {
-    flex: 3;
+    flex: 2;
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-width: 200px;
+    gap: 8px;
+    min-width: 160px;
 }
 
 .current-time,
 .duration {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-secondary);
-    min-width: 40px;
+    min-width: 35px;
     text-align: center;
     font-family: monospace;
 }
 
 .progress-bar {
     flex: 1;
-    height: 5px;
-    background: var(--border-color);
-    border-radius: 5px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
     cursor: pointer;
     position: relative;
-    transition: height 0.2s ease;
 }
 
 .progress-bar:hover {
-    height: 8px;
+    height: 4px;
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
-    border-radius: 5px;
+    background: var(--primary-color);
+    border-radius: 3px;
     width: 0%;
     transition: width 0.1s linear;
-    position: relative;
 }
 
-.progress-fill::after {
-    content: '';
-    position: absolute;
-    right: -6px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 12px;
-    height: 12px;
-    background: var(--primary-color);
-    border-radius: 50%;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.progress-bar:hover .progress-fill::after {
-    opacity: 1;
-}
-
-/* Extra Actions */
-.player-extra {
+/* Action Buttons - Like, Share, Download (desktop) */
+.player-actions {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     flex-shrink: 0;
 }
 
-.download-player-btn {
-    background: var(--success-color);
+.player-actions .player-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
 }
 
-.download-player-btn:hover {
-    background: #00a844;
-    transform: scale(1.05);
+.player-actions .player-btn:hover {
+    background: var(--primary-color);
     color: white;
 }
 
-/* Shuffle and Repeat Active States */
-#shuffle-btn.active,
-#repeat-btn.active,
-#shuffle-btn[style*="color: #6c63ff"],
-#repeat-btn[style*="color: #6c63ff"] {
-    color: var(--primary-color) !important;
+/* Active like button state */
+.player-actions .like-active {
+    color: var(--danger-color);
 }
 
-/* ========== TABLET (641px - 768px) ========== */
-@media (max-width: 768px) {
+.player-actions .like-active i {
+    color: var(--danger-color);
+}
+
+/* ========== DESKTOP (min-width 769px) ========== */
+@media (min-width: 769px) {
     .player-container {
-        padding: 10px 15px;
-        gap: 10px;
-    }
-    
-    .player-info {
-        min-width: 150px;
-        flex: 1;
+        padding: 10px 24px;
     }
     
     .player-cover {
-        width: 42px;
-        height: 42px;
+        width: 48px;
+        height: 48px;
     }
     
     .player-title {
-        font-size: 13px;
+        font-size: 14px;
     }
     
     .player-artist {
-        font-size: 11px;
-    }
-    
-    .player-controls {
-        gap: 6px;
+        font-size: 12px;
     }
     
     .player-btn {
@@ -225,269 +207,214 @@
     }
     
     .play-pause {
-        width: 42px;
-        height: 42px;
+        width: 44px;
+        height: 44px;
     }
     
-    .player-progress {
-        min-width: 180px;
-        flex: 2;
+    .play-pause i {
+        font-size: 18px;
     }
     
-    .current-time,
-    .duration {
-        font-size: 11px;
-        min-width: 35px;
+    .player-actions .player-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
     }
 }
 
-/* ========== MOBILE LANDSCAPE (481px - 640px) ========== */
-@media (max-width: 640px) {
-    .player-container {
-        padding: 8px 12px;
-        gap: 8px;
+/* ========== MOBILE (max-width 768px) - ULTRA COMPACT ========== */
+@media (max-width: 768px) {
+    /* Main container - reduce padding significantly */
+    #audio-player-container {
+        background: rgba(5, 5, 5, 0.95);
     }
     
+    .player-container {
+        padding: 4px 10px;
+        gap: 8px;
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+    
+    /* Song info - smaller and inline */
     .player-info {
-        min-width: 130px;
+        min-width: 0;
+        flex: 1;
+        gap: 6px;
+        margin-bottom: 0;
+        width: auto;
+        order: 1;
     }
     
     .player-cover {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .player-title {
+        font-size: 10px;
+        max-width: 80px;
+    }
+    
+    .player-artist {
+        font-size: 8px;
+    }
+    
+    /* Hide artist on mobile to save space */
+    .player-artist {
+        display: none;
+    }
+    
+    /* Hide next, previous, shuffle, repeat buttons on mobile */
+    #prev-btn,
+    #next-btn,
+    #shuffle-btn,
+    #repeat-btn {
+        display: none !important;
+    }
+    
+    /* Controls - play button only, centered */
+    .player-controls {
+        order: 2;
+        flex-shrink: 0;
+        gap: 8px;
+        margin: 0;
+    }
+    
+    .play-pause {
         width: 36px;
         height: 36px;
     }
     
-    .player-btn {
-        width: 32px;
-        height: 32px;
+    .play-pause i {
         font-size: 14px;
     }
     
-    .play-pause {
-        width: 38px;
-        height: 38px;
-    }
-    
-    .player-progress {
-        min-width: 150px;
-    }
-}
-
-/* ========== MOBILE PORTRAIT (320px - 480px) ========== */
-@media (max-width: 480px) {
-    .player-container {
-        flex-direction: column;
-        padding: 10px;
-        gap: 10px;
-    }
-    
-    .player-info {
-        width: 100%;
-        min-width: unset;
-        order: 1;
-    }
-    
-    .player-controls {
-        order: 2;
-        width: 100%;
-        justify-content: center;
-        gap: 15px;
-    }
-    
-    .player-progress {
+    /* Share and Download buttons on sides */
+    .player-actions {
         order: 3;
-        width: 100%;
-        min-width: unset;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
     }
     
-    .player-extra {
+    .player-actions .player-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+        background: rgba(255, 255, 255, 0.08);
+    }
+    
+    /* Hide like button on mobile */
+    #like-player-btn {
+        display: none;
+    }
+    
+    /* Progress bar - compact and inline */
+    .player-progress {
         order: 4;
-        width: 100%;
-        justify-content: center;
-        gap: 15px;
-    }
-    
-    .player-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
-    }
-    
-    .play-pause {
-        width: 52px;
-        height: 52px;
-    }
-    
-    .play-pause i {
-        font-size: 20px;
+        width: auto;
+        flex: 1;
+        min-width: 100px;
+        gap: 4px;
+        margin-top: 0;
     }
     
     .current-time,
     .duration {
-        font-size: 12px;
-        min-width: 38px;
+        font-size: 9px;
+        min-width: 25px;
     }
     
     .progress-bar {
-        height: 6px;
-    }
-    
-    .progress-bar:hover {
-        height: 8px;
+        height: 2px;
     }
 }
 
-/* ========== VERY SMALL DEVICES (under 360px) ========== */
-@media (max-width: 360px) {
+/* ========== VERY SMALL MOBILE (max-width 480px) ========== */
+@media (max-width: 480px) {
     .player-container {
-        padding: 8px;
-    }
-    
-    .player-info {
-        gap: 8px;
+        padding: 3px 8px;
+        gap: 6px;
     }
     
     .player-cover {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .player-title {
+        font-size: 9px;
+        max-width: 70px;
+    }
+    
+    .play-pause {
         width: 32px;
         height: 32px;
     }
     
-    .player-title {
-        font-size: 11px;
+    .play-pause i {
+        font-size: 12px;
     }
     
-    .player-artist {
-        font-size: 10px;
+    .player-actions .player-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
     }
     
-    .player-controls {
-        gap: 8px;
-    }
-    
-    .player-btn {
-        width: 38px;
-        height: 38px;
-        font-size: 14px;
-    }
-    
-    .play-pause {
-        width: 44px;
-        height: 44px;
+    .player-progress {
+        min-width: 80px;
+        gap: 3px;
     }
     
     .current-time,
     .duration {
-        font-size: 10px;
-        min-width: 32px;
-    }
-}
-
-/* ========== TOUCH OPTIMIZATIONS ========== */
-@media (hover: none) and (pointer: coarse) {
-    .player-btn {
-        min-width: 48px;
-        min-height: 48px;
+        font-size: 8px;
+        min-width: 22px;
     }
     
     .progress-bar {
-        min-height: 8px;
+        height: 2px;
+    }
+}
+
+/* Touch Optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .player-btn {
+        min-width: 36px;
+        min-height: 36px;
     }
     
-    .progress-fill::after {
-        width: 16px;
-        height: 16px;
-        opacity: 1;
-        background: white;
-        border: 2px solid var(--primary-color);
+    .progress-bar {
+        min-height: 4px;
     }
 }
 
-/* ========== REDUCED MOTION PREFERENCE ========== */
-@media (prefers-reduced-motion: reduce) {
-    .player-btn,
-    .play-pause,
-    .progress-fill {
-        transition: none;
+/* Animation for playing */
+@keyframes playingPulse {
+    0% {
+        transform: scale(1);
     }
-    
-    .player-btn:hover {
-        transform: none;
+    50% {
+        transform: scale(1.05);
     }
-}
-
-/* ========== DARK MODE ADJUSTMENTS ========== */
-@media (prefers-color-scheme: dark) {
-    .player-container {
-        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    100% {
+        transform: scale(1);
     }
 }
 
-/* ========== LIGHT MODE SUPPORT ========== */
-.light-theme .player-container {
-    background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
-    border-top-color: #e0e0e0;
+.play-pause.playing {
+    animation: playingPulse 1s ease-in-out infinite;
+}
+
+/* Light mode support */
+.light-theme #audio-player-container {
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .light-theme .progress-bar {
-    background: #e0e0e0;
-}
-
-/* ========== PLAYER ANIMATIONS ========== */
-@keyframes pulse-ring {
-    0% {
-        transform: scale(0.8);
-        opacity: 0.5;
-    }
-    100% {
-        transform: scale(1.2);
-        opacity: 0;
-    }
-}
-
-.playing-animation {
-    position: relative;
-}
-
-.playing-animation::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    background: var(--primary-color);
-    border-radius: 50%;
-    transform: translate(-50%, -50%) scale(0.8);
-    animation: pulse-ring 1.5s ease-out infinite;
-    pointer-events: none;
-}
-
-/* Volume control (if added later) */
-.player-volume {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.volume-slider {
-    width: 80px;
-    height: 4px;
-    -webkit-appearance: none;
-    background: var(--border-color);
-    border-radius: 2px;
-}
-
-.volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    cursor: pointer;
-}
-
-@media (max-width: 480px) {
-    .player-volume {
-        display: none;
-    }
+    background: rgba(0, 0, 0, 0.1);
 }

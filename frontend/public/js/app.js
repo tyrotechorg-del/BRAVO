@@ -14,6 +14,7 @@ class BravoMusicApp {
         this.socket = null;
         this.notificationCount = 0;
         this.searchDebounceTimer = null;
+        this.currentPlaylist = []; // Track current playlist for sequential playback
         this.init();
     }
 
@@ -31,6 +32,10 @@ class BravoMusicApp {
         this.setupNavigation();
         this.setupSocketConnection();
         this.setupEventListeners();
+        
+        // NEW: Setup mobile menu and responsive features
+        this.setupMobileMenu();
+        this.setupResizeHandler();
         
         await this.loadPage(this.getPageFromHash());
         
@@ -228,6 +233,8 @@ class BravoMusicApp {
             const songsAPI = new SongsAPI();
             const songsResult = await songsAPI.getAll(1, 100);
             this.songs = songsResult.songs || [];
+            // Set current playlist for sequential playback
+            this.currentPlaylist = [...this.songs];
             console.log(`📀 Loaded ${this.songs.length} songs from backend`);
             
             const albumsAPI = new AlbumsAPI();
@@ -250,6 +257,7 @@ class BravoMusicApp {
             console.error('Failed to load initial data:', error);
             this.songs = [];
             this.albums = [];
+            this.currentPlaylist = [];
         }
     }
 
@@ -469,6 +477,12 @@ class BravoMusicApp {
             el.addEventListener('click', () => {
                 const page = el.dataset.page;
                 if (page) this.navigateTo(page);
+                // Close sidebar on mobile after navigation
+                if (window.innerWidth <= 768) {
+                    const sidebar = document.querySelector('.sidebar');
+                    if (sidebar) sidebar.classList.remove('active');
+                    this.removeSidebarOverlay();
+                }
             });
         });
     }
@@ -476,6 +490,14 @@ class BravoMusicApp {
     setupNavigation() {
         window.addEventListener('hashchange', () => {
             this.loadPage(this.getPageFromHash());
+            // Close mobile menu on navigation
+            if (window.innerWidth <= 768) {
+                const navMenu = document.getElementById('nav-menu');
+                const sidebar = document.querySelector('.sidebar');
+                if (navMenu) navMenu.classList.remove('active');
+                if (sidebar) sidebar.classList.remove('active');
+                this.removeSidebarOverlay();
+            }
         });
     }
 
@@ -485,28 +507,9 @@ class BravoMusicApp {
             const activeElement = document.activeElement;
             
             // Comprehensive check for typing contexts
-            const isTyping = activeElement && (
-                // Form elements
-                activeElement.tagName === 'INPUT' ||
-                activeElement.tagName === 'TEXTAREA' ||
-                activeElement.tagName === 'SELECT' ||
-                // Content editable divs
-                activeElement.isContentEditable ||
-                // Rich text editors
-                activeElement.closest('[contenteditable="true"]') ||
-                // Input types that accept text
-                (activeElement.tagName === 'INPUT' && (
-                    activeElement.type === 'text' ||
-                    activeElement.type === 'email' ||
-                    activeElement.type === 'password' ||
-                    activeElement.type === 'search' ||
-                    activeElement.type === 'tel' ||
-                    activeElement.type === 'url' ||
-                    activeElement.type === 'number'
-                ))
-            );
+            const isTyping = this.isTypingContext(activeElement);
             
-            // Space bar (key code 32)
+            // Space bar (key code 32) - only control playback if NOT typing
             if (e.code === 'Space' || e.keyCode === 32) {
                 if (!isTyping) {
                     e.preventDefault();
@@ -514,7 +517,7 @@ class BravoMusicApp {
                         this.audioPlayer.togglePlay();
                     }
                 }
-                // If typing, allow normal space input
+                // If typing, allow normal space input (don't prevent default)
                 return;
             }
             
@@ -557,6 +560,149 @@ class BravoMusicApp {
                 }
             }
         });
+        
+        // Also handle keyup for better UX
+        document.addEventListener('keyup', (e) => {
+            // Prevent space from scrolling page when not typing
+            if ((e.code === 'Space' || e.keyCode === 32) && !this.isTypingContext(document.activeElement)) {
+                e.preventDefault();
+            }
+        });
+    }
+    
+    /**
+     * Check if the current element is a typing context
+     */
+    isTypingContext(element) {
+        if (!element) return false;
+        
+        // Check for form elements
+        if (element.tagName === 'INPUT' || 
+            element.tagName === 'TEXTAREA' || 
+            element.tagName === 'SELECT') {
+            return true;
+        }
+        
+        // Check for content editable
+        if (element.isContentEditable) {
+            return true;
+        }
+        
+        // Check for rich text editors
+        if (element.closest && element.closest('[contenteditable="true"]')) {
+            return true;
+        }
+        
+        // Check input types that accept text
+        if (element.tagName === 'INPUT') {
+            const textInputTypes = ['text', 'email', 'password', 'search', 'tel', 'url', 'number'];
+            if (textInputTypes.includes(element.type)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    // ============ NEW MOBILE RESPONSIVE METHODS ============
+    
+    /**
+     * Setup mobile menu functionality
+     */
+    setupMobileMenu() {
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const navMenu = document.getElementById('nav-menu');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (mobileMenuBtn) {
+            // Remove existing listeners to prevent duplicates (safe clone)
+            const newBtn = mobileMenuBtn.cloneNode(true);
+            mobileMenuBtn.parentNode.replaceChild(newBtn, mobileMenuBtn);
+            
+            newBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (navMenu) {
+                    navMenu.classList.toggle('active');
+                }
+                // On mobile, also toggle sidebar when menu button is clicked
+                if (window.innerWidth <= 768 && sidebar) {
+                    sidebar.classList.toggle('active');
+                    this.toggleSidebarOverlay();
+                }
+            });
+        }
+        
+        // Close menus when clicking outside
+        document.addEventListener('click', (e) => {
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const navMenuEl = document.getElementById('nav-menu');
+            const sidebarEl = document.querySelector('.sidebar');
+            
+            if (navMenuEl && navMenuEl.classList.contains('active')) {
+                const isClickOnMenu = navMenuEl.contains(e.target);
+                const isClickOnBtn = mobileBtn?.contains(e.target);
+                if (!isClickOnMenu && !isClickOnBtn) {
+                    navMenuEl.classList.remove('active');
+                }
+            }
+            
+            if (sidebarEl && sidebarEl.classList.contains('active')) {
+                const isClickOnSidebar = sidebarEl.contains(e.target);
+                const isClickOnBtn = mobileBtn?.contains(e.target);
+                if (!isClickOnSidebar && !isClickOnBtn) {
+                    sidebarEl.classList.remove('active');
+                    this.removeSidebarOverlay();
+                }
+            }
+        });
+    }
+    
+    /**
+     * Toggle sidebar overlay on mobile
+     */
+    toggleSidebarOverlay() {
+        let overlay = document.querySelector('.sidebar-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'sidebar-overlay';
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', () => {
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar) sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
+        overlay.classList.toggle('active');
+    }
+    
+    /**
+     * Remove sidebar overlay
+     */
+    removeSidebarOverlay() {
+        const overlay = document.querySelector('.sidebar-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+    }
+    
+    /**
+     * Setup resize handler for responsive adjustments
+     */
+    setupResizeHandler() {
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                // Close mobile menus on resize to desktop
+                if (window.innerWidth > 768) {
+                    const navMenu = document.getElementById('nav-menu');
+                    const sidebar = document.querySelector('.sidebar');
+                    if (navMenu) navMenu.classList.remove('active');
+                    if (sidebar) sidebar.classList.remove('active');
+                    this.removeSidebarOverlay();
+                }
+            }, 250);
+        });
     }
 
     getPageFromHash() {
@@ -593,57 +739,53 @@ class BravoMusicApp {
             return;
         }
         
-
         // Handle reset password route
-    if (page.indexOf('reset-password') !== -1) {
-        console.log('🔄 Reset password route detected, page:', page);
-        
-        // Extract token - get everything after 'reset-password/'
-        let token = '';
-        if (page.includes('reset-password/')) {
-            token = page.split('reset-password/')[1];
-        } else if (page.includes('reset-password')) {
-            token = page.replace('reset-password', '').replace('/', '');
-        }
-        
-        // Clean up token (remove any leading slashes or hash)
-        token = token.replace(/^\/+/, '').replace(/#.*$/, '');
-        
-        console.log('📝 Extracted token:', token);
-        
-        if (!token || token.length < 10) {
-            console.error('❌ Invalid reset token');
-            mainContent.innerHTML = `
-                <div class="form-container animate-fade-in-up">
-                    <div class="error-icon" style="text-align: center; margin-bottom: 20px;">
-                        <i class="fas fa-exclamation-circle" style="font-size: 64px; color: #ff4757;"></i>
+        if (page.indexOf('reset-password') !== -1) {
+            console.log('🔄 Reset password route detected, page:', page);
+            
+            let token = '';
+            if (page.includes('reset-password/')) {
+                token = page.split('reset-password/')[1];
+            } else if (page.includes('reset-password')) {
+                token = page.replace('reset-password', '').replace('/', '');
+            }
+            
+            token = token.replace(/^\/+/, '').replace(/#.*$/, '');
+            
+            console.log('📝 Extracted token:', token);
+            
+            if (!token || token.length < 10) {
+                console.error('❌ Invalid reset token');
+                mainContent.innerHTML = `
+                    <div class="form-container animate-fade-in-up">
+                        <div class="error-icon" style="text-align: center; margin-bottom: 20px;">
+                            <i class="fas fa-exclamation-circle" style="font-size: 64px; color: #ff4757;"></i>
+                        </div>
+                        <h2 style="text-align: center;">Invalid Reset Link</h2>
+                        <p style="text-align: center;">The password reset link is invalid or has expired.</p>
+                        <div class="form-actions" style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                            <button class="btn-primary" onclick="window.bravoApp.navigateTo('forgot-password')">Request New Link</button>
+                            <button class="btn-outline" onclick="window.bravoApp.navigateTo('login')">Back to Login</button>
+                        </div>
                     </div>
-                    <h2 style="text-align: center;">Invalid Reset Link</h2>
-                    <p style="text-align: center;">The password reset link is invalid or has expired.</p>
-                    <div class="form-actions" style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
-                        <button class="btn-primary" onclick="window.bravoApp.navigateTo('forgot-password')">Request New Link</button>
-                        <button class="btn-outline" onclick="window.bravoApp.navigateTo('login')">Back to Login</button>
-                    </div>
-                </div>
-            `;
+                `;
+                return;
+            }
+            
+            if (typeof ResetPasswordPage === 'undefined') {
+                console.error('❌ ResetPasswordPage class not defined!');
+                mainContent.innerHTML = '<div class="error">Page not loaded. Please refresh.</div>';
+                return;
+            }
+            
+            const resetPasswordPage = new ResetPasswordPage(token);
+            const content = resetPasswordPage.render();
+            mainContent.innerHTML = content;
+            if (resetPasswordPage.afterRender) {
+                await resetPasswordPage.afterRender();
+            }
             return;
         }
-        
-        // Check if class exists
-        if (typeof ResetPasswordPage === 'undefined') {
-            console.error('❌ ResetPasswordPage class not defined!');
-            mainContent.innerHTML = '<div class="error">Page not loaded. Please refresh.</div>';
-            return;
-        }
-        
-        const resetPasswordPage = new ResetPasswordPage(token);
-        const content = resetPasswordPage.render();
-        mainContent.innerHTML = content;
-        if (resetPasswordPage.afterRender) {
-            await resetPasswordPage.afterRender();
-        }
-        return;
-    }
         
         // Handle admin routes
         if (page.startsWith('admin/')) {
@@ -795,7 +937,14 @@ class BravoMusicApp {
             }
         }
         
+        // Scroll to top on mobile for better UX
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Close mobile menu after page load
+        if (window.innerWidth <= 768) {
+            const navMenu = document.getElementById('nav-menu');
+            if (navMenu) navMenu.classList.remove('active');
+        }
     }
 
     // ============ SEARCH FUNCTIONS ============
@@ -1013,7 +1162,8 @@ class BravoMusicApp {
             playBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (this.audioPlayer) {
-                    this.audioPlayer.loadSong(song);
+                    // Pass the current playlist for sequential playback
+                    this.audioPlayer.loadSong(song, this.currentPlaylist);
                 }
             });
         }
@@ -1021,30 +1171,20 @@ class BravoMusicApp {
         if (likeBtn) {
             likeBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                const songsAPI = new SongsAPI();
+                // Like/Unlike without login - store in localStorage only
+                const likedSongs = JSON.parse(localStorage.getItem('bravo_liked_songs') || '[]');
+                const isLiked = likedSongs.includes(song._id);
+                
                 if (isLiked) {
-                    await songsAPI.unlike(song._id);
                     const newLiked = likedSongs.filter(id => id !== song._id);
                     localStorage.setItem('bravo_liked_songs', JSON.stringify(newLiked));
                     likeBtn.classList.remove('liked');
                     Toast.show('Removed from liked songs', 'info');
-                    
-                    if (this.socket) {
-                        this.socket.emit('unlike-song', { songId: song._id });
-                    }
                 } else {
-                    await songsAPI.like(song._id);
                     likedSongs.push(song._id);
                     localStorage.setItem('bravo_liked_songs', JSON.stringify(likedSongs));
                     likeBtn.classList.add('liked');
                     Toast.show('Added to liked songs! ❤️', 'success');
-                    
-                    if (this.socket && song.artist?.userId) {
-                        this.socket.emit('like-song', { 
-                            songId: song._id, 
-                            ownerId: song.artist?.userId 
-                        });
-                    }
                 }
             });
         }
@@ -1067,7 +1207,8 @@ class BravoMusicApp {
         
         card.addEventListener('click', () => {
             if (this.audioPlayer) {
-                this.audioPlayer.loadSong(song);
+                // Pass the current playlist for sequential playback
+                this.audioPlayer.loadSong(song, this.currentPlaylist);
             }
         });
         
@@ -1082,22 +1223,24 @@ class BravoMusicApp {
     }
 
     async downloadSong(song) {
-        const token = localStorage.getItem('bravo_token');
-        if (!token) {
-            Toast.show('Please login to download', 'info');
-            window.location.hash = 'login';
-            return;
-        }
-        
+        // Download without login - no authentication required
         Toast.show(`Downloading "${song.title}"...`, 'info');
         
         try {
             let audioUrl = song.audioUrl;
-            if (audioUrl && !audioUrl.startsWith('http') && audioUrl.startsWith('/uploads')) {
-                audioUrl = `${window.APP_CONFIG.STATIC_URL}${audioUrl}`;
+            const staticUrl = window.APP_CONFIG?.STATIC_URL || '';
+            
+            if (audioUrl && !audioUrl.startsWith('http')) {
+                if (audioUrl.startsWith('/uploads')) {
+                    audioUrl = `${staticUrl}${audioUrl}`;
+                } else if (audioUrl.startsWith('/static')) {
+                    audioUrl = `${staticUrl}${audioUrl}`;
+                }
             }
             
             const response = await fetch(audioUrl);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1110,10 +1253,6 @@ class BravoMusicApp {
             
             this.saveToDownloads(song);
             Toast.show(`Downloaded "${song.title}" successfully! 📥`, 'success');
-            
-            if (this.socket) {
-                this.socket.emit('track-download', { songId: song._id });
-            }
         } catch (error) {
             console.error('Download failed:', error);
             Toast.show('Download failed. Please try again.', 'error');
@@ -1175,4 +1314,4 @@ let bravoApp = null;
 document.addEventListener('DOMContentLoaded', () => {
     bravoApp = new BravoMusicApp();
     window.bravoApp = bravoApp;
-});s
+});

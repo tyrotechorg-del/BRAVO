@@ -1,5 +1,5 @@
 /**
- * Audio Player Component - FULLY UPDATED AND FIXED
+ * Audio Player Component - FULLY FIXED with Download, Like & Share (No Login Required)
  */
 
 class AudioPlayer {
@@ -14,8 +14,9 @@ class AudioPlayer {
         this.isRepeating = false;
         this.shuffledPlaylist = [];
         this.originalPlaylist = [];
-        this.apiUrl = window.API_BASE_URL;
         this.staticUrl = window.APP_CONFIG?.STATIC_URL || window.location.origin;
+        this.apiUrl = window.API_BASE_URL;
+        this.songsAPI = new SongsAPI();
         this.init();
     }
 
@@ -23,13 +24,14 @@ class AudioPlayer {
         this.render();
         this.setupEventListeners();
         this.setupAudioEvents();
-        console.log('AudioPlayer initialized - Sequential play mode (default)');
+        console.log('AudioPlayer initialized');
     }
 
     getFullUrl(url) {
         if (!url) return '';
         if (url.startsWith('http')) return url;
         if (url.startsWith('/uploads')) return `${this.staticUrl}${url}`;
+        if (url.startsWith('/static')) return `${this.staticUrl}${url}`;
         return url;
     }
 
@@ -39,7 +41,7 @@ class AudioPlayer {
         this.container.innerHTML = `
             <div class="player-container">
                 <div class="player-info">
-                    <img class="player-cover" id="player-cover" src="${window.getDefaultImage ? window.getDefaultImage() : '/js/images/bravo.png'}">
+                    <img class="player-cover" id="player-cover" src="${window.getDefaultImage ? window.getDefaultImage() : '/images/bravo.png'}">
                     <div class="player-details">
                         <div class="player-title" id="player-title">Select a song</div>
                         <div class="player-artist" id="player-artist">Bravo Music</div>
@@ -47,7 +49,7 @@ class AudioPlayer {
                 </div>
                 
                 <div class="player-controls">
-                    <button class="player-btn" id="shuffle-btn" title="Shuffle Mode">
+                    <button class="player-btn" id="shuffle-btn" title="Shuffle">
                         <i class="fas fa-random"></i>
                     </button>
                     <button class="player-btn" id="prev-btn" title="Previous">
@@ -73,26 +75,26 @@ class AudioPlayer {
                 </div>
                 
                 <div class="player-extra">
-                    <button class="player-btn share-player-btn" id="share-player-btn" title="Share Current Song">
+                    <button class="player-btn" id="like-player-btn" title="Like">
+                        <i class="far fa-heart"></i>
+                    </button>
+                    <button class="player-btn" id="share-player-btn" title="Share">
                         <i class="fas fa-share-alt"></i>
                     </button>
-                    <button class="player-btn download-player-btn" id="download-player-btn" title="Download Current Song">
+                    <button class="player-btn" id="download-player-btn" title="Download">
                         <i class="fas fa-download"></i>
                     </button>
                 </div>
             </div>
         `;
         
-        const shuffleBtn = document.getElementById('shuffle-btn');
-        const repeatBtn = document.getElementById('repeat-btn');
-        
-        if (shuffleBtn && this.isShuffled) {
-            shuffleBtn.style.color = '#6c63ff';
-            shuffleBtn.title = 'Shuffle Mode ON';
+        if (this.isShuffled) {
+            const shuffleBtn = document.getElementById('shuffle-btn');
+            if (shuffleBtn) shuffleBtn.style.color = '#6c63ff';
         }
-        if (repeatBtn && this.isRepeating) {
-            repeatBtn.style.color = '#6c63ff';
-            repeatBtn.title = 'Repeat Mode ON';
+        if (this.isRepeating) {
+            const repeatBtn = document.getElementById('repeat-btn');
+            if (repeatBtn) repeatBtn.style.color = '#6c63ff';
         }
     }
 
@@ -105,6 +107,7 @@ class AudioPlayer {
         const progressBar = document.getElementById('progress-bar');
         const downloadBtn = document.getElementById('download-player-btn');
         const shareBtn = document.getElementById('share-player-btn');
+        const likeBtn = document.getElementById('like-player-btn');
 
         if (playPauseBtn) playPauseBtn.addEventListener('click', () => this.togglePlay());
         if (prevBtn) prevBtn.addEventListener('click', () => this.playPrevious());
@@ -113,7 +116,56 @@ class AudioPlayer {
         if (repeatBtn) repeatBtn.addEventListener('click', () => this.toggleRepeat());
         if (downloadBtn) downloadBtn.addEventListener('click', () => this.downloadCurrentSong());
         if (shareBtn) shareBtn.addEventListener('click', () => this.shareCurrentSong());
+        if (likeBtn) likeBtn.addEventListener('click', () => this.toggleLikeCurrentSong());
         if (progressBar) progressBar.addEventListener('click', (e) => this.seek(e));
+    }
+
+    async toggleLikeCurrentSong() {
+        if (!this.currentSong) {
+            Toast.show('No song selected', 'warning');
+            return;
+        }
+
+        const likeBtn = document.getElementById('like-player-btn');
+        const likedSongs = JSON.parse(localStorage.getItem('bravo_liked_songs') || '[]');
+        const isLiked = likedSongs.includes(this.currentSong._id);
+
+        // Like/Unlike without login - store in localStorage only
+        if (isLiked) {
+            const newLiked = likedSongs.filter(id => id !== this.currentSong._id);
+            localStorage.setItem('bravo_liked_songs', JSON.stringify(newLiked));
+            if (likeBtn) {
+                likeBtn.innerHTML = '<i class="far fa-heart"></i>';
+                likeBtn.title = 'Like';
+            }
+            Toast.show('Removed from liked songs', 'info');
+        } else {
+            likedSongs.push(this.currentSong._id);
+            localStorage.setItem('bravo_liked_songs', JSON.stringify(likedSongs));
+            if (likeBtn) {
+                likeBtn.innerHTML = '<i class="fas fa-heart" style="color: #ff4757;"></i>';
+                likeBtn.title = 'Unlike';
+            }
+            Toast.success('Added to liked songs! ❤️');
+        }
+    }
+
+    updateLikeButtonState() {
+        if (!this.currentSong) return;
+        
+        const likeBtn = document.getElementById('like-player-btn');
+        if (!likeBtn) return;
+        
+        const likedSongs = JSON.parse(localStorage.getItem('bravo_liked_songs') || '[]');
+        const isLiked = likedSongs.includes(this.currentSong._id);
+        
+        if (isLiked) {
+            likeBtn.innerHTML = '<i class="fas fa-heart" style="color: #ff4757;"></i>';
+            likeBtn.title = 'Unlike';
+        } else {
+            likeBtn.innerHTML = '<i class="far fa-heart"></i>';
+            likeBtn.title = 'Like';
+        }
     }
 
     setupAudioEvents() {
@@ -122,43 +174,16 @@ class AudioPlayer {
         this.audio.addEventListener('ended', () => this.handleSongEnd());
         this.audio.addEventListener('play', () => this.updatePlayButton(true));
         this.audio.addEventListener('pause', () => this.updatePlayButton(false));
-        this.audio.addEventListener('canplay', () => {
-            console.log('Audio can play now');
-        });
-        this.audio.addEventListener('waiting', () => {
-            console.log('Audio buffering...');
-        });
-        this.audio.addEventListener('stalled', () => {
-            console.log('Audio stalled');
-        });
         this.audio.addEventListener('error', (e) => {
-            console.error('Audio error event:', e);
-            console.error('Error code:', this.audio.error?.code);
-            console.error('Error message:', this.audio.error?.message);
-            
+            console.error('Audio error:', this.audio.error);
             let errorMsg = 'Error playing audio. ';
             switch(this.audio.error?.code) {
-                case 1:
-                    errorMsg += 'Playback aborted.';
-                    break;
-                case 2:
-                    errorMsg += 'Network error. Please check your connection.';
-                    break;
-                case 3:
-                    errorMsg += 'Audio decoding error. File may be corrupted.';
-                    break;
-                case 4:
-                    errorMsg += 'Audio format not supported.';
-                    break;
-                default:
-                    errorMsg += 'Please try again.';
+                case 2: errorMsg = 'Network error. Please check your connection.'; break;
+                case 3: errorMsg = 'Audio decoding error. File may be corrupted.'; break;
+                case 4: errorMsg = 'Audio format not supported.'; break;
+                default: errorMsg = 'Cannot play this song.';
             }
-            
-            if (window.Toast) {
-                Toast.show(errorMsg, 'error');
-            } else {
-                console.error(errorMsg);
-            }
+            Toast.error(errorMsg);
         });
     }
 
@@ -177,18 +202,12 @@ class AudioPlayer {
         
         if (this.isShuffled) {
             this.enableShuffleMode();
-            if (shuffleBtn) {
-                shuffleBtn.style.color = '#6c63ff';
-                shuffleBtn.title = 'Shuffle Mode ON';
-            }
-            if (window.Toast) Toast.show('Shuffle mode ON - songs will play randomly', 'success');
+            if (shuffleBtn) shuffleBtn.style.color = '#6c63ff';
+            Toast.success('Shuffle mode ON');
         } else {
             this.disableShuffleMode();
-            if (shuffleBtn) {
-                shuffleBtn.style.color = '';
-                shuffleBtn.title = 'Shuffle Mode OFF';
-            }
-            if (window.Toast) Toast.show('Shuffle mode OFF - sequential play', 'info');
+            if (shuffleBtn) shuffleBtn.style.color = '';
+            Toast.info('Shuffle mode OFF');
         }
     }
 
@@ -229,15 +248,8 @@ class AudioPlayer {
         this.isRepeating = !this.isRepeating;
         const repeatBtn = document.getElementById('repeat-btn');
         if (repeatBtn) {
-            if (this.isRepeating) {
-                repeatBtn.style.color = '#6c63ff';
-                repeatBtn.title = 'Repeat Mode ON';
-                if (window.Toast) Toast.show('Repeat ONE - current song will loop', 'success');
-            } else {
-                repeatBtn.style.color = '';
-                repeatBtn.title = 'Repeat Mode OFF';
-                if (window.Toast) Toast.show('Repeat OFF', 'info');
-            }
+            repeatBtn.style.color = this.isRepeating ? '#6c63ff' : '';
+            Toast.info(this.isRepeating ? 'Repeat ONE - song will loop' : 'Repeat OFF');
         }
     }
 
@@ -268,38 +280,21 @@ class AudioPlayer {
                 this.currentIndex = this.playlist.findIndex(s => s._id === song._id);
                 if (this.currentIndex === -1) this.currentIndex = 0;
             }
-        } else {
-            const currentPlaylist = this.getCurrentPlaylist();
-            this.currentIndex = currentPlaylist.findIndex(s => s._id === song._id);
-            if (this.currentIndex === -1) this.currentIndex = 0;
         }
         
-        // Proper URL construction
+        // Get audio URL
         let audioUrl = song.audioUrl;
-        if (audioUrl) {
-            if (audioUrl.startsWith('http')) {
-                // Keep as is
-            } 
-            else if (audioUrl.startsWith('/uploads')) {
-                audioUrl = `${this.staticUrl}${audioUrl}`;
-            }
-            else if (audioUrl.startsWith('/static')) {
-                audioUrl = `${this.staticUrl}${audioUrl}`;
-            }
-            else {
-                audioUrl = `${this.staticUrl}/uploads/audio/${audioUrl.split('/').pop()}`;
-            }
+        if (audioUrl && !audioUrl.startsWith('http')) {
+            audioUrl = this.getFullUrl(audioUrl);
         }
         
-        console.log('Final audio URL:', audioUrl);
+        console.log('Audio URL:', audioUrl);
         
-        // IMPORTANT: Pause and clear current audio before loading new one
+        // Clear and load new audio
+        const wasPlaying = this.isPlaying;
         this.audio.pause();
         this.audio.src = '';
-        this.audio.removeAttribute('src');
         this.audio.load();
-        
-        // Set new source
         this.audio.src = audioUrl;
         this.audio.load();
         
@@ -312,36 +307,37 @@ class AudioPlayer {
         if (artistEl) artistEl.textContent = song.artist?.stageName || 'Unknown Artist';
         
         let coverUrl = song.coverArt;
-        if (coverUrl) {
-            if (coverUrl.startsWith('/uploads')) {
-                coverUrl = `${this.staticUrl}${coverUrl}`;
-            } else if (coverUrl.startsWith('/static')) {
-                coverUrl = `${this.staticUrl}${coverUrl}`;
-            }
+        if (coverUrl && !coverUrl.startsWith('http')) {
+            coverUrl = this.getFullUrl(coverUrl);
         }
-        if (coverEl) coverEl.src = coverUrl || (window.getDefaultImage ? window.getDefaultImage() : '/js/images/bravo.png');
+        if (coverEl) coverEl.src = coverUrl || (window.getDefaultImage ? window.getDefaultImage() : '/images/bravo.png');
         
-        // Wait for audio to be ready before playing
-        const playAfterLoad = () => {
-            this.audio.removeEventListener('canplay', playAfterLoad);
+        // Update like button
+        this.updateLikeButtonState();
+        
+        // Auto-play
+        const playWhenReady = () => {
+            this.audio.removeEventListener('canplay', playWhenReady);
             this.play();
         };
         
-        this.audio.addEventListener('canplay', playAfterLoad, { once: true });
+        this.audio.addEventListener('canplay', playWhenReady, { once: true });
         
-        // Fallback: try to play after a short delay if canplay doesn't fire
+        // Fallback timeout
         setTimeout(() => {
             if (!this.isPlaying && this.audio.readyState >= 2) {
                 this.play();
             }
         }, 500);
         
+        // Track play count
         this.addToRecentlyPlayed(song);
+        this.songsAPI.share(song._id, 'play').catch(() => {});
     }
 
     play() {
         if (!this.audio.src) {
-            console.warn('No audio source loaded');
+            console.warn('No audio source');
             return;
         }
         
@@ -349,15 +345,12 @@ class AudioPlayer {
         if (playPromise !== undefined) {
             playPromise
                 .then(() => {
-                    console.log('✅ Playing successfully');
                     this.isPlaying = true;
                 })
                 .catch(error => {
                     console.error('Play failed:', error);
                     this.isPlaying = false;
-                    if (window.Toast) {
-                        Toast.show('Cannot play this song. The file might be inaccessible.', 'error');
-                    }
+                    Toast.error('Cannot play this song. The file might be inaccessible.');
                 });
         }
     }
@@ -393,7 +386,6 @@ class AudioPlayer {
         const nextSong = currentPlaylist[this.currentIndex];
         
         if (nextSong) {
-            console.log('Playing next song:', nextSong.title, this.isShuffled ? '(shuffled)' : '(sequential)');
             this.loadSong(nextSong, this.playlist);
         }
     }
@@ -416,37 +408,30 @@ class AudioPlayer {
         const prevSong = currentPlaylist[this.currentIndex];
         
         if (prevSong) {
-            console.log('Playing previous song:', prevSong.title, this.isShuffled ? '(shuffled)' : '(sequential)');
             this.loadSong(prevSong, this.playlist);
         }
     }
 
     async downloadCurrentSong() {
         if (!this.currentSong) {
-            if (window.Toast) Toast.show('No song selected', 'warning');
+            Toast.warning('No song selected');
             return;
         }
         
-        const token = localStorage.getItem('bravo_token');
-        if (!token) {
-            if (window.Toast) Toast.show('Please login to download', 'info');
-            window.location.hash = 'login';
-            return;
-        }
-        
-        if (window.Toast) Toast.show(`Downloading "${this.currentSong.title}"...`, 'info');
+        // Download without login
+        Toast.info(`Downloading "${this.currentSong.title}"...`);
         
         try {
             let audioUrl = this.currentSong.audioUrl;
-            if (audioUrl) {
-                if (audioUrl.startsWith('/uploads')) {
-                    audioUrl = `${this.staticUrl}${audioUrl}`;
-                } else if (audioUrl.startsWith('/static')) {
-                    audioUrl = `${this.staticUrl}${audioUrl}`;
-                }
+            if (audioUrl && !audioUrl.startsWith('http')) {
+                audioUrl = this.getFullUrl(audioUrl);
             }
             
+            console.log('Downloading from:', audioUrl);
+            
             const response = await fetch(audioUrl);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -457,30 +442,26 @@ class AudioPlayer {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
             
+            // Save to downloads storage
             this.saveToDownloads(this.currentSong);
-            if (window.Toast) Toast.show(`Downloaded "${this.currentSong.title}" successfully! 📥`, 'success');
+            
+            // Visual feedback on download button
+            const downloadBtn = document.getElementById('download-player-btn');
+            if (downloadBtn) {
+                const originalHtml = downloadBtn.innerHTML;
+                downloadBtn.innerHTML = '<i class="fas fa-check"></i>';
+                downloadBtn.style.color = '#4caf50';
+                setTimeout(() => {
+                    downloadBtn.innerHTML = originalHtml;
+                    downloadBtn.style.color = '';
+                }, 2000);
+            }
+            
+            Toast.success(`Downloaded "${this.currentSong.title}"! 📥`);
+            
         } catch (error) {
             console.error('Download failed:', error);
-            if (window.Toast) Toast.show('Download failed. Please try again.', 'error');
-        }
-    }
-
-    shareCurrentSong() {
-        if (!this.currentSong) {
-            if (window.Toast) Toast.show('No song selected', 'warning');
-            return;
-        }
-        
-        if (window.ShareModal) {
-            ShareModal.show(this.currentSong);
-        } else if (navigator.share) {
-            navigator.share({
-                title: this.currentSong.title,
-                text: `Check out ${this.currentSong.title} by ${this.currentSong.artist?.stageName}`,
-                url: window.location.href
-            }).catch(() => {});
-        } else {
-            if (window.Toast) Toast.show('Share feature not available', 'info');
+            Toast.error('Download failed. Please try again.');
         }
     }
 
@@ -501,16 +482,51 @@ class AudioPlayer {
         }
     }
 
+    shareCurrentSong() {
+        if (!this.currentSong) {
+            Toast.warning('No song selected');
+            return;
+        }
+        
+        const songUrl = `${window.location.origin}/#song/${this.currentSong._id}`;
+        const shareText = `Check out "${this.currentSong.title}" by ${this.currentSong.artist?.stageName || 'Unknown Artist'} on Bravo Music! 🎵`;
+        
+        // Use Web Share API if available (mobile)
+        if (navigator.share) {
+            navigator.share({
+                title: this.currentSong.title,
+                text: shareText,
+                url: songUrl
+            }).catch(() => {});
+            return;
+        }
+        
+        // Fallback to modal
+        if (window.ShareModal) {
+            ShareModal.show(this.currentSong);
+        } else {
+            // Simple copy to clipboard fallback
+            navigator.clipboard.writeText(songUrl).then(() => {
+                Toast.success('Link copied to clipboard!');
+            }).catch(() => {
+                Toast.info('Share: ' + songUrl);
+            });
+        }
+        
+        // Track share (optional, doesn't block)
+        this.songsAPI.share(this.currentSong._id, 'copy').catch(() => {});
+    }
+
     updateProgress() {
         const progressFill = document.getElementById('progress-fill');
         const currentTimeSpan = document.getElementById('current-time');
         
-        if (progressFill && this.audio.duration) {
+        if (progressFill && this.audio.duration && !isNaN(this.audio.duration)) {
             const percent = (this.audio.currentTime / this.audio.duration) * 100;
             progressFill.style.width = `${percent}%`;
         }
         
-        if (currentTimeSpan) {
+        if (currentTimeSpan && !isNaN(this.audio.currentTime)) {
             const mins = Math.floor(this.audio.currentTime / 60);
             const secs = Math.floor(this.audio.currentTime % 60);
             currentTimeSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;

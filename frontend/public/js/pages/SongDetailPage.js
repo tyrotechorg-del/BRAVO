@@ -102,26 +102,17 @@ class SongDetailPage {
         const likeBtn = document.getElementById('like-song-btn');
         if (likeBtn) {
             likeBtn.addEventListener('click', async () => {
-                const token = localStorage.getItem('bravo_token');
-                if (!token) {
-                    Toast.show('Please login to like songs', 'warning');
-                    window.location.hash = 'login';
-                    return;
-                }
-                
-                const songsAPI = new SongsAPI();
+                // Like/Unlike without login - store in localStorage only
                 const likedSongs = JSON.parse(localStorage.getItem('bravo_liked_songs') || '[]');
                 const isLiked = likedSongs.includes(this.song._id);
                 
                 if (isLiked) {
-                    await songsAPI.unlike(this.song._id);
                     const newLiked = likedSongs.filter(id => id !== this.song._id);
                     localStorage.setItem('bravo_liked_songs', JSON.stringify(newLiked));
                     likeBtn.innerHTML = '<i class="fas fa-heart"></i> Like';
                     likeBtn.classList.remove('liked');
                     Toast.show('Removed from liked songs', 'info');
                 } else {
-                    await songsAPI.like(this.song._id);
                     likedSongs.push(this.song._id);
                     localStorage.setItem('bravo_liked_songs', JSON.stringify(likedSongs));
                     likeBtn.innerHTML = '<i class="fas fa-heart"></i> Liked';
@@ -134,13 +125,7 @@ class SongDetailPage {
         const downloadBtn = document.getElementById('download-song-btn');
         if (downloadBtn) {
             downloadBtn.addEventListener('click', async () => {
-                const token = localStorage.getItem('bravo_token');
-                if (!token) {
-                    Toast.show('Please login to download', 'warning');
-                    window.location.hash = 'login';
-                    return;
-                }
-                
+                // Download without login
                 Toast.show(`Downloading "${this.song.title}"...`, 'info');
                 
                 try {

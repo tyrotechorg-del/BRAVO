@@ -2,7 +2,7 @@
 .sidebar {
     position: fixed;
     left: 0;
-    top: 70px;
+    top: 55px;
     bottom: 0;
     width: 280px;
     background: var(--darker-bg);
@@ -61,15 +61,25 @@
     margin-top: 2rem;
     padding-top: 1rem;
     border-top: 1px solid var(--border-color);
+    padding-bottom: 20px;
 }
 
 @media (max-width: 768px) {
     .sidebar {
+        top: 50px;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
+        width: 260px;
+        z-index: 951;
+        height: calc(100% - 50px);
+        overflow-y: auto;
     }
     
     .sidebar.active {
         transform: translateX(0);
+    }
+    
+    .sidebar-footer {
+        padding-bottom: 100px;
     }
 }

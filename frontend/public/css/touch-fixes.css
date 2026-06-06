@@ -1,6 +1,5 @@
 /* Touch & Mobile Specific Fixes */
 
-/* Prevent zoom on input focus on iOS */
 @media (max-width: 768px) {
     input, 
     select, 
@@ -9,7 +8,6 @@
     }
 }
 
-/* Better tap highlights */
 button,
 a,
 .sidebar-item,
@@ -17,18 +15,20 @@ a,
 .album-card,
 .genre-filter,
 .page-btn,
-.player-btn {
+.player-btn,
+.mobile-menu-btn,
+.notification-icon,
+.dropdown-item {
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
-/* Prevent body scroll when modal is open */
 body.modal-open {
     overflow: hidden;
     position: fixed;
     width: 100%;
 }
 
-/* Modal backdrop click area */
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -39,7 +39,6 @@ body.modal-open {
     z-index: 1999;
 }
 
-/* Fix for sticky hover on mobile */
 @media (hover: hover) {
     .song-card-overlay {
         opacity: 0;
@@ -57,29 +56,24 @@ body.modal-open {
         background: transparent;
     }
     
-    /* Show overlay on tap using JavaScript */
     .song-card.tapped .song-card-overlay {
         opacity: 1;
     }
 }
 
-/* Ensure images don't overflow */
 img {
     max-width: 100%;
     height: auto;
 }
 
-/* Fix for 100vh issues on mobile browsers */
 .app-container {
     min-height: -webkit-fill-available;
 }
 
-/* Better scrolling on iOS */
 * {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Fix for fixed position elements on mobile */
 @media (max-width: 768px) {
     .fixed-top {
         position: sticky;
@@ -88,7 +82,6 @@ img {
     }
 }
 
-/* Loading indicator for slow connections */
 .loading-overlay {
     position: fixed;
     top: 0;
@@ -102,19 +95,16 @@ img {
     z-index: 9999;
 }
 
-/* Prevent layout shift */
 img,
 video,
 iframe {
     aspect-ratio: attr(width) / attr(height);
 }
 
-/* Smooth transitions for theme switching */
 * {
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-/* Better form elements on mobile */
 @media (max-width: 768px) {
     select {
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
@@ -129,7 +119,6 @@ iframe {
     }
 }
 
-/* Fix for 300ms click delay on some browsers */
 button,
 .btn,
 .song-card,
@@ -137,8 +126,89 @@ button,
     touch-action: manipulation;
 }
 
-/* Keyboard navigation improvements */
 :focus-visible {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
+}
+
+/* Mobile Specific Fixes */
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        position: relative;
+        z-index: 1002;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .dropdown > .nav-link,
+    .dropdown > .user-menu {
+        cursor: pointer;
+    }
+    
+    .dropdown .dropdown-menu {
+        display: none;
+    }
+    
+    .dropdown.active .dropdown-menu {
+        display: block;
+        position: static;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    
+    .mobile-menu-btn:active,
+    .sidebar-item:active,
+    .dropdown-item:active,
+    .nav-link:active,
+    .player-btn:active {
+        transform: scale(0.96);
+        transition: transform 0.05s;
+        opacity: 0.8;
+    }
+    
+    button, 
+    .btn, 
+    .sidebar-item, 
+    .nav-link,
+    .dropdown-item,
+    .genre-filter,
+    .page-btn,
+    .player-btn,
+    .mobile-menu-btn,
+    .notification-icon {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 940;
+        display: none;
+        cursor: pointer;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    #main-content {
+        padding-bottom: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        max-height: 80vh;
+        margin: 20px auto;
+    }
+    
+    .modal-body {
+        max-height: 55vh;
+        overflow-y: auto;
+    }
 }

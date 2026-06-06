@@ -1,0 +1,1109 @@
+/* mobile.css - Complete Mobile Responsive Styles for All Pages */
+
+/* ========== BASE MOBILE RESET ========== */
+@media (max-width: 768px) {
+    /* Prevent horizontal scroll */
+    body, .app-container, #main-content {
+        overflow-x: hidden;
+        width: 100%;
+    }
+    
+    /* Better touch targets */
+    button, 
+    .btn, 
+    .sidebar-item, 
+    .song-card,
+    .album-card,
+    .genre-filter,
+    .page-btn,
+    .player-btn,
+    .dropdown-item,
+    .nav-link {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Improve spacing */
+    .container, .section {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+
+/* ========== HERO SECTION MOBILE ========== */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 30px 20px !important;
+        margin-bottom: 24px !important;
+        border-radius: 16px !important;
+    }
+    
+    .hero-section h1 {
+        font-size: 28px !important;
+    }
+    
+    .hero-section p {
+        font-size: 14px !important;
+    }
+    
+    .hero-logo-img {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .hero-buttons .btn-primary,
+    .hero-buttons .btn-outline {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* ========== GENRE CHIPS (HOME PAGE) ========== */
+@media (max-width: 768px) {
+    .genre-chips {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 10px;
+        padding-bottom: 12px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    
+    .genre-chip {
+        white-space: nowrap;
+        padding: 8px 16px;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+    
+    .genre-chip:first-child {
+        margin-left: 0;
+    }
+    
+    .genre-chip:last-child {
+        margin-right: 0;
+    }
+}
+
+/* ========== GRID LAYOUTS MOBILE ========== */
+@media (max-width: 768px) {
+    .songs-grid,
+    .albums-grid,
+    .artists-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .songs-grid,
+    .albums-grid,
+    .artists-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+    
+    .song-card-info h4,
+    .album-card-info h4 {
+        font-size: 12px !important;
+    }
+    
+    .song-artist,
+    .album-artist {
+        font-size: 10px !important;
+    }
+}
+
+/* ========== SONG CARD OVERLAY MOBILE ========== */
+@media (hover: none) and (pointer: coarse) {
+    .song-card-overlay {
+        opacity: 0;
+        background: rgba(0, 0, 0, 0.5);
+        transition: opacity 0.2s;
+    }
+    
+    .song-card:active .song-card-overlay {
+        opacity: 1;
+    }
+    
+    .play-btn, .like-btn, .download-btn, .share-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+}
+
+/* ========== BROWSE PAGE MOBILE ========== */
+@media (max-width: 768px) {
+    .browse-container {
+        padding: 0 4px;
+    }
+    
+    .browse-header h1 {
+        font-size: 24px !important;
+        margin-bottom: 12px;
+    }
+    
+    .browse-header p {
+        font-size: 13px;
+    }
+    
+    .genre-filters {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 8px;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .genre-filter {
+        white-space: nowrap;
+        padding: 6px 14px;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+    
+    .sort-options {
+        justify-content: flex-start;
+        margin-bottom: 16px;
+    }
+    
+    .sort-select {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+}
+
+/* ========== TRENDING PAGE MOBILE ========== */
+@media (max-width: 768px) {
+    .trending-container {
+        padding: 0 4px;
+    }
+    
+    .trending-container .page-header h1 {
+        font-size: 24px !important;
+    }
+    
+    .trending-container .page-header p {
+        font-size: 13px;
+    }
+    
+    .trending-stats {
+        margin-bottom: 20px;
+    }
+    
+    .trending-rank {
+        font-size: 12px;
+        width: 28px;
+        height: 28px;
+    }
+}
+
+/* ========== SONG DETAIL PAGE MOBILE ========== */
+@media (max-width: 768px) {
+    .song-detail-container {
+        padding: 12px;
+    }
+    
+    .song-detail-header {
+        flex-direction: column !important;
+        text-align: center;
+        padding: 20px !important;
+    }
+    
+    .song-detail-cover {
+        width: 160px !important;
+        height: 160px !important;
+        margin: 0 auto 16px;
+    }
+    
+    .song-detail-info h1 {
+        font-size: 22px !important;
+    }
+    
+    .song-detail-artist {
+        font-size: 14px;
+    }
+    
+    .song-detail-stats {
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .song-detail-stats span {
+        font-size: 12px;
+    }
+    
+    .song-detail-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .song-detail-actions button {
+        flex: 1;
+        min-width: 100px;
+        justify-content: center;
+    }
+    
+    .song-lyrics {
+        padding: 16px;
+    }
+    
+    .song-lyrics h3 {
+        font-size: 18px;
+    }
+    
+    .lyrics-content {
+        font-size: 13px;
+        line-height: 1.6;
+    }
+    
+    .song-comments {
+        padding: 16px;
+    }
+    
+    .comment-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .comment-avatar {
+        margin: 0 auto 8px;
+    }
+    
+    .comment-content {
+        text-align: center;
+    }
+    
+    .comment-header {
+        justify-content: center;
+    }
+    
+    .comment-actions {
+        justify-content: center;
+    }
+    
+    .comment-input {
+        flex-direction: column;
+    }
+    
+    .comment-input textarea {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .comment-input button {
+        width: 100%;
+    }
+}
+
+/* ========== ALBUM PAGE MOBILE ========== */
+@media (max-width: 768px) {
+    .albums-container {
+        padding: 12px;
+    }
+    
+    .albums-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+    
+    .albums-header h1 {
+        font-size: 24px;
+    }
+    
+    .albums-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        gap: 4px;
+    }
+    
+    .albums-tab {
+        white-space: nowrap;
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    
+    .album-view-container {
+        padding: 12px;
+    }
+    
+    .album-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .album-cover-large {
+        width: 180px !important;
+        height: 180px !important;
+        margin: 0 auto 16px;
+    }
+    
+    .album-header-info h1 {
+        font-size: 22px;
+    }
+    
+    .track-item {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .track-number {
+        width: 30px;
+    }
+    
+    .track-info {
+        flex: 1;
+        min-width: 150px;
+    }
+    
+    .track-actions {
+        margin-left: auto;
+    }
+}
+
+/* ========== ARTIST PROFILE MOBILE ========== */
+@media (max-width: 768px) {
+    .artist-profile-container {
+        padding: 0;
+    }
+    
+    .artist-header {
+        padding: 30px 20px !important;
+        text-align: center;
+        min-height: auto;
+    }
+    
+    .artist-avatar-large {
+        width: 100px !important;
+        height: 100px !important;
+        margin: 0 auto 16px;
+    }
+    
+    .artist-info h1 {
+        font-size: 24px !important;
+    }
+    
+    .verified-badge {
+        display: inline-block;
+        margin-bottom: 12px;
+    }
+    
+    .artist-stats {
+        justify-content: center;
+        gap: 16px;
+    }
+    
+    .artist-content {
+        padding: 20px 16px;
+    }
+    
+    .artist-bio h2 {
+        font-size: 18px;
+    }
+    
+    .artist-bio p {
+        font-size: 13px;
+    }
+    
+    .artist-music h2 {
+        font-size: 18px;
+    }
+}
+
+/* ========== DASHBOARD MOBILE ========== */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 12px;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    
+    .dashboard-container h1 {
+        font-size: 24px;
+    }
+    
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px;
+    }
+    
+    .stat-card {
+        padding: 16px;
+    }
+    
+    .stat-card h3 {
+        font-size: 11px;
+    }
+    
+    .stat-card .value {
+        font-size: 22px;
+    }
+    
+    .dashboard-section h2 {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+    
+    .dashboard-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .dashboard-actions button {
+        width: 100%;
+    }
+    
+    .subscription-alert {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .subscription-alert button {
+        width: 100%;
+    }
+}
+
+/* ========== SETTINGS PAGE MOBILE ========== */
+@media (max-width: 768px) {
+    .settings-container {
+        padding: 12px;
+    }
+    
+    .settings-container h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    
+    .settings-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        gap: 4px;
+        margin-bottom: 20px;
+    }
+    
+    .settings-tab {
+        white-space: nowrap;
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    
+    .settings-pane {
+        padding: 0;
+    }
+    
+    .settings-pane h3 {
+        font-size: 18px;
+    }
+    
+    .form-group label {
+        font-size: 13px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+    
+    .danger-zone button {
+        width: 100%;
+    }
+}
+
+/* ========== UPLOAD PAGE MOBILE ========== */
+@media (max-width: 768px) {
+    .upload-page-container {
+        padding: 12px;
+    }
+    
+    .upload-page-container h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    
+    .content-type-selector {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .content-type-btn {
+        width: 100%;
+        padding: 12px;
+    }
+    
+    .upload-area {
+        padding: 30px 16px !important;
+    }
+    
+    .upload-area i {
+        font-size: 36px !important;
+    }
+    
+    .upload-area p {
+        font-size: 13px;
+    }
+    
+    .upload-preview {
+        padding: 16px;
+    }
+    
+    .file-info p {
+        font-size: 12px;
+        word-break: break-word;
+    }
+    
+    .upload-form-fields .form-group {
+        margin-bottom: 16px;
+    }
+    
+    #confirm-upload,
+    #cancel-upload {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+/* ========== EARNINGS PAGE MOBILE ========== */
+@media (max-width: 768px) {
+    .earnings-container {
+        padding: 12px;
+    }
+    
+    .earnings-container h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    
+    .earnings-actions {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+    
+    .earnings-actions button {
+        width: 100%;
+    }
+    
+    .recent-transactions {
+        padding: 16px;
+    }
+    
+    .recent-transactions h2 {
+        font-size: 18px;
+    }
+    
+    .transaction-item {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .transaction-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .transaction-info {
+        flex: 1;
+        min-width: 150px;
+    }
+    
+    .transaction-title {
+        font-size: 13px;
+    }
+    
+    .transaction-amount {
+        font-size: 14px;
+    }
+}
+
+/* ========== DOWNLOADS PAGE MOBILE ========== */
+@media (max-width: 768px) {
+    .downloads-page {
+        padding: 12px;
+    }
+    
+    .page-header h1 {
+        font-size: 24px;
+    }
+    
+    .page-header p {
+        font-size: 13px;
+    }
+    
+    .downloads-stats-bar {
+        flex-direction: column;
+        text-align: center;
+        padding: 16px;
+    }
+    
+    .stats-info {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .downloads-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+    }
+    
+    .download-card {
+        flex-wrap: wrap;
+        text-align: center;
+        justify-content: center;
+    }
+    
+    .download-card-cover {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+    }
+    
+    .download-card-info {
+        text-align: center;
+    }
+    
+    .download-card-actions {
+        flex-direction: row;
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+/* ========== PLAYLISTS PAGE MOBILE ========== */
+@media (max-width: 768px) {
+    .playlists-container {
+        padding: 12px;
+    }
+    
+    .playlists-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+    
+    .playlists-header h1 {
+        font-size: 24px;
+    }
+    
+    .playlists-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px;
+    }
+    
+    .playlist-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .playlist-cover {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+    
+    .playlist-info {
+        text-align: center;
+    }
+    
+    .playlist-actions {
+        justify-content: center;
+    }
+}
+
+/* ========== NOTIFICATIONS PAGE MOBILE ========== */
+@media (max-width: 768px) {
+    .notification-panel {
+        padding: 12px;
+    }
+    
+    .notification-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .notification-header h3 {
+        font-size: 20px;
+    }
+    
+    .notification-item {
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 16px;
+    }
+    
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        margin: 0 auto;
+    }
+    
+    .notification-content {
+        text-align: center;
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .notification-title {
+        font-size: 14px;
+    }
+    
+    .notification-message {
+        font-size: 12px;
+    }
+    
+    .notification-actions {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+/* ========== MODAL MOBILE ========== */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95% !important;
+        margin: 10px auto !important;
+        max-height: 90vh;
+        border-radius: 16px;
+    }
+    
+    .modal-header {
+        padding: 16px;
+    }
+    
+    .modal-header h2 {
+        font-size: 18px;
+    }
+    
+    .modal-body {
+        padding: 16px;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+        padding: 16px;
+        gap: 10px;
+    }
+    
+    .modal-footer button {
+        width: 100%;
+    }
+    
+    /* Share modal specific */
+    .share-url-container {
+        flex-direction: column;
+    }
+    
+    .share-url-container input {
+        width: 100%;
+    }
+    
+    .share-buttons {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px;
+    }
+    
+    .share-platform {
+        padding: 10px;
+        font-size: 12px;
+    }
+}
+
+/* ========== TOAST NOTIFICATIONS MOBILE ========== */
+@media (max-width: 768px) {
+    .toast-container {
+        top: auto;
+        bottom: 80px;
+        right: 12px;
+        left: 12px;
+    }
+    
+    .toast {
+        max-width: none;
+        width: 100%;
+        font-size: 13px;
+        padding: 12px 16px;
+    }
+}
+
+/* ========== PAGINATION MOBILE ========== */
+@media (max-width: 768px) {
+    .pagination-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .page-btn {
+        min-width: 36px;
+        height: 36px;
+        font-size: 12px;
+        padding: 0 10px;
+    }
+    
+    .page-info {
+        font-size: 12px;
+        padding: 0 8px;
+    }
+}
+
+/* ========== TABLES MOBILE ========== */
+@media (max-width: 768px) {
+    .data-table-container,
+    .users-table-container,
+    .songs-table-container,
+    .artists-table-container,
+    .albums-table-container,
+    .videos-table-container,
+    .withdrawals-table-container,
+    .comments-table-container,
+    .reports-table-container {
+        overflow-x: auto;
+        margin: 0 -12px;
+        padding: 0 12px;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .data-table {
+        min-width: 650px;
+        font-size: 12px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 10px 12px;
+        white-space: nowrap;
+    }
+    
+    .data-table td:first-child,
+    .data-table th:first-child {
+        position: sticky;
+        left: 0;
+        background: var(--card-bg);
+        z-index: 1;
+    }
+}
+
+/* ========== ADMIN PAGES MOBILE ========== */
+@media (max-width: 768px) {
+    .admin-dashboard,
+    .admin-all-songs-page,
+    .admin-artists-page,
+    .admin-reports-page,
+    .admin-albums-page,
+    .admin-videos-page,
+    .admin-withdrawals-page,
+    .admin-comments-page,
+    .admin-settings-page {
+        padding: 12px;
+    }
+    
+    .admin-dashboard h1,
+    .admin-all-songs-page h1,
+    .admin-artists-page h1 {
+        font-size: 22px;
+    }
+    
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px;
+    }
+    
+    .stat-card-sm {
+        padding: 12px;
+    }
+    
+    .stat-card-sm .stat-value {
+        font-size: 20px;
+    }
+    
+    .admin-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        gap: 4px;
+        margin-bottom: 20px;
+        padding-bottom: 4px;
+    }
+    
+    .admin-tab {
+        white-space: nowrap;
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+    
+    .filter-group {
+        flex-direction: column;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+        width: 100%;
+    }
+    
+    .bulk-actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .bulk-actions {
+        flex-direction: column;
+    }
+    
+    .bulk-actions select,
+    .bulk-actions button {
+        width: 100%;
+    }
+    
+    .pending-song-item,
+    .withdrawal-item,
+    .report-item,
+    .comment-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .actions-cell {
+        justify-content: center;
+    }
+}
+
+/* ========== FORMS MOBILE ========== */
+@media (max-width: 768px) {
+    .form-container {
+        padding: 20px 16px !important;
+        margin: 20px auto !important;
+        width: calc(100% - 24px) !important;
+    }
+    
+    .form-container h2 {
+        font-size: 22px;
+    }
+    
+    .form-description {
+        font-size: 13px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .form-actions button {
+        width: 100%;
+    }
+    
+    .checkbox-group,
+    .radio-group {
+        justify-content: center;
+    }
+}
+
+/* ========== LOADING STATES MOBILE ========== */
+@media (max-width: 768px) {
+    .loading-container {
+        min-height: 200px;
+    }
+    
+    .loading-container .spinner {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .loading-container p {
+        font-size: 13px;
+    }
+}
+
+/* ========== EMPTY STATES MOBILE ========== */
+@media (max-width: 768px) {
+    .empty-state {
+        padding: 40px 20px;
+    }
+    
+    .empty-state i {
+        font-size: 48px;
+    }
+    
+    .empty-state h3 {
+        font-size: 18px;
+    }
+    
+    .empty-state p {
+        font-size: 13px;
+    }
+}
+
+/* ========== UTILITY CLASSES ========== */
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none !important;
+    }
+    
+    .show-mobile {
+        display: block !important;
+    }
+    
+    .text-center-mobile {
+        text-align: center !important;
+    }
+    
+    .flex-column-mobile {
+        flex-direction: column !important;
+    }
+    
+    .full-width-mobile {
+        width: 100% !important;
+    }
+    
+    .mb-2-mobile {
+        margin-bottom: 8px !important;
+    }
+    
+    .mt-2-mobile {
+        margin-top: 8px !important;
+    }
+}
+
+/* ========== SAFE AREA INSETS ========== */
+@supports (padding: max(0px)) {
+    .navbar {
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+        padding-top: max(8px, env(safe-area-inset-top));
+    }
+    
+    .sidebar {
+        padding-top: max(60px, env(safe-area-inset-top));
+    }
+    
+    .player-container {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}

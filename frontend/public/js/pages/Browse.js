@@ -192,24 +192,15 @@ class BrowsePage {
     }
 
     async toggleLike(song) {
-        const token = localStorage.getItem('bravo_token');
-        if (!token) {
-            Toast.show('Please login to like songs', 'info');
-            window.location.hash = 'login';
-            return;
-        }
-        
-        const songsAPI = new SongsAPI();
+        // Like/Unlike without login - store in localStorage only
         const likedSongs = JSON.parse(localStorage.getItem('bravo_liked_songs') || '[]');
         const isLiked = likedSongs.includes(song._id);
         
         if (isLiked) {
-            await songsAPI.unlike(song._id);
             const newLiked = likedSongs.filter(id => id !== song._id);
             localStorage.setItem('bravo_liked_songs', JSON.stringify(newLiked));
             Toast.show('Removed from liked songs', 'info');
         } else {
-            await songsAPI.like(song._id);
             likedSongs.push(song._id);
             localStorage.setItem('bravo_liked_songs', JSON.stringify(likedSongs));
             Toast.show('Added to liked songs! ❤️', 'success');
@@ -217,13 +208,7 @@ class BrowsePage {
     }
 
     async downloadSong(song) {
-        const token = localStorage.getItem('bravo_token');
-        if (!token) {
-            Toast.show('Please login to download', 'info');
-            window.location.hash = 'login';
-            return;
-        }
-        
+        // Download without login
         Toast.show(`Downloading "${song.title}"...`, 'info');
         
         try {

@@ -3,7 +3,6 @@
     animation: fadeIn 0.5s ease;
 }
 
-/* Hero Section */
 .hero-section {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     border-radius: 24px;
@@ -73,10 +72,10 @@
     background: rgba(255,255,255,0.1);
 }
 
-/* Section Styles */
 .featured-section,
 .trending-section,
-.new-releases-section {
+.new-releases-section,
+.popular-genres-section {
     margin-bottom: 50px;
 }
 
@@ -104,7 +103,6 @@
     color: var(--primary-dark);
 }
 
-/* CTA Section */
 .cta-section {
     background: linear-gradient(135deg, var(--card-bg) 0%, var(--darker-bg) 100%);
     border-radius: 24px;
@@ -127,37 +125,13 @@
     margin-right: auto;
 }
 
-@media (max-width: 768px) {
-    .hero-section {
-        padding: 40px 20px;
-    }
-    
-    .hero-section h1 {
-        font-size: 32px;
-    }
-    
-    .hero-section p {
-        font-size: 16px;
-    }
-    
-    .hero-buttons {
-        flex-direction: column;
-    }
-    
-    .section-header h2 {
-        font-size: 20px;
-    }
-    
-    .cta-section {
-        padding: 30px 20px;
-    }
-    
-    .cta-content h2 {
-        font-size: 22px;
-    }
+.artist-note {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: -15px;
+    margin-bottom: 20px !important;
 }
 
-/* Hero Logo Styles */
 .hero-logo {
     margin-bottom: 20px;
 }
@@ -183,9 +157,119 @@
     }
 }
 
+/* Mobile Responsive */
 @media (max-width: 768px) {
+    .hero-section {
+        padding: 30px 20px !important;
+        margin-bottom: 24px !important;
+        border-radius: 16px !important;
+    }
+    
+    .hero-section h1 {
+        font-size: 24px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .hero-section p {
+        font-size: 13px !important;
+        margin-bottom: 20px !important;
+    }
+    
     .hero-logo-img {
-        width: 60px;
-        height: 60px;
+        width: 50px !important;
+        height: 50px !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .hero-buttons .btn-primary,
+    .hero-buttons .btn-outline {
+        width: 100%;
+        text-align: center;
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    .section-header h2 {
+        font-size: 18px !important;
+    }
+    
+    .view-all {
+        font-size: 12px !important;
+    }
+    
+    .featured-section,
+    .trending-section,
+    .new-releases-section,
+    .popular-genres-section {
+        margin-bottom: 30px;
+    }
+    
+    .cta-section {
+        padding: 24px 16px !important;
+        margin-top: 30px !important;
+        border-radius: 16px !important;
+    }
+    
+    .cta-content h2 {
+        font-size: 20px !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .cta-content p {
+        font-size: 13px !important;
+        margin-bottom: 16px !important;
+        line-height: 1.5;
+    }
+    
+    .artist-note {
+        font-size: 10px !important;
+        margin-top: -8px !important;
+        margin-bottom: 16px !important;
+    }
+    
+    .cta-content .btn-large {
+        padding: 10px 20px !important;
+        font-size: 14px !important;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        padding: 20px 16px !important;
+    }
+    
+    .hero-section h1 {
+        font-size: 20px !important;
+    }
+    
+    .hero-section p {
+        font-size: 12px !important;
+    }
+    
+    .hero-logo-img {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .section-header h2 {
+        font-size: 16px !important;
+    }
+    
+    .cta-section {
+        padding: 20px 16px !important;
+    }
+    
+    .cta-content h2 {
+        font-size: 18px !important;
+    }
+    
+    .cta-content p {
+        font-size: 12px !important;
     }
 }

@@ -16,6 +16,7 @@
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.4);
     --transition: all 0.3s ease;
+    --navbar-height: 55px;
 }
 
 * {
@@ -41,15 +42,16 @@ body {
 /* App Container */
 .app-container {
     display: flex;
-    margin-top: 70px;
-    min-height: calc(100vh - 70px);
+    margin-top: var(--navbar-height);
+    min-height: calc(100vh - var(--navbar-height));
 }
 
 #main-content {
     flex: 1;
     margin-left: 280px;
-    padding: 2rem;
-    margin-bottom: 90px;
+    padding: 1.5rem;
+    padding-bottom: 2rem;
+    overflow-x: auto;
 }
 
 /* Audio Player */
@@ -639,6 +641,13 @@ body {
     margin-right: auto;
 }
 
+.artist-note {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: -15px;
+    margin-bottom: 20px !important;
+}
+
 /* Genre Filters */
 .genre-filters {
     display: flex;
@@ -786,11 +795,21 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+    #main-content {
+        margin-left: 260px;
+    }
+}
+
 @media (max-width: 768px) {
+    :root {
+        --navbar-height: 50px;
+    }
+    
     #main-content {
         margin-left: 0;
         padding: 1rem;
-        margin-bottom: 120px;
+        padding-bottom: 65px;
     }
     
     .songs-grid,
@@ -809,15 +828,15 @@ body {
     }
     
     .hero-section {
-        padding: 40px 20px;
+        padding: 30px 20px !important;
     }
     
     .hero-section h1 {
-        font-size: 32px;
+        font-size: 28px !important;
     }
     
     .hero-section p {
-        font-size: 16px;
+        font-size: 16px !important;
     }
     
     .hero-buttons {
@@ -856,41 +875,111 @@ body {
     .cta-content h2 {
         font-size: 22px;
     }
-}
-
-/* ==================== FIXES FOR OVERALL LAYOUT ==================== */
-
-/* Ensure main content has proper spacing */
-#main-content {
-    overflow-x: auto;
-}
-
-/* Fix for containers */
-.container {
-    max-width: 100%;
-    overflow-x: auto;
-}
-
-/* Improve card responsiveness */
-.stat-card, .stat-card-sm {
-    box-sizing: border-box;
-}
-
-/* Fix for buttons on mobile */
-@media (max-width: 768px) {
+    
     .btn-primary, .btn-secondary, .btn-outline, .btn-danger, .btn-success {
         padding: 8px 16px;
         font-size: 13px;
     }
 }
 
-/* Ensure proper scrolling on tables */
+@media (max-width: 480px) {
+    #main-content {
+        padding-bottom: 60px;
+    }
+    
+    .songs-grid,
+    .albums-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-section h1 {
+        font-size: 24px !important;
+    }
+    
+    .hero-logo-img {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .form-container {
+        padding: 20px 16px;
+        margin: 20px auto;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
+    
+    .toast-container {
+        right: 10px;
+        left: 10px;
+        top: 60px;
+    }
+    
+    .toast {
+        max-width: none;
+        width: calc(100% - 20px);
+    }
+    
+    .hero-section {
+        padding: 20px 16px !important;
+    }
+    
+    .hero-section h1 {
+        font-size: 20px !important;
+    }
+    
+    .hero-section p {
+        font-size: 12px !important;
+    }
+    
+    .hero-logo-img {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .cta-section {
+        padding: 20px 16px !important;
+    }
+    
+    .cta-content h2 {
+        font-size: 18px !important;
+    }
+    
+    .cta-content p {
+        font-size: 12px !important;
+    }
+    
+    .artist-note {
+        font-size: 10px !important;
+    }
+}
+
+/* ==================== FIXES FOR OVERALL LAYOUT ==================== */
+
+#main-content {
+    overflow-x: auto;
+}
+
+.container {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.stat-card, .stat-card-sm {
+    box-sizing: border-box;
+}
+
 .data-table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
 
-/* Verification Info Modal */
 .verification-info {
     text-align: center;
     padding: 10px;
@@ -925,7 +1014,6 @@ body {
     text-decoration: underline;
 }
 
-/* Forgot Password & Reset Password Pages */
 .form-description {
     color: var(--text-secondary);
     margin-bottom: 20px;
@@ -959,10 +1047,6 @@ body {
     gap: 15px;
     justify-content: center;
     margin-top: 20px;
-}
-
-#resend-link {
-    cursor: pointer;
 }
 
 .btn-primary:disabled {
