@@ -1,85 +1,156 @@
-/* Sidebar Styles */
+/* ============================================================
+ * Sidebar — clean menu-row design
+ *
+ * Items render as full-width clickable rows with icon + label,
+ * subtle hover, accent stripe on the active row, and clean
+ * section headers. On mobile (≤768px), the sidebar slides in
+ * from the left as a drawer with a backdrop overlay.
+ * ============================================================ */
+
 .sidebar {
     position: fixed;
     left: 0;
-    top: 55px;
-    bottom: 0;
-    width: 280px;
-    background: var(--darker-bg);
-    border-right: 1px solid var(--border-color);
-    padding: 1.5rem 0;
+    top: 56px;
+    bottom: 76px; /* clear the audio player */
+    width: 240px;
+    background: var(--darker-bg, #0a0a18);
+    border-right: 1px solid var(--border-color, #1f1f33);
+    padding: 16px 0;
     overflow-y: auto;
     z-index: 900;
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a3e transparent;
 }
 
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb {
+    background: #2a2a3e;
+    border-radius: 3px;
+}
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+
+/* ===== Sections ===== */
 .sidebar-section {
-    margin-bottom: 2rem;
+    margin-bottom: 16px;
 }
 
 .sidebar-section h3 {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text-secondary);
-    padding: 0 1.5rem;
-    margin-bottom: 1rem;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary, #8a8aa3);
+    padding: 0 20px;
+    margin: 16px 0 8px;
 }
 
+.sidebar-section:first-child h3 {
+    margin-top: 0;
+}
+
+/* ===== Nav list ===== */
 .sidebar-nav {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
+.sidebar-nav li {
+    margin: 1px 0;
+}
+
+/* ===== Menu item (button) ===== */
 .sidebar-item {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text-primary, #e6e6f0);
+    text-align: left;
+    padding: 9px 20px 9px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 0.75rem 1.5rem;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 14px;
+    transition: background 0.15s ease, color 0.15s ease;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+    border-left: 3px solid transparent;
+    font-family: inherit;
 }
 
 .sidebar-item i {
-    width: 24px;
-    font-size: 18px;
+    width: 18px;
+    font-size: 15px;
+    text-align: center;
+    color: var(--text-secondary, #8a8aa3);
+    flex-shrink: 0;
+    transition: color 0.15s ease;
 }
 
 .sidebar-item:hover {
-    background: var(--hover-bg);
-    color: var(--primary-color);
+    background: rgba(255, 255, 255, 0.04);
+    color: #fff;
+}
+.sidebar-item:hover i {
+    color: #b39dff;
 }
 
-.sidebar-item.active {
-    background: var(--primary-color);
-    color: white;
+.sidebar-item.active,
+.sidebar-item[aria-current="page"] {
+    background: linear-gradient(90deg, rgba(108, 99, 255, 0.15), rgba(108, 99, 255, 0.02));
+    color: #fff;
+    border-left-color: #6c63ff;
+    font-weight: 600;
+}
+.sidebar-item.active i,
+.sidebar-item[aria-current="page"] i {
+    color: #b39dff;
 }
 
-.sidebar-footer {
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
-    padding-bottom: 20px;
+.sidebar-item:focus-visible {
+    outline: 2px solid #6c63ff;
+    outline-offset: -2px;
 }
 
+/* ===== Mobile drawer ===== */
 @media (max-width: 768px) {
     .sidebar {
-        top: 50px;
         transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        width: 260px;
-        z-index: 951;
-        height: calc(100% - 50px);
-        overflow-y: auto;
+        transition: transform 0.25s ease;
+        width: 280px;
+        top: 56px;
+        z-index: 200;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
     }
-    
-    .sidebar.active {
+    .sidebar.mobile-open {
         transform: translateX(0);
     }
-    
-    .sidebar-footer {
-        padding-bottom: 100px;
+    .sidebar-overlay {
+        z-index: 150 !important;
     }
+}
+
+/* ===== Light theme ===== */
+.light-theme .sidebar {
+    background: #f7f7fb;
+    border-right-color: rgba(0, 0, 0, 0.08);
+}
+.light-theme .sidebar-section h3 {
+    color: #888;
+}
+.light-theme .sidebar-item {
+    color: #2a2a3e;
+}
+.light-theme .sidebar-item i {
+    color: #888;
+}
+.light-theme .sidebar-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: #1a1a2e;
+}
+.light-theme .sidebar-item.active {
+    background: linear-gradient(90deg, rgba(108, 99, 255, 0.1), rgba(108, 99, 255, 0.02));
+    color: #1a1a2e;
 }

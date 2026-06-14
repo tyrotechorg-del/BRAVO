@@ -1,184 +1,144 @@
-/**
- * Albums API Client
- */
+
 
 class AlbumsAPI {
     constructor() {
         this.apiUrl = window.API_BASE_URL;
+        this.basePath = (window.API_ENDPOINTS && window.API_ENDPOINTS.ALBUMS) || '/albums';
     }
 
-    getToken() {
-        return localStorage.getItem('bravo_token');
+    async _publicGet(path) {
+        try {
+            const response = await fetch(`${this.apiUrl}${this.basePath}${path}`);
+            const data = await response.json().catch(() => null);
+            if (!response.ok) {
+                return { success: false, error: data?.error || 'Request failed', status: response.status };
+            }
+            return { success: true, data, status: response.status };
+        } catch (err) {
+            return { success: false, error: 'Network error', status: 0 };
+        }
     }
+
+    async _authedRequest(path, options = {}) {
+        if (!window.authService) {
+            return { success: false, error: 'Auth service not available', status: 0 };
+        }
+        const { ok, data, status } = await window.authService.api._request(
+            `${this.basePath}${path}`,
+            options
+        );
+        if (ok) return { success: true, data, status };
+        return { success: false, error: data?.error || 'Request failed', status };
+    }
+
+    // Public reads
 
     async getAll(page = 1, limit = 20, genre = null) {
-        try {
-            let url = `${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}?page=${page}&limit=${limit}`;
-            if (genre) url += `&genre=${encodeURIComponent(genre)}`;
-            
-            const response = await fetch(url);
-            return await response.json();
-        } catch (error) {
-            console.error('Get albums error:', error);
-            return { albums: [], totalPages: 0, currentPage: 1, total: 0 };
-        }
+        const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+        if (genre) params.set('genre', genre);
+        const result = await this._publicGet(`?${params.toString()}`);
+        return result.success
+            ? result.data
+            : { albums: [], totalPages: 0, currentPage: 1, total: 0 };
     }
 
     async getById(id) {
-        try {
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}/${id}`);
-            return await response.json();
-        } catch (error) {
-            console.error('Get album error:', error);
-            return null;
-        }
+        const result = await this._publicGet(`/${encodeURIComponent(id)}`);
+        return result.success ? result.data : null;
     }
 
     async getTrending() {
-        try {
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}/trending`);
-            return await response.json();
-        } catch (error) {
-            console.error('Get trending albums error:', error);
-            return [];
-        }
+        const result = await this._publicGet('/trending');
+        return result.success ? result.data : [];
     }
 
+    // Authenticated reads
+    // a middleware that rewrites the path to userId='me', then runs
+    // through getArtistAlbums. Either of these endpoints works.
+
     async getMyAlbums() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}/my/albums`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get my albums error:', error);
-            return [];
-        }
+        return this._authedRequest('/my/albums', { method: 'GET' });
     }
 
     async getArtistAlbums(userId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}/artist/${userId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get artist albums error:', error);
-            return [];
-        }
+        return this._authedRequest(`/artist/${encodeURIComponent(userId)}`, { method: 'GET' });
     }
 
+    // Mutations (artist / admin)
+
     async create(formData) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}/create`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Create album error:', error);
-            return { error: 'Failed to create album' };
+        // FormData uploads go through fetch directly because the
+        // _request wrapper assumes JSON. We still want auth + 401
+        // refresh, so this method is a thin manual implementation.
+        if (!window.authService) {
+            return { success: false, error: 'Auth service not available', status: 0 };
         }
+        return this._formDataRequest(`${this.basePath}/create`, 'POST', formData);
     }
 
     async update(id, data) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Update album error:', error);
-            return { error: 'Failed to update album' };
-        }
+        return this._authedRequest(`/${encodeURIComponent(id)}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
     }
 
     async updateWithCover(id, formData) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}/${id}`, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Update album with cover error:', error);
-            return { error: 'Failed to update album' };
-        }
+        return this._formDataRequest(`${this.basePath}/${encodeURIComponent(id)}`, 'PUT', formData);
     }
 
     async delete(id) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Delete album error:', error);
-            return { error: 'Failed to delete album' };
-        }
+        return this._authedRequest(`/${encodeURIComponent(id)}`, { method: 'DELETE' });
     }
 
     async addSong(albumId, songId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}/${albumId}/add-song`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ songId })
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Add song to album error:', error);
-            return { error: 'Failed to add song' };
-        }
+        return this._authedRequest(`/${encodeURIComponent(albumId)}/add-song`, {
+            method: 'POST',
+            body: JSON.stringify({ songId })
+        });
     }
 
     async removeSong(albumId, songId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}/${albumId}/remove-song`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ songId })
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Remove song from album error:', error);
-            return { error: 'Failed to remove song' };
-        }
+        return this._authedRequest(`/${encodeURIComponent(albumId)}/remove-song`, {
+            method: 'DELETE',
+            body: JSON.stringify({ songId })
+        });
     }
 
     async purchase(id) {
+        return this._authedRequest(`/${encodeURIComponent(id)}/purchase`, { method: 'POST' });
+    }
+
+    // FormData helper (multipart uploads — bypass JSON wrapper)
+    async _formDataRequest(path, method, formData, isRetry = false) {
+        const token = window.authService?.getToken?.();
+        const headers = {};
+        if (token) headers.Authorization = `Bearer ${token}`;
+        // Don't set Content-Type — the browser sets multipart/form-data with boundary.
+
         try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ALBUMS}/${id}/purchase`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
+            const response = await fetch(`${this.apiUrl}${path}`, {
+                method,
+                headers,
+                body: formData
             });
-            return await response.json();
-        } catch (error) {
-            console.error('Purchase album error:', error);
-            return { error: 'Failed to purchase album' };
+
+            const data = await response.json().catch(() => null);
+
+            // 401 retry once via refresh.
+            if (response.status === 401 && !isRetry && window.authService) {
+                const refreshed = await window.authService.api?._tryRefresh?.();
+                if (refreshed) {
+                    return this._formDataRequest(path, method, formData, true);
+                }
+            }
+
+            if (response.ok) {
+                return { success: true, data, status: response.status };
+            }
+            return { success: false, error: data?.error || 'Request failed', status: response.status };
+        } catch (err) {
+            return { success: false, error: 'Network error', status: 0 };
         }
     }
 }

@@ -1,122 +1,145 @@
-/**
- * Recently Played Page
- */
+
 
 class RecentPage {
     constructor() {
         this.recentSongs = [];
+        this.loading = true;
     }
 
     async render() {
-        this.loadRecentSongs();
-        
         return `
             <div class="browse-container">
-                <h1>Recently Played</h1>
-                <div class="songs-grid" id="recent-grid">
-                    ${this.renderContent()}
+                <div class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h1><i class="fas fa-history"></i> Recently Played</h1>
+                        <p id="recent-count" style="color:#888;"></p>
+                    </div>
+                    <button class="btn-outline" type="button" id="clear-history-btn" style="display:none;">
+                        <i class="fas fa-trash"></i> Clear History
+                    </button>
+                </div>
+                <div class="songs-grid" id="recent-grid" aria-live="polite">
+                    <div class="loading-container"><div class="spinner"></div></div>
                 </div>
             </div>
         `;
-    }
-
-    loadRecentSongs() {
-        const recent = localStorage.getItem('bravo_history');
-        const recentData = recent ? JSON.parse(recent) : [];
-        
-        if (window.bravoApp && window.bravoApp.songs) {
-            this.recentSongs = recentData.map(r => window.bravoApp.songs.find(s => s._id === r._id)).filter(s => s);
-        }
-    }
-
-    renderContent() {
-        if (this.recentSongs.length === 0) {
-            return '<div class="empty-state"><i class="fas fa-history"></i><h3>No recent songs</h3><p>Start listening to build your history</p><button class="btn-primary" onclick="window.bravoApp.navigateTo(\'browse\')">Discover Music</button></div>';
-        }
-        return '';
     }
 
     async afterRender() {
-        this.renderRecentSongs();
+        await this._loadRecent();
+        this._renderGrid();
+        this._wireClearButton();
     }
 
-    renderRecentSongs() {
+    async _loadRecent() {
+        const ids = this._getHistoryIds();
+
+        if (ids.length === 0) {
+            this.recentSongs = [];
+            this.loading = false;
+            return;
+        }
+
+        const songsAPI = new SongsAPI();
+        const results = await Promise.all(
+            ids.map(id => songsAPI.getById(id).catch(() => null))
+        );
+
+        // Preserve order; filter out nulls.
+        const valid = [];
+        const validIds = [];
+        results.forEach((song, idx) => {
+            const songData = song?.success ? song.data : song;
+            if (songData && songData._id) {
+                valid.push(songData);
+                validIds.push(ids[idx]);
+            }
+        });
+
+        this.recentSongs = valid;
+        this.loading = false;
+
+        // Write back the cleaned, normalized (IDs-only) list.
+        if (validIds.length !== ids.length || !this._isAlreadyIdFormat()) {
+            localStorage.setItem('bravo_history', JSON.stringify(validIds));
+        }
+    }
+
+    _getHistoryIds() {
+        try {
+            const raw = JSON.parse(localStorage.getItem('bravo_history') || '[]');
+            if (!Array.isArray(raw)) return [];
+            // Tolerate old (object) format AND new (string ID) format.
+            return raw
+                .map(item => (typeof item === 'string' ? item : item?._id))
+                .filter(Boolean);
+        } catch {
+            return [];
+        }
+    }
+
+    _isAlreadyIdFormat() {
+        try {
+            const raw = JSON.parse(localStorage.getItem('bravo_history') || '[]');
+            return Array.isArray(raw) && raw.every(x => typeof x === 'string');
+        } catch {
+            return true;
+        }
+    }
+
+    _renderGrid() {
         const grid = document.getElementById('recent-grid');
+        const count = document.getElementById('recent-count');
+        const clearBtn = document.getElementById('clear-history-btn');
         if (!grid) return;
-        
-        if (this.recentSongs.length === 0) return;
-        
+
+        if (this.recentSongs.length === 0) {
+            if (count) count.textContent = '';
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <h3>No history yet</h3>
+                    <p>Songs you play will appear here.</p>
+                    <button class="btn-primary" type="button" id="recent-discover-btn">Discover Music</button>
+                </div>
+            `;
+            document.getElementById('recent-discover-btn')?.addEventListener('click', () => {
+                if (window.bravoApp?.navigateTo) window.bravoApp.navigateTo('browse');
+                else window.location.hash = 'browse';
+            });
+            return;
+        }
+
+        if (count) {
+            count.textContent = `${this.recentSongs.length} song${this.recentSongs.length === 1 ? '' : 's'}`;
+        }
+        if (clearBtn) clearBtn.style.display = 'inline-flex';
+
         grid.innerHTML = '';
         this.recentSongs.forEach(song => {
-            const card = this.createSongCard(song);
-            grid.appendChild(card);
+            new SongCard(song, grid, { playlist: this.recentSongs });
         });
     }
 
-    createSongCard(song) {
-        const likedSongs = JSON.parse(localStorage.getItem('bravo_liked_songs') || '[]');
-        const isLiked = likedSongs.includes(song._id);
-        
-        const card = document.createElement('div');
-        card.className = 'song-card';
-        card.setAttribute('data-song-id', song._id);
-        card.innerHTML = `
-            <img src="${song.coverArt || 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=200'}" alt="${this.escapeHtml(song.title)}">
-            <div class="song-card-overlay">
-                <button class="play-btn" title="Play"><i class="fas fa-play"></i></button>
-                <button class="like-btn ${isLiked ? 'liked' : ''}" title="Like"><i class="fas fa-heart"></i></button>
-            </div>
-            <div class="song-card-info">
-                <h4 class="song-title">${this.escapeHtml(song.title)}</h4>
-                <p class="song-artist">${song.artist?.stageName || 'Unknown Artist'}</p>
-                <div class="song-stats">
-                    <span><i class="fas fa-play"></i> ${this.formatNumber(song.playCount || 0)}</span>
-                </div>
-            </div>
-        `;
-        
-        const playBtn = card.querySelector('.play-btn');
-        const likeBtn = card.querySelector('.like-btn');
-        
-        playBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (window.bravoApp && window.bravoApp.audioPlayer) {
-                window.bravoApp.audioPlayer.loadSong(song);
+    _wireClearButton() {
+        const btn = document.getElementById('clear-history-btn');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+            if (!window.Modal) {
+                // Fallback to confirm if Modal isn't available
+                if (!confirm('Clear all listening history?')) return;
+                this._clearHistory();
+                return;
             }
+            Modal.confirm('Clear all listening history?', () => this._clearHistory());
         });
-        
-        likeBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const songsAPI = new SongsAPI();
-            if (isLiked) {
-                await songsAPI.unlike(song._id);
-                const newLiked = likedSongs.filter(id => id !== song._id);
-                localStorage.setItem('bravo_liked_songs', JSON.stringify(newLiked));
-                likeBtn.classList.remove('liked');
-                Toast.show('Removed from liked songs', 'info');
-            } else {
-                await songsAPI.like(song._id);
-                likedSongs.push(song._id);
-                localStorage.setItem('bravo_liked_songs', JSON.stringify(likedSongs));
-                likeBtn.classList.add('liked');
-                Toast.show('Added to liked songs! ❤️', 'success');
-            }
-        });
-        
-        return card;
     }
 
-    formatNumber(num) {
-        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return num.toString();
-    }
-
-    escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    _clearHistory() {
+        localStorage.setItem('bravo_history', '[]');
+        this.recentSongs = [];
+        this._renderGrid();
+        Toast.show?.('History cleared', 'success');
     }
 }
 

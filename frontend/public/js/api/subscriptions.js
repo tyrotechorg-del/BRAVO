@@ -1,100 +1,82 @@
-/**
- * Subscriptions API Client
- */
+
 
 class SubscriptionsAPI {
     constructor() {
-        this.apiUrl = window.API_BASE_URL;
+        this.basePath = window.API_ENDPOINTS?.SUBSCRIPTIONS || '/subscriptions';
     }
 
-    getToken() {
-        return localStorage.getItem('bravo_token');
+    async _request(path, options = {}, requireAuth = true) {
+        if (requireAuth) {
+            if (!window.authService) {
+                return { success: false, error: 'Auth service not available', status: 0 };
+            }
+            const { ok, data, status } = await window.authService.api._request(
+                `${this.basePath}${path}`,
+                options
+            );
+            if (ok) return { success: true, data, status };
+            return { success: false, error: data?.error || data?.message || 'Request failed', status };
+        }
+        // Public endpoint — plain fetch
+        try {
+            const response = await fetch(`${window.API_BASE_URL}${this.basePath}${path}`, options);
+            const data = await response.json();
+            if (response.ok) return { success: true, data, status: response.status };
+            return {
+                success: false,
+                error: data?.error || data?.message || 'Request failed',
+                status: response.status
+            };
+        } catch (err) {
+            return { success: false, error: err.message || 'Network error', status: 0 };
+        }
     }
 
+    // Get all available plans (public endpoint)
     async getPlans() {
-        try {
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SUBSCRIPTIONS}/plans`);
-            return await response.json();
-        } catch (error) {
-            console.error('Get plans error:', error);
-            return window.SUBSCRIPTION_PLANS;
-        }
+        return this._request('/plans', { method: 'GET' }, false);
     }
 
-    async subscribe(planId, paymentMethod, phoneNumber) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SUBSCRIPTIONS}/subscribe`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ planId, paymentMethod, phoneNumber })
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Subscribe error:', error);
-            return { error: 'Failed to subscribe' };
-        }
+    // Subscribe to a plan
+    async subscribe(planId, paymentMethod, phoneNumber, idempotencyKey = null) {
+        const headers = {};
+        if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
+        return this._request('/subscribe', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                planId,
+                paymentMethod,
+                phoneNumber,
+                idempotencyKey
+            })
+        });
     }
 
+    // Get current user's subscription
     async getMySubscription() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SUBSCRIPTIONS}/my-subscription`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get subscription error:', error);
-            return { active: false };
-        }
+        return this._request('/my-subscription', { method: 'GET' });
     }
 
+    // Cancel current subscription
     async cancelSubscription() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SUBSCRIPTIONS}/cancel`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Cancel subscription error:', error);
-            return { error: 'Failed to cancel subscription' };
-        }
+        return this._request('/cancel', { method: 'POST' });
     }
 
+    // Renew subscription (with optional auto-renew flag)
     async renewSubscription(autoRenew = false) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SUBSCRIPTIONS}/renew`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ autoRenew })
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Renew subscription error:', error);
-            return { error: 'Failed to renew subscription' };
-        }
+        return this._request('/renew', {
+            method: 'POST',
+            body: JSON.stringify({ autoRenew: !!autoRenew })
+        });
     }
 
-    async getHistory() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SUBSCRIPTIONS}/history`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get subscription history error:', error);
-            return [];
-        }
+    // Subscription payment history
+    async getHistory(page = 1, limit = 20) {
+        const safePage = Math.max(1, Number(page) || 1);
+        const safeLimit = Math.min(100, Math.max(1, Number(limit) || 20));
+        const q = new URLSearchParams({ page: String(safePage), limit: String(safeLimit) }).toString();
+        return this._request(`/history?${q}`, { method: 'GET' });
     }
 }
 

@@ -1,188 +1,137 @@
-/**
- * User API Client
- */
+
 
 class UserAPI {
     constructor() {
         this.apiUrl = window.API_BASE_URL;
+        this.basePath = (window.API_ENDPOINTS && window.API_ENDPOINTS.USERS) || '/users';
     }
 
-    getToken() {
-        return localStorage.getItem('bravo_token');
+    async _authedRequest(path, options = {}) {
+        if (!window.authService) {
+            return { success: false, error: 'Auth service not available', status: 0 };
+        }
+        const { ok, data, status } = await window.authService.api._request(
+            `${this.basePath}${path}`,
+            options
+        );
+        if (ok) return { success: true, data, status };
+        return { success: false, error: data?.error || 'Request failed', status };
     }
+
+    async _publicGet(path) {
+        try {
+            const response = await fetch(`${this.apiUrl}${this.basePath}${path}`);
+            const data = await response.json().catch(() => null);
+            if (!response.ok) {
+                return { success: false, error: data?.error || 'Request failed', status: response.status };
+            }
+            return { success: true, data, status: response.status };
+        } catch {
+            return { success: false, error: 'Network error', status: 0 };
+        }
+    }
+
+    // Profile
 
     async getProfile() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/profile`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get profile error:', error);
-            return null;
-        }
+        return this._authedRequest('/profile', { method: 'GET' });
+    }
+
+    async getPublicProfile(userId) {
+        return this._publicGet(`/${encodeURIComponent(userId)}`);
     }
 
     async updateProfile(data) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/profile`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Update profile error:', error);
-            return { error: 'Failed to update profile' };
-        }
+        return this._authedRequest('/profile', {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
     }
 
+    /**
+     * Upload a new avatar. We must NOT set Content-Type — the browser
+     * sets multipart/form-data with the right boundary automatically.
+     * The internal _request wrapper sets Content-Type to application/json
+     * only when the body is a string, so FormData passes through correctly.
+     */
     async updateAvatar(file) {
-        try {
-            const token = this.getToken();
-            const formData = new FormData();
-            formData.append('avatar', file);
-            
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/profile`, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Update avatar error:', error);
-            return { error: 'Failed to update avatar' };
-        }
+        const formData = new FormData();
+        formData.append('avatar', file);
+        return this._authedRequest('/profile/avatar', {
+            method: 'POST',
+            body: formData
+        });
     }
+
+    async deleteAccount(password) {
+        return this._authedRequest('/account', {
+            method: 'DELETE',
+            body: JSON.stringify({ password })
+        });
+    }
+
+    // Social
 
     async getFollowers() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/followers`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get followers error:', error);
-            return [];
-        }
+        return this._authedRequest('/followers', { method: 'GET' });
     }
 
     async getFollowing() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/following`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get following error:', error);
-            return [];
-        }
+        return this._authedRequest('/following', { method: 'GET' });
     }
 
     async followUser(userId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/follow/${userId}`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Follow error:', error);
-            return { error: 'Failed to follow user' };
-        }
+        return this._authedRequest(`/follow/${encodeURIComponent(userId)}`, { method: 'POST' });
     }
 
     async unfollowUser(userId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/unfollow/${userId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Unfollow error:', error);
-            return { error: 'Failed to unfollow user' };
-        }
+        return this._authedRequest(`/unfollow/${encodeURIComponent(userId)}`, { method: 'POST' });
     }
 
-    async getHistory() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/history`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get history error:', error);
-            return [];
-        }
+    // Library (liked songs, history, etc — backend exposes these)
+
+    async getLikedSongs() {
+        return this._authedRequest('/me/liked', { method: 'GET' });
     }
 
-    async getPlaylists() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/playlists`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get playlists error:', error);
-            return [];
-        }
+    async getListenHistory() {
+        return this._authedRequest('/me/history', { method: 'GET' });
     }
 
-    async getSettings() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/settings`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get settings error:', error);
-            return null;
-        }
+    async getNotificationSettings() {
+        return this._authedRequest('/notifications/settings', { method: 'GET' });
     }
 
-    async updateSettings(settings) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/settings`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(settings)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Update settings error:', error);
-            return { error: 'Failed to update settings' };
-        }
+    async updateNotificationSettings(settings) {
+        return this._authedRequest('/notifications/settings', {
+            method: 'PUT',
+            body: JSON.stringify(settings)
+        });
     }
 
-    async deleteAccount() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.USERS}/account`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Delete account error:', error);
-            return { error: 'Failed to delete account' };
-        }
+    /**
+     * Update user preferences (theme, language, notification flags).
+     * Wraps updateProfile with the preferences nested object — the
+     * backend stores all preferences under user.preferences.
+     */
+    async updatePreferences(preferences) {
+        return this._authedRequest('/profile', {
+            method: 'PUT',
+            body: JSON.stringify({ preferences })
+        });
+    }
+
+    /**
+     * Upgrade the current listener account to an artist account.
+     * Creates an Artist record and updates user.role.
+     * Backend endpoint: POST /api/users/me/upgrade-to-artist
+     * (added by batch-16-extras/_userController.upgradeToArtist.patch.js)
+     */
+    async upgradeToArtist(data) {
+        return this._authedRequest('/me/upgrade-to-artist', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
     }
 }
 

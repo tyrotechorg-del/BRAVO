@@ -1,426 +1,390 @@
-/**
- * Admin All Songs Page - Complete Management
- */
+
 
 class AdminAllSongsPage {
     constructor() {
         this.songs = [];
-        this.stats = null;
-        this.isLoading = false;
         this.currentPage = 1;
         this.totalPages = 1;
-        this.totalItems = 0;
-        this.filters = {
-            status: '',
-            genre: '',
-            search: '',
-            isVideo: ''
-        };
-        this.selectedSongs = new Set();
-        this.adminAPI = null;
-        this.staticUrl = window.APP_CONFIG.STATIC_URL;
+        this.filters = { search: '', status: '', genre: '', sortBy: 'createdAt', sortOrder: 'desc' };
+        this.selectedIds = new Set();
+        this.adminAPI = new AdminAPI();
+        this.staticUrl = window.APP_CONFIG?.STATIC_URL || window.location.origin;
+    }
+
+    _genres() {
+        return Array.isArray(window.GENRES) && window.GENRES.length > 0
+            ? window.GENRES
+            : ['Afrobeat', 'Hip Hop', 'R&B', 'Dancehall', 'Reggae', 'Gospel',
+               'Traditional', 'Amapiano', 'Cuundu', 'Soul', 'Rock', 'Kalindula', 'Other'];
     }
 
     async render() {
-        this.adminAPI = new AdminAPI();
-        await this.loadData();
-        
+        const genreOpts = this._genres()
+            .map(g => `<option value="${this._escapeAttr(g)}">${this._escapeHtml(g)}</option>`)
+            .join('');
         return `
-            <div class="admin-all-songs-page">
+            <div class="admin-songs-all-page">
                 <div class="page-header">
-                    <h1><i class="fas fa-headphones"></i> All Songs Management</h1>
-                    <p>View, filter, and manage all songs on the platform</p>
+                    <h1><i class="fas fa-headphones"></i> All Songs</h1>
+                    <p>View, filter, and bulk-manage all songs on the platform.</p>
                 </div>
-                
-                <div class="stats-cards">
-                    <div class="stat-card-sm">
-                        <div class="stat-value">${this.stats?.total || 0}</div>
-                        <div class="stat-label">Total Songs</div>
-                    </div>
-                    <div class="stat-card-sm pending">
-                        <div class="stat-value">${this.stats?.pending || 0}</div>
-                        <div class="stat-label">Pending</div>
-                    </div>
-                    <div class="stat-card-sm approved">
-                        <div class="stat-value">${this.stats?.approved || 0}</div>
-                        <div class="stat-label">Approved</div>
-                    </div>
-                    <div class="stat-card-sm rejected">
-                        <div class="stat-value">${this.stats?.rejected || 0}</div>
-                        <div class="stat-label">Rejected</div>
-                    </div>
-                    <div class="stat-card-sm featured">
-                        <div class="stat-value">${this.stats?.featured || 0}</div>
-                        <div class="stat-label">Featured</div>
-                    </div>
-                    <div class="stat-card-sm video">
-                        <div class="stat-value">${this.stats?.withVideo || 0}</div>
-                        <div class="stat-label">Videos</div>
-                    </div>
+
+                <div class="filters-bar" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+                    <input type="text" id="as-search" placeholder="Search title..." style="flex:1; min-width:200px;">
+                    <select id="as-status">
+                        <option value="">All Statuses</option>
+                        <option value="approved">Approved</option>
+                        <option value="pending">Pending</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <select id="as-genre">
+                        <option value="">All Genres</option>
+                        ${genreOpts}
+                    </select>
+                    <select id="as-sort">
+                        <option value="createdAt-desc">Newest</option>
+                        <option value="createdAt-asc">Oldest</option>
+                        <option value="playCount-desc">Most Played</option>
+                        <option value="likeCount-desc">Most Liked</option>
+                    </select>
+                    <button class="btn-secondary" type="button" id="as-apply-btn">
+                        <i class="fas fa-filter"></i> Apply
+                    </button>
                 </div>
-                
-                <div class="filters-bar">
-                    <div class="filter-group">
-                        <input type="text" id="search-songs" placeholder="Search by title or tags..." value="${this.escapeHtml(this.filters.search)}">
-                        <button id="search-btn" class="btn-secondary"><i class="fas fa-search"></i> Search</button>
-                    </div>
-                    <div class="filter-group">
-                        <select id="status-filter">
-                            <option value="">All Status</option>
-                            <option value="pending" ${this.filters.status === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="approved" ${this.filters.status === 'approved' ? 'selected' : ''}>Approved</option>
-                            <option value="rejected" ${this.filters.status === 'rejected' ? 'selected' : ''}>Rejected</option>
-                            <option value="featured" ${this.filters.status === 'featured' ? 'selected' : ''}>Featured</option>
-                        </select>
-                        <select id="genre-filter">
-                            <option value="">All Genres</option>
-                            <option value="Afrobeat">Afrobeat</option>
-                            <option value="Hip Hop">Hip Hop</option>
-                            <option value="R&B">R&B</option>
-                            <option value="Dancehall">Dancehall</option>
-                            <option value="Reggae">Reggae</option>
-                            <option value="Gospel">Gospel</option>
-                            <option value="Traditional">Traditional</option>
-                            <option value="Amapiano">Amapiano</option>
-                            <option value="Cuundu">Cuundu</option>
-                            <option value="Kalindula">Kalindula</option>
-                        </select>
-                        <select id="type-filter">
-                            <option value="">All Types</option>
-                            <option value="false">Audio Only</option>
-                            <option value="true">Video Songs</option>
-                        </select>
-                        <button id="apply-filters" class="btn-secondary">Apply Filters</button>
-                        <button id="reset-filters" class="btn-outline">Reset</button>
-                    </div>
+
+                <div id="as-bulk-bar" hidden style="background:rgba(108,99,255,0.1); padding:12px; border-radius:6px; margin-bottom:12px; display:flex; gap:8px; align-items:center;">
+                    <strong><span id="as-selected-count">0</span> selected</strong>
+                    <button class="btn-success btn-sm" type="button" id="as-bulk-approve">Approve</button>
+                    <button class="btn-danger btn-sm" type="button" id="as-bulk-reject">Reject</button>
+                    <button class="btn-danger btn-sm" type="button" id="as-bulk-delete">Delete</button>
+                    <button class="btn-outline btn-sm" type="button" id="as-clear-selection">Clear</button>
                 </div>
-                
-                <div class="bulk-actions-bar">
-                    <span class="selected-count">${this.selectedSongs.size} songs selected</span>
-                    <div class="bulk-actions">
-                        <select id="bulk-action">
-                            <option value="">Bulk Action</option>
-                            <option value="approve">Approve Selected</option>
-                            <option value="reject">Reject Selected</option>
-                            <option value="feature">Feature Selected</option>
-                            <option value="delete">Delete Selected</option>
-                        </select>
-                        <button id="apply-bulk" class="btn-primary">Apply</button>
-                    </div>
+
+                <div class="songs-table-container" id="as-container" aria-live="polite">
+                    <div class="loading-container"><div class="spinner"></div></div>
                 </div>
-                
-                <div class="songs-table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" id="select-all"></th>
-                                <th>Cover</th>
-                                <th>Title</th>
-                                <th>Artist</th>
-                                <th>Genre</th>
-                                <th>Type</th>
-                                <th>Status</th>
-                                <th>Plays</th>
-                                <th>Likes</th>
-                                <th>Uploaded</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="songs-table-body">
-                            ${this.renderSongsList()}
-                        </tbody>
-                    寸able
-                    ${this.renderPagination()}
-                </div>
+
+                <div class="pagination" id="as-pagination"></div>
             </div>
         `;
     }
 
-    async loadData() {
-        this.isLoading = true;
-        
-        try {
-            const result = await this.adminAPI.getAllSongsForAdmin({
-                page: this.currentPage,
-                limit: 20,
-                status: this.filters.status,
-                genre: this.filters.genre,
-                search: this.filters.search,
-                isVideo: this.filters.isVideo
-            });
-            
-            if (!result.error) {
-                this.songs = result.songs || [];
-                this.stats = result.stats || {};
-                this.totalPages = result.pagination?.totalPages || 1;
-                this.totalItems = result.pagination?.totalItems || 0;
-            }
-        } catch (error) {
-            console.error('Load songs error:', error);
-            Toast.show('Failed to load songs', 'error');
-        } finally {
-            this.isLoading = false;
+    async afterRender() {
+        if (!window.authService?.isAdmin?.()) {
+            Toast.show?.('Admin access required', 'error');
+            return;
         }
+        this._wireFilters();
+        this._wireBulkBar();
+        await this._loadAndRender();
     }
 
-    renderSongsList() {
-        if (this.isLoading) {
-            return '<tr><td colspan="11" class="loading-cell">Loading songs...</td></tr>';
+    _wireFilters() {
+        const apply = async () => {
+            const s = document.getElementById('as-search');
+            const st = document.getElementById('as-status');
+            const g = document.getElementById('as-genre');
+            const sort = document.getElementById('as-sort');
+            const [sortBy, sortOrder] = (sort?.value || 'createdAt-desc').split('-');
+            this.filters = {
+                search: s?.value.trim() || '',
+                status: st?.value || '',
+                genre: g?.value || '',
+                sortBy,
+                sortOrder
+            };
+            this.currentPage = 1;
+            this.selectedIds.clear();
+            this._renderBulkBar();
+            await this._loadAndRender();
+        };
+        document.getElementById('as-apply-btn')?.addEventListener('click', apply);
+        document.getElementById('as-search')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') apply();
+        });
+    }
+
+    _wireBulkBar() {
+        document.getElementById('as-bulk-approve')?.addEventListener('click', () => this._bulkAction('approve'));
+        document.getElementById('as-bulk-reject')?.addEventListener('click', () => this._bulkAction('reject'));
+        document.getElementById('as-bulk-delete')?.addEventListener('click', () => this._bulkAction('delete'));
+        document.getElementById('as-clear-selection')?.addEventListener('click', () => {
+            this.selectedIds.clear();
+            this._renderTable();
+            this._renderBulkBar();
+        });
+    }
+
+    async _loadAndRender() {
+        const result = await this.adminAPI.getAllSongsForAdmin({
+            page: this.currentPage,
+            limit: 50,
+            ...this.filters
+        });
+        if (result.success) {
+            const data = result.data || {};
+            this.songs = data.songs || [];
+            this.totalPages = data.totalPages || 1;
+        } else {
+            this.songs = [];
+            this.totalPages = 1;
         }
-        
+        this._renderTable();
+        this._renderPagination();
+    }
+
+    _renderTable() {
+        const container = document.getElementById('as-container');
+        if (!container) return;
+
         if (this.songs.length === 0) {
-            return '<tr><td colspan="11" class="empty-cell">No songs found</td></tr>';
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-music"></i>
+                    <h3>No songs found</h3>
+                </div>
+            `;
+            return;
         }
-        
-        return this.songs.map(song => `
-            <tr data-song-id="${song._id}">
-                <td><input type="checkbox" class="song-select" value="${song._id}" ${this.selectedSongs.has(song._id) ? 'checked' : ''}></td>
-                <td><img src="${this.getFullUrl(song.coverArt)}" class="song-cover-sm" onerror="this.src='https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=50'"></td>
-                <td><strong>${this.escapeHtml(song.title)}</strong></td>
-                <td>${song.artist?.stageName || 'Unknown'}</td>
-                <td><span class="genre-badge">${song.genre || 'Various'}</span></td>
-                <td>${song.isVideo ? '<span class="type-badge video"><i class="fas fa-video"></i> Video</span>' : '<span class="type-badge audio"><i class="fas fa-music"></i> Audio</span>'}</td>
-                <td><span class="status-badge status-${song.status}">${song.status}</span></td>
-                <td>${song.playCount?.toLocaleString() || 0}</td>
-                <td>${song.likeCount?.toLocaleString() || 0}</td>
-                <td>${new Date(song.createdAt).toLocaleDateString()}</td>
-                <td class="actions-cell">
-                    <button class="btn-icon approve-song" data-id="${song._id}" title="Approve" ${song.status === 'approved' ? 'disabled' : ''}>
+
+        container.innerHTML = `
+            <table class="data-table" id="as-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="as-select-all"></th>
+                        <th>Title</th>
+                        <th>Artist</th>
+                        <th>Genre</th>
+                        <th>Status</th>
+                        <th>Plays</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="as-tbody"></tbody>
+            </table>
+        `;
+
+        const tbody = document.getElementById('as-tbody');
+        this.songs.forEach(s => tbody.appendChild(this._buildRow(s)));
+
+        document.getElementById('as-select-all')?.addEventListener('change', (e) => {
+            const checked = e.target.checked;
+            this.songs.forEach(s => {
+                if (checked) this.selectedIds.add(s._id);
+                else this.selectedIds.delete(s._id);
+            });
+            this._renderTable();
+            this._renderBulkBar();
+        });
+
+        document.getElementById('as-table')?.addEventListener('click', (e) => {
+            const row = e.target.closest('[data-song-id]');
+            if (!row) return;
+            const songId = row.dataset.songId;
+            const checkbox = e.target.closest('input[type="checkbox"][data-action="select"]');
+            const btn = e.target.closest('[data-action]:not(input)');
+
+            if (checkbox) {
+                if (checkbox.checked) this.selectedIds.add(songId);
+                else this.selectedIds.delete(songId);
+                this._renderBulkBar();
+                return;
+            }
+            if (!btn || btn.disabled) return;
+            const song = this.songs.find(s => String(s._id) === String(songId));
+            if (!song) return;
+            if (btn.dataset.action === 'delete') this._deleteSong(song, row);
+            else if (btn.dataset.action === 'approve') this._approveSong(song, row);
+            else if (btn.dataset.action === 'reject') this._rejectSong(song, row);
+        });
+    }
+
+    _buildRow(song) {
+        const safeTitle = this._escapeHtml(song.title || 'Untitled');
+        const safeArtist = this._escapeHtml(song.artist?.stageName || 'Unknown');
+        const safeGenre = this._escapeHtml(song.genre || 'Various');
+        const status = String(song.status || 'pending');
+        const safeStatus = this._escapeHtml(status);
+        const isChecked = this.selectedIds.has(song._id);
+
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-song-id', song._id);
+        tr.innerHTML = `
+            <td><input type="checkbox" data-action="select" ${isChecked ? 'checked' : ''}></td>
+            <td><strong>${safeTitle}</strong></td>
+            <td>${safeArtist}</td>
+            <td><span class="genre-badge">${safeGenre}</span></td>
+            <td><span class="status-badge status-${safeStatus}">${safeStatus}</span></td>
+            <td>${this._formatNumber(song.playCount || 0)}</td>
+            <td class="actions-cell">
+                ${status === 'pending' ? `
+                    <button class="btn-success btn-sm" type="button" data-action="approve" aria-label="Approve">
                         <i class="fas fa-check"></i>
                     </button>
-                    <button class="btn-icon reject-song" data-id="${song._id}" title="Reject" ${song.status === 'rejected' ? 'disabled' : ''}>
+                    <button class="btn-danger btn-sm" type="button" data-action="reject" aria-label="Reject">
                         <i class="fas fa-times"></i>
                     </button>
-                    <button class="btn-icon feature-song" data-id="${song._id}" title="Feature" ${song.status === 'featured' ? 'disabled' : ''}>
-                        <i class="fas fa-star"></i>
-                    </button>
-                    <button class="btn-icon delete-song" data-id="${song._id}" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                    <button class="btn-icon play-song" data-url="${this.getFullUrl(song.audioUrl)}" title="Preview">
-                        <i class="fas fa-play"></i>
-                    </button>
-                </td>
-            </tr>
-        `).join('');
+                ` : ''}
+                <button class="btn-danger btn-sm" type="button" data-action="delete" aria-label="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        return tr;
     }
 
-    renderPagination() {
-        if (this.totalPages <= 1) return '';
-        
-        let html = '<div class="pagination-controls">';
-        if (this.currentPage > 1) {
-            html += `<button class="page-btn" data-page="${this.currentPage - 1}"><i class="fas fa-chevron-left"></i> Previous</button>`;
-        }
-        html += `<span class="page-info">Page ${this.currentPage} of ${this.totalPages} (${this.totalItems} songs)</span>`;
-        if (this.currentPage < this.totalPages) {
-            html += `<button class="page-btn" data-page="${this.currentPage + 1}">Next <i class="fas fa-chevron-right"></i></button>`;
-        }
-        html += '</div>';
-        
-        return html;
+    _renderBulkBar() {
+        const bar = document.getElementById('as-bulk-bar');
+        const count = document.getElementById('as-selected-count');
+        if (count) count.textContent = String(this.selectedIds.size);
+        if (bar) bar.hidden = this.selectedIds.size === 0;
     }
 
-    getFullUrl(url) {
-        if (!url) return 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=50';
-        if (url.startsWith('http')) return url;
-        if (url.startsWith('/uploads')) return `${this.staticUrl}${url}`;
-        return url;
+    _renderPagination() {
+        const container = document.getElementById('as-pagination');
+        if (!container || this.totalPages <= 1) {
+            if (container) container.innerHTML = '';
+            return;
+        }
+        const prevDis = this.currentPage <= 1;
+        const nextDis = this.currentPage >= this.totalPages;
+        container.innerHTML = `
+            <div class="pagination-controls">
+                <button class="page-btn" type="button" data-action="prev" ${prevDis ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <span class="page-info">Page ${this.currentPage} of ${this.totalPages}</span>
+                <button class="page-btn" type="button" data-action="next" ${nextDis ? 'disabled' : ''}>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        `;
+        container.addEventListener('click', async (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn || btn.disabled) return;
+            if (btn.dataset.action === 'prev' && this.currentPage > 1) this.currentPage--;
+            else if (btn.dataset.action === 'next' && this.currentPage < this.totalPages) this.currentPage++;
+            else return;
+            await this._loadAndRender();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, { once: true });
     }
 
-    async afterRender() {
-        this.attachEventListeners();
+    async _bulkAction(action) {
+        if (this.selectedIds.size === 0) return;
+        if (this.selectedIds.size > 500) {
+            Toast.show?.('Cannot process more than 500 at once', 'warning');
+            return;
+        }
+        const ids = Array.from(this.selectedIds);
+        const doIt = async () => {
+            const result = await this.adminAPI.bulkAction(ids, action);
+            if (!result.success) {
+                Toast.show?.(result.error || 'Bulk action failed', 'error');
+                return;
+            }
+            Toast.show?.(`${ids.length} song${ids.length === 1 ? '' : 's'} ${action}d`, 'success');
+            this.selectedIds.clear();
+            this._renderBulkBar();
+            await this._loadAndRender();
+        };
+        if (window.Modal?.confirm) {
+            Modal.confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${ids.length} song${ids.length === 1 ? '' : 's'}?`, doIt);
+        } else if (confirm(`${action} ${ids.length} songs?`)) {
+            doIt();
+        }
     }
 
-    attachEventListeners() {
-        // Search and filters
-        const searchBtn = document.getElementById('search-btn');
-        const applyFilters = document.getElementById('apply-filters');
-        const resetFilters = document.getElementById('reset-filters');
-        const searchInput = document.getElementById('search-songs');
-        const statusFilter = document.getElementById('status-filter');
-        const genreFilter = document.getElementById('genre-filter');
-        const typeFilter = document.getElementById('type-filter');
-        
-        if (searchBtn) {
-            searchBtn.addEventListener('click', () => {
-                this.filters.search = searchInput?.value || '';
-                this.currentPage = 1;
-                this.loadData().then(() => this.render()).then(() => this.afterRender());
-            });
+    async _deleteSong(song, rowEl) {
+        const doIt = async () => {
+            const result = await this.adminAPI.deleteSong(song._id);
+            if (!result.success) {
+                Toast.show?.(result.error || 'Failed to delete', 'error');
+                return;
+            }
+            this.songs = this.songs.filter(s => s._id !== song._id);
+            this.selectedIds.delete(song._id);
+            if (rowEl?.parentNode) rowEl.parentNode.removeChild(rowEl);
+            this._renderBulkBar();
+            if (this.songs.length === 0) this._renderTable();
+            Toast.show?.('Song deleted', 'success');
+        };
+        if (window.Modal?.confirm) {
+            Modal.confirm(`Delete "${song.title}"?`, doIt);
+        } else if (confirm(`Delete "${song.title}"?`)) {
+            doIt();
         }
-        
-        if (applyFilters) {
-            applyFilters.addEventListener('click', () => {
-                this.filters.status = statusFilter?.value || '';
-                this.filters.genre = genreFilter?.value || '';
-                this.filters.isVideo = typeFilter?.value || '';
-                this.currentPage = 1;
-                this.loadData().then(() => this.render()).then(() => this.afterRender());
-            });
+    }
+
+    async _approveSong(song, rowEl) {
+        const result = await this.adminAPI.approveSong(song._id);
+        if (!result.success) {
+            Toast.show?.(result.error || 'Approval failed', 'error');
+            return;
         }
-        
-        if (resetFilters) {
-            resetFilters.addEventListener('click', () => {
-                this.filters = { status: '', genre: '', search: '', isVideo: '' };
-                this.currentPage = 1;
-                if (searchInput) searchInput.value = '';
-                if (statusFilter) statusFilter.value = '';
-                if (genreFilter) genreFilter.value = '';
-                if (typeFilter) typeFilter.value = '';
-                this.loadData().then(() => this.render()).then(() => this.afterRender());
-            });
-        }
-        
-        // Select all checkbox
-        const selectAll = document.getElementById('select-all');
-        if (selectAll) {
-            selectAll.addEventListener('change', (e) => {
-                const checkboxes = document.querySelectorAll('.song-select');
-                checkboxes.forEach(cb => {
-                    cb.checked = e.target.checked;
-                    if (e.target.checked) {
-                        this.selectedSongs.add(cb.value);
-                    } else {
-                        this.selectedSongs.delete(cb.value);
-                    }
-                });
-                this.updateSelectedCount();
-            });
-        }
-        
-        // Individual song selection
-        document.querySelectorAll('.song-select').forEach(cb => {
-            cb.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    this.selectedSongs.add(e.target.value);
-                } else {
-                    this.selectedSongs.delete(e.target.value);
-                }
-                this.updateSelectedCount();
-            });
+        song.status = 'approved';
+        const newRow = this._buildRow(song);
+        rowEl.parentNode.replaceChild(newRow, rowEl);
+        Toast.show?.(`Approved "${song.title}"`, 'success');
+    }
+
+    async _rejectSong(song, rowEl) {
+        // For bulk page, use a quick prompt-like flow via Modal
+        const handle = Modal.show({
+            title: 'Reject Song',
+            content: `
+                <p>Reject <strong>${this._escapeHtml(song.title || '')}</strong>?</p>
+                <form id="ars-form">
+                    <div class="form-group">
+                        <label for="ars-reason">Reason</label>
+                        <textarea id="ars-reason" rows="2" maxlength="500" required></textarea>
+                    </div>
+                    <div id="ars-error" style="color:#ff4757; font-size:14px;"></div>
+                </form>
+            `,
+            buttons: [
+                { text: 'Cancel', class: 'btn-secondary', action: 'cancel' },
+                { text: 'Reject', class: 'btn-danger', action: 'reject' }
+            ]
         });
-        
-        // Bulk action
-        const applyBulk = document.getElementById('apply-bulk');
-        const bulkAction = document.getElementById('bulk-action');
-        
-        if (applyBulk) {
-            applyBulk.addEventListener('click', async () => {
-                const action = bulkAction?.value;
-                if (!action) {
-                    Toast.show('Please select an action', 'warning');
+        requestAnimationFrame(() => {
+            handle?.element?.querySelector('[data-action="reject"]')?.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const reason = document.getElementById('ars-reason').value.trim();
+                if (reason.length < 5) {
+                    document.getElementById('ars-error').textContent = 'Reason must be 5+ chars';
                     return;
                 }
-                if (this.selectedSongs.size === 0) {
-                    Toast.show('Please select songs to perform action', 'warning');
+                const result = await this.adminAPI.rejectSong(song._id, reason);
+                if (!result.success) {
+                    document.getElementById('ars-error').textContent = result.error || 'Failed';
                     return;
                 }
-                
-                const confirmMsg = `Are you sure you want to ${action} ${this.selectedSongs.size} songs?`;
-                if (confirm(confirmMsg)) {
-                    const songIds = Array.from(this.selectedSongs);
-                    const result = await this.adminAPI.bulkAction(songIds, action);
-                    if (!result.error) {
-                        Toast.show(`${action} completed for ${songIds.length} songs`, 'success');
-                        this.selectedSongs.clear();
-                        await this.loadData();
-                        await this.render();
-                        await this.afterRender();
-                    } else {
-                        Toast.show(result.error, 'error');
-                    }
-                }
-            });
-        }
-        
-        // Individual actions
-        document.querySelectorAll('.approve-song').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const songId = btn.dataset.id;
-                const result = await this.adminAPI.approveSong(songId);
-                if (!result.error) {
-                    Toast.show('Song approved', 'success');
-                    await this.loadData();
-                    await this.render();
-                    await this.afterRender();
-                } else {
-                    Toast.show(result.error, 'error');
-                }
-            });
-        });
-        
-        document.querySelectorAll('.reject-song').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const songId = btn.dataset.id;
-                const reason = prompt('Enter rejection reason:');
-                const result = await this.adminAPI.rejectSong(songId, reason);
-                if (!result.error) {
-                    Toast.show('Song rejected', 'info');
-                    await this.loadData();
-                    await this.render();
-                    await this.afterRender();
-                } else {
-                    Toast.show(result.error, 'error');
-                }
-            });
-        });
-        
-        document.querySelectorAll('.delete-song').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const songId = btn.dataset.id;
-                if (confirm('Delete this song permanently?')) {
-                    const result = await this.adminAPI.deleteSong(songId);
-                    if (!result.error) {
-                        Toast.show('Song deleted', 'success');
-                        await this.loadData();
-                        await this.render();
-                        await this.afterRender();
-                    } else {
-                        Toast.show(result.error, 'error');
-                    }
-                }
-            });
-        });
-        
-        document.querySelectorAll('.play-song').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const url = btn.dataset.url;
-                if (url && window.bravoApp?.audioPlayer) {
-                    window.bravoApp.audioPlayer.loadSong({ 
-                        audioUrl: url, 
-                        title: 'Preview', 
-                        artist: { stageName: 'Preview' }, 
-                        coverArt: '' 
-                    });
-                }
-            });
-        });
-        
-        // Pagination
-        document.querySelectorAll('.page-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                this.currentPage = parseInt(btn.dataset.page);
-                await this.loadData();
-                await this.render();
-                await this.afterRender();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                handle?.close?.();
+                song.status = 'rejected';
+                const newRow = this._buildRow(song);
+                rowEl.parentNode.replaceChild(newRow, rowEl);
+                Toast.show?.('Song rejected', 'info');
             });
         });
     }
 
-    updateSelectedCount() {
-        const countSpan = document.querySelector('.selected-count');
-        if (countSpan) {
-            countSpan.textContent = `${this.selectedSongs.size} songs selected`;
-        }
+    _formatNumber(num) {
+        if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
+        if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+        return String(num || 0);
     }
 
-    escapeHtml(text) {
-        if (!text) return '';
+    _escapeHtml(text) {
+        if (text == null) return '';
         const div = document.createElement('div');
-        div.textContent = text;
+        div.textContent = String(text);
         return div.innerHTML;
+    }
+
+    _escapeAttr(text) {
+        return this._escapeHtml(text);
     }
 }
 

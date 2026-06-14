@@ -1,0 +1,240 @@
+/* ============================================================
+ * Account & New Pages — shared polish
+ *
+ * Covers: PlaylistsPage, NotificationsPage, VideosPage,
+ *         UpgradePage, WalletPage, SubscriptionPage,
+ *         PaymentHistoryPage
+ *
+ * These pages were built with inline styles for the distinctive
+ * bits (gradients, custom layouts). This file adds the shared
+ * structural styling around them — page headers, grids,
+ * pagination, empty states.
+ * ============================================================ */
+
+/* ===== Shared page header ===== */
+.playlists-page > .page-header,
+.notifications-page > .page-header,
+.videos-page > .page-header,
+.liked-page > .page-header,
+.upgrade-page > .page-header {
+    padding: 12px 0 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 20px;
+}
+
+.playlists-page h1,
+.notifications-page h1,
+.videos-page h1,
+.liked-page h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.playlists-page h1 i,
+.notifications-page h1 i,
+.videos-page h1 i {
+    font-size: 20px;
+    color: #6c63ff;
+}
+
+/* ===== Generic grids (videos, playlists) ===== */
+.playlists-grid,
+.videos-page #vd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+}
+@media (max-width: 480px) {
+    .playlists-grid,
+    .videos-page #vd-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+}
+
+/* ===== Pagination ===== */
+.pagination-controls {
+    margin: 24px 0 12px;
+    user-select: none;
+}
+
+.page-btn {
+    background: rgba(108, 99, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(108, 99, 255, 0.3);
+    border-radius: 6px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.page-btn:hover:not(:disabled) {
+    background: rgba(108, 99, 255, 0.2);
+}
+.page-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.page-info {
+    color: #aaa;
+    font-size: 13px;
+    padding: 0 8px;
+}
+
+/* ===== Empty state ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: #2a2a3e;
+}
+.empty-state h3 {
+    color: #fff;
+    margin: 0 0 8px;
+    font-size: 18px;
+}
+.empty-state p {
+    margin: 0 0 16px;
+    font-size: 14px;
+}
+
+/* ===== Notification row hover ===== */
+.notification-row {
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.notification-row:hover {
+    background: #20203e !important;
+    transform: translateX(2px);
+}
+
+/* ===== Form-group consistency for upgrade form etc ===== */
+.form-group {
+    margin-bottom: 16px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #ccc;
+}
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="url"],
+.form-group input[type="password"],
+.form-group input[type="search"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    box-sizing: border-box;
+    background: #0f0f1e;
+    border: 1px solid #2a2a3e;
+    border-radius: 8px;
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.15s ease;
+}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #6c63ff;
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+}
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+.form-group small {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #888;
+}
+
+/* ===== Search page polish ===== */
+.search-input-wrap {
+    margin: 20px 0;
+}
+.search-input {
+    width: 100%;
+    box-sizing: border-box;
+    background: #1a1a2e;
+    border: 2px solid #2a2a3e;
+    border-radius: 12px;
+    color: #fff;
+    padding: 14px 18px;
+    font-size: 16px;
+    transition: border-color 0.15s ease;
+}
+.search-input:focus {
+    outline: none;
+    border-color: #6c63ff;
+    box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.15);
+}
+
+.search-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid #2a2a3e;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.search-tab {
+    background: transparent;
+    border: none;
+    color: #888;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+.search-tab:hover {
+    color: #fff;
+}
+.search-tab.active {
+    color: #fff;
+    border-bottom-color: #6c63ff;
+}
+
+/* ===== Stat card variants used by Wallet/Subscription/Earnings ===== */
+.stat-card-sm {
+    background: #1a1a2e;
+    border: 1px solid #2a2a3e;
+    border-radius: 8px;
+    padding: 10px 14px;
+    flex: 1;
+    min-width: 100px;
+}
+.stat-card-sm .stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+}
+.stat-card-sm .stat-label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.stat-card-sm.published .stat-value { color: #2ecc71; }
+.stat-card-sm.draft .stat-value     { color: #f1c40f; }

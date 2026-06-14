@@ -1,5 +1,5 @@
 /**
- * Forgot Password Page - Complete Working Version
+ * Forgot Password Page
  */
 
 class ForgotPasswordPage {
@@ -11,20 +11,25 @@ class ForgotPasswordPage {
     }
 
     render() {
-        if (this.isSubmitted) {
-            return this.renderSuccess();
-        }
+        if (this.isSubmitted) return this._renderSuccess();
 
         return `
             <div class="form-container animate-fade-in-up">
                 <h2>Forgot Password</h2>
                 <p class="form-description">Enter your email address and we'll send you a link to reset your password.</p>
-                <form id="forgot-password-form">
+                <form id="forgot-password-form" novalidate>
                     <div class="form-group">
-                        <label>Email Address</label>
-                        <input type="email" id="reset-email" name="email" required placeholder="your@email.com" value="${this.escapeHtml(this.email)}">
+                        <label for="reset-email">Email Address</label>
+                        <input type="email" id="reset-email" name="email" required
+                            autocomplete="email"
+                            placeholder="your@email.com"
+                            value="${this._escapeAttr(this.email)}">
                     </div>
-                    ${this.error ? `<div class="error-message" style="color: #ff4757; margin-bottom: 16px; padding: 10px; background: rgba(255,71,87,0.1); border-radius: 8px;">${this.escapeHtml(this.error)}</div>` : ''}
+                    ${this.error ? `
+                        <div class="error-message" role="alert" style="color: #ff4757; margin-bottom: 16px; padding: 10px; background: rgba(255,71,87,0.1); border-radius: 8px;">
+                            ${this._escapeHtml(this.error)}
+                        </div>
+                    ` : ''}
                     <button type="submit" class="btn-primary" ${this.isLoading ? 'disabled' : ''} style="width: 100%; padding: 12px;">
                         ${this.isLoading ? '<i class="fas fa-spinner fa-spin"></i> Sending...' : 'Send Reset Link'}
                     </button>
@@ -36,126 +41,105 @@ class ForgotPasswordPage {
         `;
     }
 
-    renderSuccess() {
+    _renderSuccess() {
         return `
             <div class="form-container animate-fade-in-up">
                 <div class="success-icon" style="text-align: center; margin-bottom: 20px;">
                     <i class="fas fa-envelope" style="font-size: 64px; color: var(--primary-color);"></i>
                 </div>
                 <h2 style="text-align: center;">Check Your Email</h2>
-                <p style="text-align: center;">We've sent a password reset link to <strong>${this.escapeHtml(this.email)}</strong></p>
+                <p style="text-align: center;">
+                    If an account exists for <strong>${this._escapeHtml(this.email)}</strong>,
+                    a password reset link has been sent.
+                </p>
                 <p style="text-align: center; color: #888;">The link will expire in 1 hour.</p>
                 <div class="form-actions" style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
-                    <button class="btn-primary" onclick="window.bravoApp.navigateTo('login')">Back to Login</button>
-                    <button class="btn-outline" id="resend-link">Resend Email</button>
+                    <button class="btn-primary" id="goto-login-btn">Back to Login</button>
+                    <button class="btn-outline" id="resend-btn" ${this.isLoading ? 'disabled' : ''}>
+                        ${this.isLoading ? 'Sending...' : 'Resend Email'}
+                    </button>
                 </div>
             </div>
         `;
     }
 
-    async afterRender() {
-        // Handle form submission
+    afterRender() {
         const form = document.getElementById('forgot-password-form');
         if (form) {
-            // Remove existing listener to prevent duplicates
-            const newForm = form.cloneNode(true);
-            form.parentNode.replaceChild(newForm, form);
-            
-            newForm.addEventListener('submit', async (e) => {
+            form.addEventListener('submit', (e) => {
                 e.preventDefault();
-                await this.submitForgotPassword();
+                this._submit();
             });
         }
 
-        // Handle resend button
-        const resendBtn = document.getElementById('resend-link');
-        if (resendBtn) {
-            resendBtn.addEventListener('click', async () => {
-                await this.submitForgotPassword();
-            });
-        }
-        
-        // Focus on email input
+        const resendBtn = document.getElementById('resend-btn');
+        if (resendBtn) resendBtn.addEventListener('click', () => this._submit());
+
+        const gotoLogin = document.getElementById('goto-login-btn');
+        if (gotoLogin) gotoLogin.addEventListener('click', () => {
+            if (window.bravoApp?.navigateTo) window.bravoApp.navigateTo('login');
+            else window.location.hash = 'login';
+        });
+
         const emailInput = document.getElementById('reset-email');
-        if (emailInput) {
-            emailInput.focus();
-        }
+        if (emailInput && !this.isSubmitted) emailInput.focus();
     }
 
-    async submitForgotPassword() {
-        const emailInput = document.getElementById('reset-email');
-        if (!emailInput) return;
+    async _submit() {
+        if (this.isLoading) return;
 
-        const email = emailInput.value.trim();
-        
-        // Validate email
+        const emailInput = document.getElementById('reset-email');
+        const email = (emailInput ? emailInput.value : this.email).trim();
+
         if (!email) {
             this.error = 'Please enter your email address';
-            this.isLoading = false;
-            await this.rerender();
+            this._rerender();
             return;
         }
-        
-        if (!this.isValidEmail(email)) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             this.error = 'Please enter a valid email address';
-            this.isLoading = false;
-            await this.rerender();
+            this._rerender();
             return;
         }
 
         this.email = email;
         this.isLoading = true;
         this.error = null;
-        await this.rerender();
+        this._rerender();
 
-        try {
-            // Use AuthAPI for the request
-            const auth = new AuthAPI();
-            const result = await auth.forgotPassword(email);
-            
-            if (result && result.success !== false) {
-                this.isSubmitted = true;
-                this.isLoading = false;
-                await this.rerender();
-                
-                if (typeof Toast !== 'undefined') {
-                    Toast.show('Reset link sent! Check your email.', 'success');
-                }
-            } else {
-                this.error = result?.error || 'Failed to send reset link. Please try again.';
-                this.isLoading = false;
-                await this.rerender();
-            }
-        } catch (error) {
-            console.error('Forgot password error:', error);
-            this.error = 'Network error. Please check your connection and try again.';
-            this.isLoading = false;
-            await this.rerender();
+        const result = await window.authService.forgotPassword(email);
+
+        this.isLoading = false;
+
+        if (result.success) {
+            this.isSubmitted = true;
+            this._rerender();
+            Toast.show('If your account exists, a reset link has been sent.', 'success');
+            return;
         }
+
+        // The only failure path AuthAPI surfaces for forgotPassword is 429.
+        // Any other server error still resolves as success: true (to avoid
+        // user enumeration). See api/auth.js for the policy.
+        this.error = result.error || 'Something went wrong. Please try again.';
+        this._rerender();
     }
-    
-    async rerender() {
+
+    _rerender() {
         const mainContent = document.getElementById('main-content');
         if (mainContent) {
             mainContent.innerHTML = this.render();
-            await this.afterRender();
+            this.afterRender();
         }
     }
-    
-    isValidEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
 
-    escapeHtml(text) {
-        if (!text) return '';
+    _escapeHtml(text) {
+        if (text == null) return '';
         const div = document.createElement('div');
-        div.textContent = text;
+        div.textContent = String(text);
         return div.innerHTML;
     }
+    _escapeAttr(text) { return this._escapeHtml(text); }
 }
 
-// Make sure it's globally available
-if (typeof window !== 'undefined') {
-    window.ForgotPasswordPage = ForgotPasswordPage;
-}
+window.ForgotPasswordPage = ForgotPasswordPage;

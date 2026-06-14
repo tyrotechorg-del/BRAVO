@@ -1,116 +1,139 @@
-/**
- * Liked Songs Page
- */
+
 
 class LikedPage {
     constructor() {
-        this.likedSongs = [];
+        this.songs = [];
+        this.currentPage = 1;
+        this.totalPages = 1;
+        this.total = 0;
+        this.userAPI = new UserAPI();
+        this.loading = true;
     }
 
     async render() {
-        this.loadLikedSongs();
-        
         return `
-            <div class="browse-container">
-                <h1>Liked Songs</h1>
-                <div class="songs-grid" id="liked-grid">
-                    ${this.renderContent()}
+            <div class="liked-page">
+                <div class="page-header">
+                    <h1><i class="fas fa-heart" style="color:#ff4757;"></i> Liked Songs</h1>
+                    <p id="liked-count" style="color:#888;">Loading...</p>
                 </div>
+
+                <div id="liked-songs-grid" class="songs-grid" aria-live="polite">
+                    <div class="loading-container"><div class="spinner"></div></div>
+                </div>
+
+                <div class="pagination" id="liked-pagination"></div>
             </div>
         `;
-    }
-
-    loadLikedSongs() {
-        const likedIds = JSON.parse(localStorage.getItem('bravo_liked_songs') || '[]');
-        if (window.bravoApp && window.bravoApp.songs) {
-            this.likedSongs = window.bravoApp.songs.filter(s => likedIds.includes(s._id));
-        }
-    }
-
-    renderContent() {
-        if (this.likedSongs.length === 0) {
-            return '<div class="empty-state"><i class="fas fa-heart"></i><h3>No liked songs</h3><p>Heart songs to add them to your library</p><button class="btn-primary" onclick="window.bravoApp.navigateTo(\'browse\')">Discover Music</button></div>';
-        }
-        return '';
     }
 
     async afterRender() {
-        this.renderLikedSongs();
+        if (!window.authService?.isAuthenticated?.()) {
+            Toast.show?.('Please sign in to see your liked songs', 'info');
+            if (window.bravoApp?.navigateTo) window.bravoApp.navigateTo('login');
+            return;
+        }
+
+        await this._loadPage();
+        this._renderSongs();
+        this._renderPagination();
+        this._renderCount();
     }
 
-    renderLikedSongs() {
-        const grid = document.getElementById('liked-grid');
+    async _loadPage() {
+        this.loading = true;
+        const result = await this.userAPI.getLikedSongs(this.currentPage, 20);
+        if (result.success) {
+            const data = result.data || {};
+            this.songs = data.songs || [];
+            this.totalPages = data.totalPages || 1;
+            this.total = data.total || 0;
+
+            // Sync localStorage for the heart-icon offline indicator
+            // (SongCard reads bravo_liked to know which hearts to fill)
+            try {
+                const liked = JSON.parse(localStorage.getItem('bravo_liked') || '[]');
+                const fromServer = new Set(this.songs.map(s => s._id));
+                // Only ADD ids we just saw — don't trim, since other pages
+                // may not be loaded yet. Trimming happens lazily.
+                const merged = Array.from(new Set([...liked, ...fromServer]));
+                localStorage.setItem('bravo_liked', JSON.stringify(merged));
+            } catch {}
+        } else {
+            this.songs = [];
+            this.totalPages = 1;
+            this.total = 0;
+        }
+        this.loading = false;
+    }
+
+    _renderCount() {
+        const el = document.getElementById('liked-count');
+        if (!el) return;
+        if (this.total === 0) {
+            el.textContent = 'You haven\u2019t liked any songs yet.';
+        } else {
+            el.textContent = `${this.total} song${this.total === 1 ? '' : 's'}`;
+        }
+    }
+
+    _renderSongs() {
+        const grid = document.getElementById('liked-songs-grid');
         if (!grid) return;
-        
-        if (this.likedSongs.length === 0) return;
-        
+
+        if (this.songs.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-heart"></i>
+                    <h3>No liked songs yet</h3>
+                    <p>Tap the heart on any song to add it here.</p>
+                </div>
+            `;
+            return;
+        }
+
         grid.innerHTML = '';
-        this.likedSongs.forEach(song => {
-            const card = this.createSongCard(song);
-            grid.appendChild(card);
+        this.songs.forEach(song => {
+            const container = document.createElement('div');
+            container.className = 'song-card-wrapper';
+            grid.appendChild(container);
+            // escape, premium gating, play wiring, etc.
+            new SongCard(song, container, { context: 'liked', allSongs: this.songs });
         });
     }
 
-    createSongCard(song) {
-        const likedSongs = JSON.parse(localStorage.getItem('bravo_liked_songs') || '[]');
-        const isLiked = likedSongs.includes(song._id);
-        
-        const card = document.createElement('div');
-        card.className = 'song-card';
-        card.setAttribute('data-song-id', song._id);
-        card.innerHTML = `
-            <img src="${song.coverArt || 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=200'}" alt="${this.escapeHtml(song.title)}">
-            <div class="song-card-overlay">
-                <button class="play-btn" title="Play"><i class="fas fa-play"></i></button>
-                <button class="like-btn ${isLiked ? 'liked' : ''}" title="Unlike"><i class="fas fa-heart"></i></button>
-            </div>
-            <div class="song-card-info">
-                <h4 class="song-title">${this.escapeHtml(song.title)}</h4>
-                <p class="song-artist">${song.artist?.stageName || 'Unknown Artist'}</p>
-                <div class="song-stats">
-                    <span><i class="fas fa-play"></i> ${this.formatNumber(song.playCount || 0)}</span>
-                </div>
+    _renderPagination() {
+        const container = document.getElementById('liked-pagination');
+        if (!container) return;
+        if (this.totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+        const prevDis = this.currentPage <= 1;
+        const nextDis = this.currentPage >= this.totalPages;
+        container.innerHTML = `
+            <div class="pagination-controls" style="display:flex; justify-content:center; align-items:center; gap:12px; margin-top:16px;">
+                <button class="page-btn" type="button" data-action="prev" ${prevDis ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <span class="page-info">Page ${this.currentPage} of ${this.totalPages}</span>
+                <button class="page-btn" type="button" data-action="next" ${nextDis ? 'disabled' : ''}>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
         `;
-        
-        const playBtn = card.querySelector('.play-btn');
-        const likeBtn = card.querySelector('.like-btn');
-        
-        playBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (window.bravoApp && window.bravoApp.audioPlayer) {
-                window.bravoApp.audioPlayer.loadSong(song);
-            }
-        });
-        
-        likeBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const songsAPI = new SongsAPI();
-            await songsAPI.unlike(song._id);
-            const newLiked = likedSongs.filter(id => id !== song._id);
-            localStorage.setItem('bravo_liked_songs', JSON.stringify(newLiked));
-            card.remove();
-            Toast.show('Removed from liked songs', 'info');
-            
-            if (document.getElementById('liked-grid').children.length === 0) {
-                document.getElementById('liked-grid').innerHTML = '<div class="empty-state"><i class="fas fa-heart"></i><h3>No liked songs</h3><p>Heart songs to add them to your library</p><button class="btn-primary" onclick="window.bravoApp.navigateTo(\'browse\')">Discover Music</button></div>';
-            }
-        });
-        
-        return card;
-    }
-
-    formatNumber(num) {
-        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return num.toString();
-    }
-
-    escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        container.addEventListener('click', async (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn || btn.disabled) return;
+            if (btn.dataset.action === 'prev' && this.currentPage > 1) this.currentPage--;
+            else if (btn.dataset.action === 'next' && this.currentPage < this.totalPages) this.currentPage++;
+            else return;
+            await this._loadPage();
+            this._renderSongs();
+            this._renderPagination();
+            this._renderCount();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, { once: true });
     }
 }
 

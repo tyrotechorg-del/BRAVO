@@ -1,147 +1,112 @@
-/**
- * Songs API Client
- */
+
 
 class SongsAPI {
     constructor() {
         this.apiUrl = window.API_BASE_URL;
+        this.basePath = (window.API_ENDPOINTS && window.API_ENDPOINTS.SONGS) || '/songs';
     }
 
-    getToken() {
-        return localStorage.getItem('bravo_token');
+    // Internal helpers
+
+    async _publicGet(path) {
+        try {
+            const response = await fetch(`${this.apiUrl}${this.basePath}${path}`);
+            const data = await response.json().catch(() => null);
+            if (!response.ok) {
+                return { success: false, error: data?.error || 'Request failed', status: response.status };
+            }
+            return { success: true, data, status: response.status };
+        } catch (err) {
+            return { success: false, error: 'Network error', status: 0 };
+        }
     }
+
+    async _authedRequest(path, options = {}) {
+        if (!window.authService) {
+            return { success: false, error: 'Auth service not available', status: 0 };
+        }
+        // Use AuthAPI's internal _request which has the 401 interceptor.
+        const { ok, data, status } = await window.authService.api._request(
+            `${this.basePath}${path}`,
+            options
+        );
+        if (ok) return { success: true, data, status };
+        return { success: false, error: data?.error || 'Request failed', status };
+    }
+
+    // Public endpoints
 
     async getAll(page = 1, limit = 20, genre = null) {
-        try {
-            let url = `${this.apiUrl}${window.API_ENDPOINTS.SONGS}?page=${page}&limit=${limit}`;
-            if (genre && genre !== 'all') url += `&genre=${encodeURIComponent(genre)}`;
-            
-            const response = await fetch(url);
-            return await response.json();
-        } catch (error) {
-            console.error('Get songs error:', error);
-            return { songs: [], totalPages: 0, currentPage: 1, total: 0 };
-        }
+        const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+        if (genre && genre !== 'all') params.set('genre', genre);
+        const result = await this._publicGet(`?${params.toString()}`);
+        // Callers want `{ songs, totalPages, currentPage, total }`.
+        if (result.success) return result.data;
+        return { songs: [], totalPages: 0, currentPage: 1, total: 0 };
     }
 
     async getById(id) {
-        try {
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SONGS}/${id}`);
-            return await response.json();
-        } catch (error) {
-            console.error('Get song error:', error);
-            return null;
-        }
+        const result = await this._publicGet(`/${encodeURIComponent(id)}`);
+        return result.success ? result.data : null;
     }
 
     async getTrending() {
-        try {
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SONGS}/trending`);
-            return await response.json();
-        } catch (error) {
-            console.error('Get trending error:', error);
-            return [];
-        }
+        const result = await this._publicGet('/trending');
+        return result.success ? result.data : [];
     }
 
     async getFeatured() {
-        try {
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SONGS}/featured`);
-            return await response.json();
-        } catch (error) {
-            console.error('Get featured error:', error);
-            return [];
-        }
+        const result = await this._publicGet('/featured');
+        return result.success ? result.data : [];
     }
 
     async getRecent() {
-        try {
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SONGS}/recent`);
-            return await response.json();
-        } catch (error) {
-            console.error('Get recent error:', error);
-            return [];
-        }
-    }
-
-    async like(songId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SONGS}/${songId}/like`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Like error:', error);
-            return { error: 'Failed to like song' };
-        }
-    }
-
-    async unlike(songId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SONGS}/${songId}/like`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Unlike error:', error);
-            return { error: 'Failed to unlike song' };
-        }
-    }
-
-    async share(songId, platform = 'copy') {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SONGS}/${songId}/share`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ platform })
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Share error:', error);
-            return { error: 'Failed to share song' };
-        }
+        const result = await this._publicGet('/recent');
+        return result.success ? result.data : [];
     }
 
     async getByArtist(artistId) {
-        try {
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SONGS}/artist/${artistId}`);
-            return await response.json();
-        } catch (error) {
-            console.error('Get by artist error:', error);
-            return [];
-        }
+        const result = await this._publicGet(`/artist/${encodeURIComponent(artistId)}`);
+        return result.success ? result.data : [];
     }
 
     async getByGenre(genre) {
-        try {
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SONGS}/genre/${genre}`);
-            return await response.json();
-        } catch (error) {
-            console.error('Get by genre error:', error);
-            return [];
-        }
+        const result = await this._publicGet(`/genre/${encodeURIComponent(genre)}`);
+        return result.success ? result.data : [];
+    }
+
+    /**
+     * List all videos (songs with isVideo: true).
+     * Backend endpoint: GET /api/songs/videos
+     */
+    async getVideos(page = 1, limit = 20, genre = null) {
+        const safePage = Math.max(1, Number(page) || 1);
+        const safeLimit = Math.min(100, Math.max(1, Number(limit) || 20));
+        const params = new URLSearchParams({ page: String(safePage), limit: String(safeLimit) });
+        if (genre) params.append('genre', genre);
+        const result = await this._publicGet(`/videos?${params.toString()}`);
+        return result.success ? result.data : null;
+    }
+
+    // Authenticated endpoints
+
+    async like(songId) {
+        return this._authedRequest(`/${encodeURIComponent(songId)}/like`, { method: 'POST' });
+    }
+
+    async unlike(songId) {
+        return this._authedRequest(`/${encodeURIComponent(songId)}/like`, { method: 'DELETE' });
+    }
+
+    async share(songId, platform = 'copy') {
+        return this._authedRequest(`/${encodeURIComponent(songId)}/share`, {
+            method: 'POST',
+            body: JSON.stringify({ platform })
+        });
     }
 
     async deleteSong(songId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.SONGS}/${songId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Delete song error:', error);
-            return { error: 'Failed to delete song' };
-        }
+        return this._authedRequest(`/${encodeURIComponent(songId)}`, { method: 'DELETE' });
     }
 }
 

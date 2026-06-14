@@ -1,150 +1,95 @@
-/**
- * Playlists API Client
- */
+
 
 class PlaylistsAPI {
     constructor() {
         this.apiUrl = window.API_BASE_URL;
+        this.basePath = (window.API_ENDPOINTS && window.API_ENDPOINTS.PLAYLISTS) || '/playlists';
     }
 
-    getToken() {
-        return localStorage.getItem('bravo_token');
+    async _publicGet(path) {
+        try {
+            // Attach token if available — backend uses optionalAuth.
+            const token = window.authService?.getToken?.() || localStorage.getItem('bravo_token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const response = await fetch(`${this.apiUrl}${this.basePath}${path}`, { headers });
+            const data = await response.json().catch(() => null);
+            if (!response.ok) {
+                return { success: false, error: data?.error || 'Request failed', status: response.status };
+            }
+            return { success: true, data, status: response.status };
+        } catch {
+            return { success: false, error: 'Network error', status: 0 };
+        }
     }
+
+    async _authedRequest(path, options = {}) {
+        if (!window.authService) {
+            return { success: false, error: 'Auth service not available', status: 0 };
+        }
+        const { ok, data, status } = await window.authService.api._request(
+            `${this.basePath}${path}`,
+            options
+        );
+        if (ok) return { success: true, data, status };
+        return { success: false, error: data?.error || 'Request failed', status };
+    }
+
+    // Public
+
+    async getById(playlistId) {
+        return this._publicGet(`/${encodeURIComponent(playlistId)}`);
+    }
+
+    async getPublic(page = 1, limit = 20) {
+        const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+        return this._publicGet(`/public?${params.toString()}`);
+    }
+
+    // Authenticated
 
     async create(data) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.PLAYLISTS}/create`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Create playlist error:', error);
-            return { error: 'Failed to create playlist' };
-        }
+        return this._authedRequest('/create', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
+    async update(playlistId, data) {
+        return this._authedRequest(`/${encodeURIComponent(playlistId)}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    }
+
+    async delete(playlistId) {
+        return this._authedRequest(`/${encodeURIComponent(playlistId)}`, {
+            method: 'DELETE'
+        });
     }
 
     async getUserPlaylists() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.PLAYLISTS}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get playlists error:', error);
-            return [];
-        }
-    }
-
-    async getById(id) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.PLAYLISTS}/${id}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get playlist error:', error);
-            return null;
-        }
-    }
-
-    async getFeatured() {
-        try {
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.PLAYLISTS}/featured`);
-            return await response.json();
-        } catch (error) {
-            console.error('Get featured playlists error:', error);
-            return [];
-        }
-    }
-
-    async update(id, data) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.PLAYLISTS}/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Update playlist error:', error);
-            return { error: 'Failed to update playlist' };
-        }
-    }
-
-    async delete(id) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.PLAYLISTS}/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Delete playlist error:', error);
-            return { error: 'Failed to delete playlist' };
-        }
+        return this._authedRequest('', { method: 'GET' });
     }
 
     async addSong(playlistId, songId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.PLAYLISTS}/${playlistId}/add-song`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ songId })
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Add song to playlist error:', error);
-            return { error: 'Failed to add song' };
-        }
+        return this._authedRequest(`/${encodeURIComponent(playlistId)}/songs`, {
+            method: 'POST',
+            body: JSON.stringify({ songId })
+        });
     }
 
     async removeSong(playlistId, songId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.PLAYLISTS}/${playlistId}/remove-song`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ songId })
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Remove song from playlist error:', error);
-            return { error: 'Failed to remove song' };
-        }
+        return this._authedRequest(
+            `/${encodeURIComponent(playlistId)}/songs/${encodeURIComponent(songId)}`,
+            { method: 'DELETE' }
+        );
     }
 
-    async like(playlistId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.PLAYLISTS}/${playlistId}/like`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Like playlist error:', error);
-            return { error: 'Failed to like playlist' };
-        }
+    async reorderSongs(playlistId, songIds) {
+        return this._authedRequest(`/${encodeURIComponent(playlistId)}/reorder`, {
+            method: 'PUT',
+            body: JSON.stringify({ songIds })
+        });
     }
 }
 

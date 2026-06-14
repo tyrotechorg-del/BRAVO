@@ -1,323 +1,285 @@
-/**
- * Admin Settings Page - System Configuration
- */
+
 
 class AdminSettingsPage {
     constructor() {
         this.settings = null;
-        this.isLoading = false;
-        this.isSaving = false;
-        this.adminAPI = null;
+        this.adminAPI = new AdminAPI();
     }
 
     async render() {
-        this.adminAPI = new AdminAPI();
-        await this.loadSettings();
-        
         return `
             <div class="admin-settings-page">
                 <div class="page-header">
                     <h1><i class="fas fa-cog"></i> System Settings</h1>
-                    <p>Configure platform settings and preferences</p>
+                    <p>Configure platform-wide settings and limits.</p>
                 </div>
-                
-                <div class="settings-sections">
-                    <!-- General Settings -->
+
+                <div id="as-status" style="margin-bottom:12px;"></div>
+
+                <div class="settings-sections" style="display:grid; gap:16px;">
+
                     <div class="settings-card">
-                        <h3><i class="fas fa-globe"></i> General Settings</h3>
-                        <form id="general-settings-form">
+                        <h3><i class="fas fa-globe"></i> General</h3>
+                        <form id="ag-general-form" novalidate>
                             <div class="form-group">
-                                <label>Platform Name</label>
-                                <input type="text" name="platformName" value="Bravo Music" class="form-control">
-                                <small>The name of your platform</small>
+                                <label for="ag-platform-name">Platform Name</label>
+                                <input type="text" id="ag-platform-name" maxlength="100">
                             </div>
                             <div class="form-group">
-                                <label>Platform URL</label>
-                                <input type="text" name="platformUrl" value="${window.APP_CONFIG.API_URL.replace('/api', '')}" class="form-control">
-                                <small>Your website URL</small>
+                                <label for="ag-platform-url">Platform URL</label>
+                                <input type="url" id="ag-platform-url" maxlength="200">
                             </div>
                             <div class="form-group">
-                                <label>Contact Email</label>
-                                <input type="email" name="contactEmail" value="support@bravomusic.com" class="form-control">
-                                <small>Support email address</small>
+                                <label for="ag-contact-email">Contact Email</label>
+                                <input type="email" id="ag-contact-email" maxlength="200">
                             </div>
                         </form>
                     </div>
-                    
-                    <!-- Financial Settings -->
+
                     <div class="settings-card">
-                        <h3><i class="fas fa-chart-line"></i> Financial Settings</h3>
-                        <form id="financial-settings-form">
+                        <h3><i class="fas fa-chart-line"></i> Financial</h3>
+                        <form id="ag-financial-form" novalidate>
                             <div class="form-group">
-                                <label>Platform Commission Rate (%)</label>
-                                <input type="number" name="platformCommission" value="${this.settings?.platformCommission || 20}" step="0.5" min="0" max="100" class="form-control">
-                                <small>Percentage taken from each transaction</small>
+                                <label for="ag-commission">Platform Commission (%)</label>
+                                <input type="number" id="ag-commission" step="0.5" min="0" max="50">
+                                <small>Percent taken from each artist sale / withdrawal.</small>
                             </div>
                             <div class="form-group">
-                                <label>Minimum Withdrawal Amount (Kwacha)</label>
-                                <input type="number" name="minWithdrawalAmount" value="${this.settings?.minWithdrawalAmount || 50}" step="10" min="10" class="form-control">
-                                <small>Minimum amount artists can withdraw</small>
+                                <label for="ag-min-withdrawal">Minimum Withdrawal (Kwacha)</label>
+                                <input type="number" id="ag-min-withdrawal" step="10" min="10">
                             </div>
                             <div class="form-group">
-                                <label>Maximum Upload Size (MB)</label>
-                                <input type="number" name="maxUploadSize" value="${this.settings?.maxUploadSize || 50}" step="5" min="10" max="500" class="form-control">
-                                <small>Maximum file size for song/video uploads</small>
+                                <label for="ag-max-upload">Max Upload Size (MB)</label>
+                                <input type="number" id="ag-max-upload" step="5" min="5" max="500">
+                            </div>
+                            <div class="form-group">
+                                <label for="ag-subscription-price">Premium Subscription Price (Kwacha / month)</label>
+                                <input type="number" id="ag-subscription-price" step="1" min="0">
                             </div>
                         </form>
                     </div>
-                    
-                    <!-- Subscription Plans -->
+
                     <div class="settings-card">
-                        <h3><i class="fas fa-crown"></i> Artist Subscription Plans</h3>
-                        <div class="plans-grid">
-                            <div class="plan-card basic">
-                                <h4>Basic Plan</h4>
-                                <div class="plan-price">K50<span>/month</span></div>
-                                <ul class="plan-features">
-                                    <li><i class="fas fa-check"></i> 10 Uploads per month</li>
-                                    <li><i class="fas fa-check"></i> Basic Analytics</li>
-                                    <li><i class="fas fa-check"></i> Email Support</li>
-                                </ul>
-                                <button class="btn-outline edit-plan" data-plan="basic">Edit</button>
-                            </div>
-                            <div class="plan-card pro">
-                                <h4>Pro Plan</h4>
-                                <div class="plan-price">K120<span>/month</span></div>
-                                <ul class="plan-features">
-                                    <li><i class="fas fa-check"></i> Unlimited Uploads</li>
-                                    <li><i class="fas fa-check"></i> Advanced Analytics</li>
-                                    <li><i class="fas fa-check"></i> Monetization</li>
-                                    <li><i class="fas fa-check"></i> Priority Support</li>
-                                </ul>
-                                <button class="btn-outline edit-plan" data-plan="pro">Edit</button>
-                            </div>
-                            <div class="plan-card vip">
-                                <h4>VIP Plan</h4>
-                                <div class="plan-price">K300<span>/month</span></div>
-                                <ul class="plan-features">
-                                    <li><i class="fas fa-check"></i> Verified Badge</li>
-                                    <li><i class="fas fa-check"></i> Homepage Promotion</li>
-                                    <li><i class="fas fa-check"></i> Unlimited Uploads</li>
-                                    <li><i class="fas fa-check"></i> 24/7 Priority Support</li>
-                                </ul>
-                                <button class="btn-outline edit-plan" data-plan="vip">Edit</button>
-                            </div>
+                        <h3><i class="fas fa-music"></i> Content</h3>
+                        <div class="form-group">
+                            <label>Allowed Genres</label>
+                            <div id="ag-genre-list" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+                            <small>Genres are defined in the canonical list and cannot be edited from here. To change, edit <code>backend/utils/genres.js</code>.</small>
                         </div>
                     </div>
-                    
-                    <!-- Maintenance Settings -->
+
                     <div class="settings-card">
                         <h3><i class="fas fa-tools"></i> Maintenance</h3>
-                        <div class="maintenance-options">
-                            <div class="option-group">
+                        <form id="ag-maintenance-form" novalidate>
+                            <div class="form-group">
                                 <label class="checkbox-label">
-                                    <input type="checkbox" id="maintenance-mode"> Enable Maintenance Mode
+                                    <input type="checkbox" id="ag-maintenance-mode">
+                                    Enable Maintenance Mode
                                 </label>
-                                <small>When enabled, only admins can access the site</small>
+                                <small>When enabled, only admins can access the site.</small>
                             </div>
-                            <div class="option-group">
-                                <button type="button" id="clear-cache-btn" class="btn-warning">
-                                    <i class="fas fa-trash"></i> Clear System Cache
-                                </button>
-                            </div>
-                            <div class="option-group">
-                                <button type="button" id="trigger-backup-btn" class="btn-primary">
-                                    <i class="fas fa-database"></i> Manual Backup
-                                </button>
-                            </div>
+                        </form>
+                        <div style="display:flex; gap:8px; margin-top:12px;">
+                            <button type="button" class="btn-outline" id="ag-backup-btn">
+                                <i class="fas fa-database"></i> Trigger Backup
+                            </button>
                         </div>
                     </div>
+
+                    <div class="settings-card" style="opacity:0.7;">
+                        <h3><i class="fas fa-crown"></i> Subscription Plans</h3>
+                        <p style="color:#888;">Subscription plan management is part of the Wallet & Subscriptions batch (coming soon). The current premium price above will be used until then.</p>
+                    </div>
                 </div>
-                
-                <div class="settings-actions">
-                    <button id="save-all-settings" class="btn-primary btn-large">
+
+                <div class="settings-actions" style="margin-top:24px; display:flex; gap:8px;">
+                    <button class="btn-primary" type="button" id="ag-save-btn">
                         <i class="fas fa-save"></i> Save All Settings
                     </button>
-                    <button id="reset-settings" class="btn-outline">
-                        <i class="fas fa-undo"></i> Reset to Default
+                    <button class="btn-outline" type="button" id="ag-reload-btn">
+                        <i class="fas fa-sync-alt"></i> Reload from Server
                     </button>
                 </div>
             </div>
         `;
     }
 
-    async loadSettings() {
-        this.isLoading = true;
-        
-        try {
-            const result = await this.adminAPI.getSystemSettings();
-            if (!result.error) {
-                this.settings = result;
-            }
-        } catch (error) {
-            console.error('Load settings error:', error);
-        } finally {
-            this.isLoading = false;
-        }
-    }
-
     async afterRender() {
-        this.attachEventListeners();
-        this.loadMaintenanceModeStatus();
+        if (!window.authService?.isAdmin?.()) {
+            Toast.show?.('Admin access required', 'error');
+            return;
+        }
+        await this._loadSettings();
+        this._populateForm();
+        this._renderGenres();
+        this._wireButtons();
     }
 
-    attachEventListeners() {
-        const saveBtn = document.getElementById('save-all-settings');
-        const resetBtn = document.getElementById('reset-settings');
-        const clearCacheBtn = document.getElementById('clear-cache-btn');
-        const backupBtn = document.getElementById('trigger-backup-btn');
-        const maintenanceMode = document.getElementById('maintenance-mode');
-        
+    async _loadSettings() {
+        const statusEl = document.getElementById('as-status');
+        const result = await this.adminAPI.getSystemSettings();
+        if (!result.success) {
+            this.settings = {};
+            if (statusEl) {
+                statusEl.innerHTML = `
+                    <div class="warning-message" style="background:rgba(255,196,0,0.1); padding:12px; border-radius:6px;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Could not load settings from server (${this._escapeHtml(result.error || 'unknown error')}).
+                        Make sure the SystemSettings backend patch from batch 6 is applied.
+                    </div>
+                `;
+            }
+            return;
+        }
+        const data = result.data || {};
+        this.settings = data.settings || data;
+        if (statusEl) statusEl.innerHTML = '';
+    }
+
+    _populateForm() {
+        const s = this.settings || {};
+        const set = (id, val) => {
+            const el = document.getElementById(id);
+            if (el && val != null) el.value = val;
+        };
+        const setCheck = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.checked = !!val;
+        };
+
+        set('ag-platform-name', s.platformName || 'Bravo Music');
+        set('ag-platform-url', s.platformUrl || '');
+        set('ag-contact-email', s.contactEmail || '');
+        set('ag-commission', s.platformCommission ?? 10);
+        set('ag-min-withdrawal', s.minWithdrawalAmount ?? 50);
+        set('ag-max-upload', s.maxUploadSize ?? 20);
+        set('ag-subscription-price', s.subscriptionPrice ?? 30);
+        setCheck('ag-maintenance-mode', s.maintenanceMode === true);
+    }
+
+    _renderGenres() {
+        const list = document.getElementById('ag-genre-list');
+        if (!list) return;
+        const genres = Array.isArray(window.GENRES) ? window.GENRES : [];
+        list.innerHTML = '';
+        genres.forEach(g => {
+            const span = document.createElement('span');
+            span.className = 'badge badge-secondary';
+            span.style.cssText = 'padding:4px 8px; background:rgba(108,99,255,0.1); border-radius:4px; font-size:13px;';
+            span.textContent = g;
+            list.appendChild(span);
+        });
+        if (genres.length === 0) {
+            list.innerHTML = '<small style="color:#888;">No genres loaded — config.js may not be configured.</small>';
+        }
+    }
+
+    _wireButtons() {
+        document.getElementById('ag-save-btn')?.addEventListener('click', () => this._saveSettings());
+        document.getElementById('ag-reload-btn')?.addEventListener('click', async () => {
+            await this._loadSettings();
+            this._populateForm();
+            Toast.show?.('Settings reloaded', 'success');
+        });
+        document.getElementById('ag-backup-btn')?.addEventListener('click', () => this._triggerBackup());
+    }
+
+    async _saveSettings() {
+        const saveBtn = document.getElementById('ag-save-btn');
+        const platformName = document.getElementById('ag-platform-name').value.trim();
+        const platformUrl = document.getElementById('ag-platform-url').value.trim();
+        const contactEmail = document.getElementById('ag-contact-email').value.trim();
+        const platformCommission = parseFloat(document.getElementById('ag-commission').value || '0');
+        const minWithdrawalAmount = parseFloat(document.getElementById('ag-min-withdrawal').value || '0');
+        const maxUploadSize = parseInt(document.getElementById('ag-max-upload').value || '0', 10);
+        const subscriptionPrice = parseFloat(document.getElementById('ag-subscription-price').value || '0');
+        const maintenanceMode = document.getElementById('ag-maintenance-mode').checked;
+
+        // Basic client-side validation
+        if (!platformName) { Toast.show?.('Platform name required', 'warning'); return; }
+        if (contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+            Toast.show?.('Invalid contact email', 'warning');
+            return;
+        }
+        if (platformUrl && !/^https?:\/\//i.test(platformUrl)) {
+            Toast.show?.('Platform URL must start with http(s)://', 'warning');
+            return;
+        }
+        if (!Number.isFinite(platformCommission) || platformCommission < 0 || platformCommission > 50) {
+            Toast.show?.('Commission must be between 0 and 50', 'warning');
+            return;
+        }
+        if (!Number.isFinite(minWithdrawalAmount) || minWithdrawalAmount < 10) {
+            Toast.show?.('Min withdrawal must be at least 10', 'warning');
+            return;
+        }
+        if (!Number.isFinite(maxUploadSize) || maxUploadSize < 5 || maxUploadSize > 500) {
+            Toast.show?.('Max upload size must be between 5 and 500 MB', 'warning');
+            return;
+        }
+        if (!Number.isFinite(subscriptionPrice) || subscriptionPrice < 0) {
+            Toast.show?.('Subscription price must be non-negative', 'warning');
+            return;
+        }
+
+        const payload = {
+            platformName,
+            platformUrl,
+            contactEmail,
+            platformCommission,
+            minWithdrawalAmount,
+            maxUploadSize,
+            subscriptionPrice,
+            maintenanceMode
+        };
+
         if (saveBtn) {
-            saveBtn.addEventListener('click', async () => {
-                await this.saveAllSettings();
-            });
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         }
-        
-        if (resetBtn) {
-            resetBtn.addEventListener('click', async () => {
-                if (confirm('Reset all settings to default values?')) {
-                    await this.resetSettings();
-                }
-            });
+
+        const result = await this.adminAPI.updateSystemSettings(payload);
+
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save All Settings';
         }
-        
-        if (clearCacheBtn) {
-            clearCacheBtn.addEventListener('click', async () => {
-                const result = await this.adminAPI.clearCache?.();
-                if (!result?.error) {
-                    Toast.show('Cache cleared successfully', 'success');
-                } else {
-                    Toast.show('Failed to clear cache', 'error');
-                }
-            });
+
+        if (!result.success) {
+            Toast.show?.(result.error || 'Save failed', 'error');
+            return;
         }
-        
-        if (backupBtn) {
-            backupBtn.addEventListener('click', async () => {
-                Toast.show('Creating backup...', 'info');
-                const result = await this.adminAPI.triggerBackup();
-                if (!result.error) {
-                    Toast.show('Backup created successfully!', 'success');
-                } else {
-                    Toast.show('Backup failed: ' + result.error, 'error');
-                }
-            });
-        }
-        
-        if (maintenanceMode) {
-            maintenanceMode.addEventListener('change', async () => {
-                await this.toggleMaintenanceMode(maintenanceMode.checked);
-            });
-        }
-        
-        document.querySelectorAll('.edit-plan').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const plan = btn.dataset.plan;
-                this.editPlanModal(plan);
-            });
-        });
+
+        // Echo from server back into the form so any normalization is visible.
+        const data = result.data || {};
+        this.settings = data.settings || data || payload;
+        this._populateForm();
+        Toast.show?.('Settings saved', 'success');
     }
 
-    loadMaintenanceModeStatus() {
-        const maintenanceMode = document.getElementById('maintenance-mode');
-        if (maintenanceMode) {
-            const isMaintenance = localStorage.getItem('maintenance_mode') === 'true';
-            maintenanceMode.checked = isMaintenance;
+    async _triggerBackup() {
+        const btn = document.getElementById('ag-backup-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Backing up...';
+        }
+        const result = await this.adminAPI.triggerBackup();
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-database"></i> Trigger Backup';
+        }
+        if (result.success) {
+            Toast.show?.('Backup triggered', 'success');
+        } else {
+            Toast.show?.(result.error || 'Backup failed', 'error');
         }
     }
 
-    async saveAllSettings() {
-        this.isSaving = true;
-        
-        const generalForm = document.getElementById('general-settings-form');
-        const financialForm = document.getElementById('financial-settings-form');
-        
-        const formData = {
-            platformCommission: parseFloat(financialForm.querySelector('[name="platformCommission"]').value),
-            minWithdrawalAmount: parseFloat(financialForm.querySelector('[name="minWithdrawalAmount"]').value),
-            maxUploadSize: parseFloat(financialForm.querySelector('[name="maxUploadSize"]').value),
-            platformName: generalForm.querySelector('[name="platformName"]').value,
-            platformUrl: generalForm.querySelector('[name="platformUrl"]').value,
-            contactEmail: generalForm.querySelector('[name="contactEmail"]').value
-        };
-        
-        try {
-            const result = await this.adminAPI.updateSystemSettings(formData);
-            if (!result.error) {
-                Toast.show('Settings saved successfully!', 'success');
-            } else {
-                Toast.show(result.error, 'error');
-            }
-        } catch (error) {
-            Toast.show('Failed to save settings', 'error');
-        } finally {
-            this.isSaving = false;
-        }
-    }
-
-    async resetSettings() {
-        const defaultSettings = {
-            platformCommission: 20,
-            minWithdrawalAmount: 50,
-            maxUploadSize: 50
-        };
-        
-        try {
-            const result = await this.adminAPI.updateSystemSettings(defaultSettings);
-            if (!result.error) {
-                Toast.show('Settings reset to default', 'success');
-                await this.loadSettings();
-                await this.render();
-                await this.afterRender();
-            } else {
-                Toast.show(result.error, 'error');
-            }
-        } catch (error) {
-            Toast.show('Failed to reset settings', 'error');
-        }
-    }
-
-    async toggleMaintenanceMode(enabled) {
-        localStorage.setItem('maintenance_mode', enabled);
-        Toast.show(enabled ? 'Maintenance mode enabled' : 'Maintenance mode disabled', 'info');
-    }
-
-    editPlanModal(plan) {
-        const plans = {
-            basic: { name: 'Basic Plan', price: 50, uploads: 10 },
-            pro: { name: 'Pro Plan', price: 120, uploads: -1 },
-            vip: { name: 'VIP Plan', price: 300, uploads: -1 }
-        };
-        
-        const planData = plans[plan];
-        
-        Modal.show({
-            title: `Edit ${planData.name}`,
-            content: `
-                <form id="edit-plan-form">
-                    <div class="form-group">
-                        <label>Plan Name</label>
-                        <input type="text" name="name" value="${planData.name}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Price (Kwacha/month)</label>
-                        <input type="number" name="price" value="${planData.price}" step="10" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Upload Limit</label>
-                        <input type="number" name="uploads" value="${planData.uploads === -1 ? 999 : planData.uploads}" step="5" min="-1">
-                        <small>-1 means unlimited</small>
-                    </div>
-                </form>
-            `,
-            buttons: [
-                { text: 'Cancel', class: 'btn-secondary', action: 'cancel' },
-                { text: 'Save Changes', class: 'btn-primary', action: 'save', onClick: () => {
-                    Toast.show(`Plan updated! (This would save to database)`, 'success');
-                }}
-            ]
-        });
+    _escapeHtml(text) {
+        if (text == null) return '';
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
     }
 }
 

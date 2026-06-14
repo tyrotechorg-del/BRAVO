@@ -1,179 +1,170 @@
-/**
- * Sidebar Component - Complete with All Admin Routes
- */
+
 
 class Sidebar {
     constructor(containerId) {
         this.container = document.querySelector(containerId);
         this.render();
+
+        if (window.authService?.onChange) {
+            this._unsubscribe = window.authService.onChange(() => this.render());
+        }
+
+        // Update active item on hash change without re-rendering.
+        this._onHashChange = () => this._setActiveItem();
+        window.addEventListener('hashchange', this._onHashChange);
+    }
+
+    destroy() {
+        if (typeof this._unsubscribe === 'function') {
+            this._unsubscribe();
+            this._unsubscribe = null;
+        }
+        if (this._onHashChange) {
+            window.removeEventListener('hashchange', this._onHashChange);
+        }
+    }
+
+    _currentRoute() {
+        // Strip leading # and any ?query suffix to get the bare route.
+        const hash = window.location.hash || '';
+        const path = hash.replace(/^#/, '');
+        const qIdx = path.indexOf('?');
+        return qIdx >= 0 ? path.slice(0, qIdx) : path;
+    }
+
+    _activeMatcher(itemPage, route) {
+        // Exact match wins
+        if (itemPage === route) return true;
+        // Prefix matches for nested routes (artist/dashboard -> dashboard menu)
+        if (itemPage === 'dashboard' && /^(artist|listener|admin)\/dashboard$/.test(route)) return true;
+        // album/song/artist/playlist detail pages don't have a sidebar item
+        return false;
+    }
+
+    _setActiveItem() {
+        if (!this.container) return;
+        const route = this._currentRoute();
+        this.container.querySelectorAll('[data-page]').forEach(el => {
+            el.classList.toggle('active', this._activeMatcher(el.dataset.page, route));
+        });
     }
 
     render() {
         if (!this.container) return;
-        
-        const auth = new AuthAPI();
-        const user = auth.getUser();
+
+        const isAuthenticated = Boolean(window.authService?.isAuthenticated?.());
+        const user = window.authService?.getUser?.();
         const role = user?.role || 'listener';
-        
+
         this.container.innerHTML = `
             <div class="sidebar">
                 <div class="sidebar-section">
                     <h3>MAIN</h3>
                     <ul class="sidebar-nav">
-                        <li class="sidebar-item" data-page="home">
-                            <i class="fas fa-home"></i> Home
-                        </li>
-                        <li class="sidebar-item" data-page="browse">
-                            <i class="fas fa-compass"></i> Browse
-                        </li>
-                        <li class="sidebar-item" data-page="trending">
-                            <i class="fas fa-fire"></i> Trending
-                        </li>
-                        <li class="sidebar-item" data-page="videos">
-                            <i class="fas fa-video"></i> Videos
-                        </li>
+                        ${this._item('home', 'fa-home', 'Home')}
+                        ${this._item('browse', 'fa-compass', 'Browse')}
+                        ${this._item('trending', 'fa-fire', 'Trending')}
+                        ${this._item('search', 'fa-search', 'Search')}
                     </ul>
                 </div>
-                
-                <div class="sidebar-section">
-                    <h3>YOUR LIBRARY</h3>
-                    <ul class="sidebar-nav">
-                        <li class="sidebar-item" data-page="liked">
-                            <i class="fas fa-heart"></i> Liked Songs
-                        </li>
-                        <li class="sidebar-item" data-page="recent">
-                            <i class="fas fa-history"></i> Recently Played
-                        </li>
-                        <li class="sidebar-item" data-page="downloads">
-                            <i class="fas fa-download"></i> Downloads
-                        </li>
-                        <li class="sidebar-item" data-page="playlists">
-                            <i class="fas fa-list"></i> Playlists
-                        </li>
-                        <li class="sidebar-item" data-page="albums">
-                            <i class="fas fa-album"></i> Albums
-                        </li>
-                    </ul>
-                </div>
-                
-                ${role === 'artist' ? `
+
+                ${isAuthenticated ? `
                     <div class="sidebar-section">
-                        <h3>ARTIST HUB</h3>
+                        <h3>YOUR LIBRARY</h3>
                         <ul class="sidebar-nav">
-                            <li class="sidebar-item" data-page="dashboard">
-                                <i class="fas fa-chart-line"></i> Dashboard
-                            </li>
-                            <li class="sidebar-item" data-page="upload">
-                                <i class="fas fa-upload"></i> Upload
-                            </li>
-                            <li class="sidebar-item" data-page="earnings">
-                                <i class="fas fa-wallet"></i> Earnings
-                            </li>
-                            <li class="sidebar-item" data-page="artist/albums">
-                                <i class="fas fa-album"></i> My Albums
-                            </li>
-                            <li class="sidebar-item" data-page="artist/videos">
-                                <i class="fas fa-video"></i> My Videos
-                            </li>
+                            ${this._item('liked', 'fa-heart', 'Liked Songs')}
+                            ${this._item('recent', 'fa-history', 'Recently Played')}
+                            ${this._item('downloads', 'fa-download', 'Downloads')}
+                            ${this._item('playlists', 'fa-list', 'Playlists')}
+                            ${this._item('albums', 'fa-compact-disc', 'Albums')}
+                            ${this._item('videos', 'fa-video', 'Videos')}
+                        </ul>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3>ACCOUNT</h3>
+                        <ul class="sidebar-nav">
+                            ${this._item('notifications', 'fa-bell', 'Notifications')}
+                            ${this._item('wallet', 'fa-wallet', 'Wallet')}
+                            ${this._item('subscription', 'fa-crown', 'Subscription')}
+                            ${this._item('payment-history', 'fa-receipt', 'Payment History')}
                         </ul>
                     </div>
                 ` : ''}
-                
+
+                ${(role === 'artist' || role === 'admin') ? `
+                    <div class="sidebar-section">
+                        <h3>ARTIST HUB</h3>
+                        <ul class="sidebar-nav">
+                            ${this._item('dashboard', 'fa-chart-line', 'Dashboard')}
+                            ${this._item('upload', 'fa-upload', 'Upload')}
+                            ${this._item('earnings', 'fa-wallet', 'Earnings')}
+                            ${this._item('artist/albums', 'fa-compact-disc', 'My Albums')}
+                        </ul>
+                    </div>
+                ` : ''}
+
                 ${role === 'admin' ? `
                     <div class="sidebar-section">
                         <h3>ADMIN PANEL</h3>
                         <ul class="sidebar-nav">
-                            <li class="sidebar-item" data-page="admin/dashboard">
-                                <i class="fas fa-chart-bar"></i> Overview
-                            </li>
-                            <li class="sidebar-item" data-page="admin/all-songs">
-                                <i class="fas fa-headphones"></i> All Songs
-                            </li>
-                            <li class="sidebar-item" data-page="admin/pending">
-                                <i class="fas fa-clock"></i> Pending Songs
-                            </li>
-                            <li class="sidebar-item" data-page="admin/videos">
-                                <i class="fas fa-video"></i> Videos
-                            </li>
-                            <li class="sidebar-item" data-page="admin/albums">
-                                <i class="fas fa-album"></i> Albums
-                            </li>
-                            <li class="sidebar-item" data-page="admin/users">
-                                <i class="fas fa-users"></i> Users
-                            </li>
-                            <li class="sidebar-item" data-page="admin/artists">
-                                <i class="fas fa-user-musician"></i> Artists
-                            </li>
-                            <li class="sidebar-item" data-page="admin/withdrawals">
-                                <i class="fas fa-money-bill-wave"></i> Withdrawals
-                            </li>
-                            <li class="sidebar-item" data-page="admin/reports">
-                                <i class="fas fa-flag"></i> Reports
-                            </li>
-                            <li class="sidebar-item" data-page="admin/comments">
-                                <i class="fas fa-comment"></i> Reported Comments
-                            </li>
-                            <li class="sidebar-item" data-page="admin/settings">
-                                <i class="fas fa-cog"></i> Settings
-                            </li>
+                            ${this._item('admin/dashboard', 'fa-chart-bar', 'Overview')}
+                            ${this._item('admin/all-songs', 'fa-headphones', 'All Songs')}
+                            ${this._item('admin/pending', 'fa-clock', 'Pending Songs')}
+                            ${this._item('admin/albums', 'fa-compact-disc', 'Albums')}
+                            ${this._item('admin/users', 'fa-users', 'Users')}
+                            ${this._item('admin/artists', 'fa-user', 'Artists')}
+                            ${this._item('admin/withdrawals', 'fa-money-bill-wave', 'Withdrawals')}
+                            ${this._item('admin/reports', 'fa-flag', 'Reports')}
+                            ${this._item('admin/comments', 'fa-comment', 'Reported Comments')}
+                            ${this._item('admin/settings', 'fa-cog', 'System Settings')}
                         </ul>
                     </div>
                 ` : ''}
-                
+
                 <div class="sidebar-footer">
-                    <div class="sidebar-item" data-page="settings">
-                        <i class="fas fa-cog"></i> Settings
-                    </div>
-                    ${role === 'listener' ? `
-                        <div class="sidebar-item" data-page="upgrade">
-                            <i class="fas fa-crown"></i> Become Artist
-                        </div>
-                    ` : ''}
+                    ${isAuthenticated ? this._item('settings', 'fa-cog', 'Settings') : ''}
+                    ${role === 'listener' ? this._item('upgrade', 'fa-crown', 'Become Artist') : ''}
                 </div>
             </div>
         `;
-        
-        this.attachEventListeners();
-        this.setActiveItem();
+
+        this._attachEventListeners();
+        this._setActiveItem();
     }
 
-    attachEventListeners() {
-        document.querySelectorAll('.sidebar-item').forEach(item => {
+    _item(page, icon, label) {
+        return `
+            <li>
+                <button class="sidebar-item" type="button" data-page="${this._escapeAttr(page)}">
+                    <i class="fas ${icon}"></i> ${this._escapeHtml(label)}
+                </button>
+            </li>
+        `;
+    }
+
+    _attachEventListeners() {
+        this.container.querySelectorAll('[data-page]').forEach(item => {
             item.addEventListener('click', () => {
                 const page = item.dataset.page;
-                if (page && window.bravoApp) {
+                if (window.bravoApp?.navigateTo) {
                     window.bravoApp.navigateTo(page);
-                    this.setActiveItem(item);
+                } else {
+                    window.location.hash = page;
                 }
             });
         });
     }
 
-    setActiveItem(activeItem = null) {
-        const items = document.querySelectorAll('.sidebar-item');
-        const currentHash = window.location.hash.slice(1);
-        
-        items.forEach(item => {
-            if (activeItem) {
-                if (item === activeItem) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
-            } else if (item.dataset.page === currentHash) {
-                item.classList.add('active');
-            } else if (currentHash.startsWith('admin') && item.dataset.page === 'admin/dashboard') {
-                item.classList.add('active');
-            } else if (currentHash === 'albums' && item.dataset.page === 'albums') {
-                item.classList.add('active');
-            } else if (currentHash === 'playlists' && item.dataset.page === 'playlists') {
-                item.classList.add('active');
-            } else if (currentHash.startsWith('artist') && item.dataset.page === 'dashboard') {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
+    _escapeHtml(text) {
+        if (text == null) return '';
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+    }
+
+    _escapeAttr(text) {
+        return this._escapeHtml(text);
     }
 }
 

@@ -1,294 +1,235 @@
-/**
- * Admin Artists Page - View and Manage All Artists
- */
+
 
 class AdminArtistsPage {
     constructor() {
         this.artists = [];
-        this.isLoading = false;
         this.searchTerm = '';
-        this.adminAPI = null;
-        this.staticUrl = window.APP_CONFIG.STATIC_URL;
+        this.adminAPI = new AdminAPI();
+        this.staticUrl = window.APP_CONFIG?.STATIC_URL || window.location.origin;
     }
 
     async render() {
-        this.adminAPI = new AdminAPI();
-        await this.loadArtists();
-        
         return `
             <div class="admin-artists-page">
                 <div class="page-header">
-                    <h1><i class="fas fa-users"></i> Artists Management</h1>
-                    <p>View, verify, and manage all artists on the platform</p>
+                    <h1><i class="fas fa-user"></i> Artists</h1>
+                    <p>View, verify, and manage all artists.</p>
                 </div>
-                
-                <div class="filters-bar">
-                    <div class="search-box">
-                        <input type="text" id="artist-search" placeholder="Search by stage name or email..." value="${this.escapeHtml(this.searchTerm)}">
-                        <button id="search-btn" class="btn-secondary"><i class="fas fa-search"></i> Search</button>
-                        <button id="refresh-btn" class="btn-outline"><i class="fas fa-sync-alt"></i> Refresh</button>
-                    </div>
+
+                <div class="filters-bar" style="display:flex; gap:8px; margin-bottom:16px;">
+                    <input type="text" id="aa-search" placeholder="Search stage name..." style="flex:1; min-width:200px;">
+                    <button class="btn-secondary" type="button" id="aa-search-btn"><i class="fas fa-search"></i> Search</button>
+                    <button class="btn-outline" type="button" id="aa-refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
                 </div>
-                
-                <div class="artists-stats">
-                    <div class="stat-card-sm">
-                        <div class="stat-value">${this.artists.length}</div>
-                        <div class="stat-label">Total Artists</div>
-                    </div>
-                    <div class="stat-card-sm verified">
-                        <div class="stat-value">${this.artists.filter(a => a.verified).length}</div>
-                        <div class="stat-label">Verified</div>
-                    </div>
-                    <div class="stat-card-sm featured">
-                        <div class="stat-value">${this.artists.filter(a => a.featured).length}</div>
-                        <div class="stat-label">Featured</div>
-                    </div>
+
+                <div class="artists-stats" id="aa-stats" style="display:flex; gap:12px; margin-bottom:16px;">
+                    <div class="stat-card-sm"><div class="stat-value" id="aa-stat-total">—</div><div class="stat-label">Total</div></div>
+                    <div class="stat-card-sm verified"><div class="stat-value" id="aa-stat-verified">—</div><div class="stat-label">Verified</div></div>
+                    <div class="stat-card-sm featured"><div class="stat-value" id="aa-stat-featured">—</div><div class="stat-label">Featured</div></div>
                 </div>
-                
-                <div class="artists-table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Avatar</th>
-                                <th>Stage Name</th>
-                                <th>Email</th>
-                                <th>Username</th>
-                                <th>Genres</th>
-                                <th>Status</th>
-                                <th>Verified</th>
-                                <th>Featured</th>
-                                <th>Monthly Listeners</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="artists-table-body">
-                            ${this.renderArtistsList()}
-                        </tbody>
-                    </table>
+
+                <div class="artists-table-container" id="aa-container" aria-live="polite">
+                    <div class="loading-container"><div class="spinner"></div></div>
                 </div>
             </div>
         `;
     }
 
-    async loadArtists() {
-        this.isLoading = true;
-        
-        try {
-            const result = await this.adminAPI.getAllArtistsForAdmin(this.searchTerm);
-            if (!result.error && result.artists) {
-                this.artists = result.artists;
-            } else if (!result.error && Array.isArray(result)) {
-                this.artists = result;
-            } else {
-                console.error('Failed to load artists:', result.error);
-                this.artists = [];
-            }
-        } catch (error) {
-            console.error('Load artists error:', error);
-            this.artists = [];
-            Toast.show('Failed to load artists', 'error');
-        } finally {
-            this.isLoading = false;
-        }
-    }
-
-    renderArtistsList() {
-        if (this.isLoading) {
-            return '<tr><td colspan="11" class="loading-cell">Loading artists...</td></tr>';
-        }
-        
-        if (this.artists.length === 0) {
-            return '<tr><td colspan="11" class="empty-cell">No artists found</td></tr>';
-        }
-        
-        return this.artists.map(artist => `
-            <tr data-artist-id="${artist._id}">
-                <td><code class="artist-id" style="font-size: 11px; word-break: break-all;">${artist._id}</code></td>
-                <td><img src="${this.getAvatarUrl(artist.avatar)}" class="user-avatar-sm" onerror="this.src='https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=32'"></td>
-                <td><strong>${this.escapeHtml(artist.stageName)}</strong></td>
-                <td>${this.escapeHtml(artist.email) || 'N/A'}</td>
-                <td>${this.escapeHtml(artist.username) || 'N/A'}</td>
-                <td><span class="genre-badge">${artist.genres?.slice(0, 2).join(', ') || 'Various'}${artist.genres?.length > 2 ? '...' : ''}</span></td>
-                <td><span class="status-badge ${artist.subscriptionStatus === 'active' ? 'active' : 'inactive'}">${artist.subscriptionStatus || 'inactive'}</span></td>
-                <td><span class="status-badge ${artist.verified ? 'verified' : 'unverified'}">
-                    ${artist.verified ? '<i class="fas fa-check-circle"></i> Verified' : '<i class="fas fa-times-circle"></i> Not Verified'}
-                </span></td>
-                <td><span class="status-badge ${artist.featured ? 'featured' : 'normal'}">
-                    ${artist.featured ? '<i class="fas fa-star"></i> Featured' : 'Normal'}
-                </span></td>
-                <td>${artist.monthlyListeners?.toLocaleString() || 0}</td>
-                <td class="actions-cell">
-                    <button class="btn-success verify-artist" data-id="${artist._id}" title="Verify Artist" ${artist.verified ? 'disabled' : ''}>
-                        <i class="fas fa-check-circle"></i> Verify
-                    </button>
-                    <button class="btn-warning feature-artist" data-id="${artist._id}" title="Toggle Featured">
-                        <i class="fas fa-star"></i> ${artist.featured ? 'Unfeature' : 'Feature'}
-                    </button>
-                    <button class="btn-icon copy-id-btn" data-id="${artist._id}" title="Copy Artist ID">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                    <button class="btn-icon view-artist" data-id="${artist._id}" title="View Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-                                        <tr>
-                        `).join('');
-    }
-
-    getAvatarUrl(avatar) {
-        if (!avatar) return 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=32';
-        if (avatar.startsWith('http')) return avatar;
-        if (avatar.startsWith('/uploads')) return `${this.staticUrl}${avatar}`;
-        return avatar;
-    }
-
     async afterRender() {
-        this.attachEventListeners();
-    }
-
-    attachEventListeners() {
-        // Search button
-        const searchBtn = document.getElementById('search-btn');
-        const searchInput = document.getElementById('artist-search');
-        const refreshBtn = document.getElementById('refresh-btn');
-        
-        if (searchBtn) {
-            searchBtn.addEventListener('click', async () => {
-                this.searchTerm = searchInput?.value || '';
-                await this.loadArtists();
-                await this.render();
-                await this.afterRender();
-            });
-        }
-        
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', async () => {
-                this.searchTerm = '';
-                if (searchInput) searchInput.value = '';
-                await this.loadArtists();
-                await this.render();
-                await this.afterRender();
-                Toast.show('Artists list refreshed', 'success');
-            });
-        }
-        
-        if (searchInput) {
-            searchInput.addEventListener('keypress', async (e) => {
-                if (e.key === 'Enter') {
-                    this.searchTerm = searchInput.value;
-                    await this.loadArtists();
-                    await this.render();
-                    await this.afterRender();
-                }
-            });
-        }
-        
-        // Verify artist
-        document.querySelectorAll('.verify-artist').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const artistId = btn.dataset.id;
-                const result = await this.adminAPI.verifyArtist(artistId);
-                if (!result.error) {
-                    Toast.show('Artist verified successfully!', 'success');
-                    await this.loadArtists();
-                    await this.render();
-                    await this.afterRender();
-                } else {
-                    Toast.show(result.error, 'error');
-                }
-            });
-        });
-        
-        // Feature/Unfeature artist
-        document.querySelectorAll('.feature-artist').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const artistId = btn.dataset.id;
-                const result = await this.adminAPI.featureArtist(artistId);
-                if (!result.error) {
-                    Toast.show('Artist featured status updated', 'success');
-                    await this.loadArtists();
-                    await this.render();
-                    await this.afterRender();
-                } else {
-                    Toast.show(result.error, 'error');
-                }
-            });
-        });
-        
-        // Copy Artist ID
-        document.querySelectorAll('.copy-id-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const artistId = btn.dataset.id;
-                await navigator.clipboard.writeText(artistId);
-                Toast.show('Artist ID copied to clipboard!', 'success');
-            });
-        });
-        
-        // View Artist Details
-        document.querySelectorAll('.view-artist').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const artistId = btn.dataset.id;
-                await this.showArtistDetails(artistId);
-            });
-        });
-    }
-
-    async showArtistDetails(artistId) {
-        // Find artist from current list or fetch fresh
-        let artist = this.artists.find(a => a._id === artistId);
-        
-        if (!artist) {
-            const result = await this.adminAPI.getAllArtistsForAdmin();
-            if (!result.error && result.artists) {
-                artist = result.artists.find(a => a._id === artistId);
-            }
-        }
-        
-        if (!artist) {
-            Toast.show('Artist details not found', 'error');
+        if (!window.authService?.isAdmin?.()) {
+            Toast.show?.('Admin access required', 'error');
             return;
         }
-        
-        Modal.show({
-            title: `Artist Details: ${artist.stageName}`,
-            content: `
-                <div class="artist-details-modal" style="max-height: 500px; overflow-y: auto;">
-                    <div class="detail-section">
-                        <h4><i class="fas fa-user"></i> Basic Information</h4>
-                        <p><strong>Artist ID:</strong> <code>${artist._id}</code></p>
-                        <p><strong>Stage Name:</strong> ${this.escapeHtml(artist.stageName)}</p>
-                        <p><strong>Email:</strong> ${this.escapeHtml(artist.email) || 'N/A'}</p>
-                        <p><strong>Username:</strong> ${this.escapeHtml(artist.username) || 'N/A'}</p>
-                        <p><strong>Genres:</strong> ${artist.genres?.join(', ') || 'Not specified'}</p>
-                    </div>
-                    
-                    <div class="detail-section">
-                        <h4><i class="fas fa-chart-line"></i> Statistics</h4>
-                        <p><strong>Monthly Listeners:</strong> ${artist.monthlyListeners?.toLocaleString() || 0}</p>
-                        <p><strong>Total Streams:</strong> ${artist.totalStreams?.toLocaleString() || 0}</p>
-                        <p><strong>Total Revenue:</strong> K${(artist.totalRevenue || 0).toLocaleString()}</p>
-                        <p><strong>Subscription Status:</strong> ${artist.subscriptionStatus || 'inactive'}</p>
-                        <p><strong>Current Plan:</strong> ${artist.currentPlan || 'none'}</p>
-                    </div>
-                    
-                    <div class="detail-section">
-                        <h4><i class="fas fa-shield-alt"></i> Status</h4>
-                        <p><strong>Verified:</strong> ${artist.verified ? 'Yes' : 'No'}</p>
-                        <p><strong>Featured:</strong> ${artist.featured ? 'Yes' : 'No'}</p>
-                    </div>
+        const searchInput = document.getElementById('aa-search');
+        if (searchInput) searchInput.value = this.searchTerm;
+
+        const doSearch = async () => {
+            this.searchTerm = searchInput?.value.trim() || '';
+            await this._loadAndRender();
+        };
+        document.getElementById('aa-search-btn')?.addEventListener('click', doSearch);
+        searchInput?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') doSearch();
+        });
+        document.getElementById('aa-refresh-btn')?.addEventListener('click', async () => {
+            await this._loadAndRender();
+            Toast.show?.('Refreshed', 'success');
+        });
+
+        await this._loadAndRender();
+    }
+
+    async _loadAndRender() {
+        const result = await this.adminAPI.getAllArtistsForAdmin(this.searchTerm);
+        if (result.success) {
+            const data = result.data;
+            this.artists = Array.isArray(data) ? data : (data?.artists || []);
+        } else {
+            this.artists = [];
+        }
+        this._renderStats();
+        this._renderTable();
+    }
+
+    _renderStats() {
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = String(val); };
+        set('aa-stat-total', this.artists.length);
+        set('aa-stat-verified', this.artists.filter(a => a.verified).length);
+        set('aa-stat-featured', this.artists.filter(a => a.featured).length);
+    }
+
+    _renderTable() {
+        const container = document.getElementById('aa-container');
+        if (!container) return;
+
+        if (this.artists.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-user"></i>
+                    <h3>No artists found</h3>
                 </div>
-            `,
-            buttons: [
-                { text: 'Close', class: 'btn-secondary', action: 'close' }
-            ]
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="data-table" id="aa-table">
+                <thead>
+                    <tr>
+                        <th>Avatar</th>
+                        <th>Stage Name</th>
+                        <th>User</th>
+                        <th>Songs</th>
+                        <th>Monthly Listeners</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="aa-tbody"></tbody>
+            </table>
+        `;
+
+        const tbody = document.getElementById('aa-tbody');
+        this.artists.forEach(a => tbody.appendChild(this._buildRow(a)));
+
+        document.getElementById('aa-table')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn || btn.disabled) return;
+            const row = btn.closest('[data-artist-id]');
+            if (!row) return;
+            const artist = this.artists.find(a => String(a._id) === String(row.dataset.artistId));
+            if (!artist) return;
+            const action = btn.dataset.action;
+            if (action === 'verify') this._toggleVerify(artist, row);
+            else if (action === 'feature') this._toggleFeature(artist, row);
+            else if (action === 'view') this._viewArtist(artist);
         });
     }
 
-    escapeHtml(text) {
-        if (!text) return '';
+    _buildRow(a) {
+        const fallback = window.getDefaultImage?.() || '/js/images/bravo.png';
+        const safeStage = this._escapeHtml(a.stageName || 'Unknown');
+        const safeUsername = this._escapeHtml(a.userId?.username || a.user?.username || '—');
+        const safeEmail = this._escapeHtml(a.userId?.email || a.user?.email || '');
+        const songCount = a.songCount || a.totalSongs || 0;
+        const monthly = a.monthlyListeners || 0;
+
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-artist-id', a._id);
+        tr.innerHTML = `
+            <td><img class="artist-avatar-sm" alt="${safeStage}" style="width:36px; height:36px; border-radius:50%; object-fit:cover;"></td>
+            <td><strong>${safeStage}</strong></td>
+            <td>${safeUsername}<br><small>${safeEmail}</small></td>
+            <td>${this._formatNumber(songCount)}</td>
+            <td>${this._formatNumber(monthly)}</td>
+            <td>
+                ${a.verified ? '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Verified</span>' : ''}
+                ${a.featured ? '<span class="badge badge-warning"><i class="fas fa-star"></i> Featured</span>' : ''}
+                ${!a.verified && !a.featured ? '<span class="badge">—</span>' : ''}
+            </td>
+            <td class="actions-cell">
+                <button class="btn-sm ${a.verified ? 'btn-outline' : 'btn-success'}" type="button" data-action="verify">
+                    <i class="fas fa-check-circle"></i> ${a.verified ? 'Unverify' : 'Verify'}
+                </button>
+                <button class="btn-sm ${a.featured ? 'btn-outline' : 'btn-primary'}" type="button" data-action="feature">
+                    <i class="fas fa-star"></i> ${a.featured ? 'Un-feature' : 'Feature'}
+                </button>
+                <button class="btn-icon" type="button" data-action="view" aria-label="View profile">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+        `;
+
+        const img = tr.querySelector('.artist-avatar-sm');
+        if (img) {
+            img.src = this._safeAvatarUrl(a.avatar || a.userId?.avatar) || fallback;
+            img.addEventListener('error', () => { img.src = fallback; }, { once: true });
+        }
+        return tr;
+    }
+
+    async _toggleVerify(artist, rowEl) {
+        const wasVerified = !!artist.verified;
+        const result = wasVerified
+            ? await this.adminAPI.unverifyArtist(artist._id)
+            : await this.adminAPI.verifyArtist(artist._id);
+        if (!result.success) {
+            Toast.show?.(result.error || 'Action failed', 'error');
+            return;
+        }
+        artist.verified = !wasVerified;
+        this._refreshRow(artist._id);
+        this._renderStats();
+        Toast.show?.(wasVerified ? 'Artist unverified' : 'Artist verified', 'success');
+    }
+
+    async _toggleFeature(artist, rowEl) {
+        const newFeatured = !artist.featured;
+        const result = await this.adminAPI.featureArtist(artist._id, newFeatured);
+        if (!result.success) {
+            Toast.show?.(result.error || 'Action failed', 'error');
+            return;
+        }
+        artist.featured = newFeatured;
+        this._refreshRow(artist._id);
+        this._renderStats();
+        Toast.show?.(newFeatured ? 'Artist featured' : 'Artist un-featured', 'success');
+    }
+
+    _refreshRow(artistId) {
+        const oldRow = document.querySelector(`[data-artist-id="${artistId}"]`);
+        if (!oldRow) return;
+        const artist = this.artists.find(a => String(a._id) === String(artistId));
+        if (!artist) return;
+        const newRow = this._buildRow(artist);
+        oldRow.parentNode.replaceChild(newRow, oldRow);
+    }
+
+    _viewArtist(artist) {
+        if (window.bravoApp?.navigateTo) window.bravoApp.navigateTo(`artist/${artist._id}`);
+        else window.location.hash = `artist/${artist._id}`;
+    }
+
+    _safeAvatarUrl(url) {
+        if (!url || typeof url !== 'string') return null;
+        if (/^javascript:/i.test(url) || /^data:text/i.test(url)) return null;
+        if (url.startsWith('http')) return url;
+        if (url.startsWith('/uploads') || url.startsWith('/static')) {
+            return `${this.staticUrl}${url}`;
+        }
+        return url;
+    }
+
+    _formatNumber(num) {
+        if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
+        if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+        return String(num || 0);
+    }
+
+    _escapeHtml(text) {
+        if (text == null) return '';
         const div = document.createElement('div');
-        div.textContent = text;
+        div.textContent = String(text);
         return div.innerHTML;
     }
 }

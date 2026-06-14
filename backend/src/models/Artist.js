@@ -1,103 +1,105 @@
 import mongoose from 'mongoose';
+import { GENRES, normalizeGenre } from './genres.js';
 
-const artistSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    unique: true
-  },
-  stageName: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  genres: [{
-    type: String,
-    enum: ['Afrobeat', 'Hip Hop', 'R&B', 'Dancehall', 'Reggae', 'Cuundu', 'Kalindula', 'Gospel', 'Soul', 'Rock', 'Traditional', 'Amapiano', 'Other',
+const artistSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      unique: true,
+    },
+    stageName: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      maxlength: 60,
+    },
 
-        'afrobeat', 'hip hop', 'r&b', 'dancehall', 'reggae', 'gospel', 'traditional', 'amapiano', 'soul', 'rock', 'cuundu', 'Kalindula', 'other'
-    ]
-  }],
-  verified: {
-    type: Boolean,
-    default: false
+    // FIX: Was a 26-entry enum with mixed case (`'Hip Hop'` AND `'hip hop'`,
+    // etc.) — duplicate values for the same logical genre. Now references
+    // the canonical list and normalises incoming values to Title Case
+    // via the pre-save hook below.
+    genres: [{ type: String, enum: GENRES }],
+
+    verified: { type: Boolean, default: false },
+    featured: { type: Boolean, default: false },
+    isEmailVerified: { type: Boolean, default: false },
+    verificationStatus: {
+      type: String,
+      enum: ['pending', 'verified', 'rejected'],
+      default: 'pending',
+    },
+
+    // ============ Counters ============
+    monthlyListeners: { type: Number, default: 0, min: 0 },
+    totalStreams: { type: Number, default: 0, min: 0 },
+    totalDownloads: { type: Number, default: 0, min: 0 },
+    totalRevenue: { type: Number, default: 0, min: 0 },
+    songsUploaded: { type: Number, default: 0, min: 0 },
+    albumsUploaded: { type: Number, default: 0, min: 0 },
+
+    // ============ Subscription ============
+    subscriptionStatus: {
+      type: String,
+      enum: ['active', 'inactive', 'expired', 'suspended'],
+      default: 'inactive',
+    },
+    currentPlan: {
+      type: String,
+      enum: ['basic', 'pro', 'vip', 'none'],
+      default: 'none',
+    },
+    subscriptionExpiry: Date,
+
+    // ============ Upload credits ============
+    uploadCredits: { type: Number, default: 0, min: 0 },
+    uploadCreditsExpiry: Date,
+    uploadLimit: { type: Number, default: 0, min: 0 },
+
+    promotionalBalance: { type: Number, default: 0, min: 0 },
+
+    website: String,
+    recordLabel: String,
+    establishmentYear: Number,
+    bannerImage: String,
+    avatar: {
+      type: String,
+      default: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
+    },
+    bio: { type: String, default: '', maxlength: 1000 },
   },
-  featured: {
-    type: Boolean,
-    default: false
-  },
-  monthlyListeners: {
-    type: Number,
-    default: 0
-  },
-  totalStreams: {
-    type: Number,
-    default: 0
-  },
-  totalDownloads: {
-    type: Number,
-    default: 0
-  },
-  totalRevenue: {
-    type: Number,
-    default: 0
-  },
-  subscriptionStatus: {
-    type: String,
-    enum: ['active', 'inactive', 'expired', 'suspended'],
-    default: 'inactive'
-  },
-  currentPlan: {
-    type: String,
-    enum: ['basic', 'pro', 'vip', 'none'],
-    default: 'none'
-  },
-  subscriptionExpiry: Date,
-  uploadCredits: {
-    type: Number,
-    default: 0
-  },
-  uploadCreditsExpiry: Date,
-  uploadLimit: {
-    type: Number,
-    default: 0
-  },
-  songsUploaded: {
-    type: Number,
-    default: 0
-  },
-  albumsUploaded: {
-    type: Number,
-    default: 0
-  },
-  promotionalBalance: {
-    type: Number,
-    default: 0
-  },
-  website: String,
-  recordLabel: String,
-  establishmentYear: Number,
-  bannerImage: String,
-  avatar: {
-    type: String,
-    default: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150'
-  },
-  bio: {
-    type: String,
-    default: ''
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  { timestamps: true }
+);
+
+// ============================================================
+// Indexes
+// ============================================================
+artistSchema.index({ verified: 1, featured: 1 });
+artistSchema.index({ subscriptionStatus: 1, subscriptionExpiry: 1 });
+
+// ============================================================
+// Pre-save: normalise genres to canonical Title Case
+// ============================================================
+// Drops anything that doesn't match a known genre rather than failing
+// the whole save — the enum validator would already reject it, so this
+// effectively means "valid genre or save fails". The normalisation
+// matters for case insensitivity ('hip hop' becomes 'Hip Hop').
+artistSchema.pre('save', function (next) {
+  if (this.genres && Array.isArray(this.genres)) {
+    this.genres = this.genres
+      .map((g) => normalizeGenre(g))
+      .filter(Boolean); // drop nulls
   }
+  next();
 });
 
-artistSchema.methods.canUpload = function() {
+// ============================================================
+// Methods
+// ============================================================
+
+artistSchema.methods.canUpload = function () {
   if (this.subscriptionStatus === 'active' && this.subscriptionExpiry > new Date()) {
     return true;
   }
@@ -107,14 +109,46 @@ artistSchema.methods.canUpload = function() {
   return false;
 };
 
-artistSchema.methods.useUploadCredit = async function() {
-  if (this.uploadCredits > 0) {
-    this.uploadCredits--;
-    this.updatedAt = Date.now();
-    await this.save();
+/**
+ * Atomically consume one upload credit.
+ *
+ * FIX: The original method did:
+ *   this.uploadCredits--;
+ *   await this.save();
+ * — a textbook read-modify-write race. Two concurrent uploads could
+ * both pass the `if (this.uploadCredits > 0)` check and both decrement,
+ * letting the artist upload one more song than they paid for.
+ *
+ * The fix uses `findOneAndUpdate` with `uploadCredits: { $gt: 0 }`
+ * in the filter — only succeeds if the credit balance is positive.
+ * Returns true if a credit was consumed, false otherwise.
+ *
+ * Note: subscription-based uploads (active sub) don't consume credits.
+ * Callers should check `canUpload()` first, and only call this when
+ * they need to debit the credit balance.
+ */
+artistSchema.methods.useUploadCredit = async function () {
+  // If the artist has an active subscription, no credit is needed.
+  if (this.subscriptionStatus === 'active' && this.subscriptionExpiry > new Date()) {
     return true;
   }
-  return false;
+
+  const updated = await this.constructor.findOneAndUpdate(
+    {
+      _id: this._id,
+      uploadCredits: { $gt: 0 },
+      uploadCreditsExpiry: { $gt: new Date() },
+    },
+    { $inc: { uploadCredits: -1 } },
+    { new: true }
+  );
+
+  if (!updated) return false;
+
+  // Keep `this` in sync with the persisted state so the caller's
+  // reference reflects the new credit count.
+  this.uploadCredits = updated.uploadCredits;
+  return true;
 };
 
 const Artist = mongoose.model('Artist', artistSchema);

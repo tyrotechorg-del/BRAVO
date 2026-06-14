@@ -1,275 +1,267 @@
-/**
- * Admin API Client - Complete Working Version with All Data Endpoints
- */
+
 
 class AdminAPI {
     constructor() {
         this.apiUrl = window.API_BASE_URL;
+        this.basePath = '/admin';
     }
 
-    getToken() {
-        return localStorage.getItem('bravo_token');
-    }
-
-    getHeaders() {
-        return {
-            'Authorization': `Bearer ${this.getToken()}`,
-            'Content-Type': 'application/json'
-        };
-    }
-
-    async request(url, options = {}) {
-        try {
-            const response = await fetch(`${this.apiUrl}${url}`, {
-                ...options,
-                headers: {
-                    ...this.getHeaders(),
-                    ...options.headers
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || error.message || 'Request failed');
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error(`API Error (${url}):`, error);
-            return { error: error.message };
+    // Internal helpers
+    async _request(path, options = {}) {
+        if (!window.authService) {
+            return { success: false, error: 'Auth service not available', status: 0 };
         }
+        const { ok, data, status } = await window.authService.api._request(
+            `${this.basePath}${path}`,
+            options
+        );
+        if (ok) return { success: true, data, status };
+        return { success: false, error: data?.error || data?.message || 'Request failed', status };
     }
 
-    // ============ USER MANAGEMENT ============
+    _buildQuery(params) {
+        const q = new URLSearchParams();
+        Object.entries(params || {}).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === '') return;
+            q.append(key, String(value));
+        });
+        const str = q.toString();
+        return str ? `?${str}` : '';
+    }
+
+    // User management
     async getAllUsers(page = 1, limit = 20, role = null, search = null) {
-        let url = `/admin/users?page=${page}&limit=${limit}`;
-        if (role && role !== '') url += `&role=${role}`;
-        if (search && search !== '') url += `&search=${encodeURIComponent(search)}`;
-        return this.request(url);
+        return this._request(`/users${this._buildQuery({ page, limit, role, search })}`, { method: 'GET' });
     }
 
     async getUserDetails(userId) {
-        if (!userId) return { error: 'User ID required' };
-        return this.request(`/admin/users/${userId}`);
+        if (!userId) return { success: false, error: 'User ID required', status: 0 };
+        return this._request(`/users/${encodeURIComponent(userId)}`, { method: 'GET' });
     }
 
     async updateUserStatus(userId, isActive, role = null) {
-        if (!userId) return { error: 'User ID required' };
+        if (!userId) return { success: false, error: 'User ID required', status: 0 };
         const body = { isActive };
         if (role) body.role = role;
-        return this.request(`/admin/users/${userId}/status`, {
+        return this._request(`/users/${encodeURIComponent(userId)}/status`, {
             method: 'PUT',
             body: JSON.stringify(body)
         });
     }
 
     async deleteUser(userId) {
-        if (!userId) return { error: 'User ID required' };
-        return this.request(`/admin/users/${userId}`, {
-            method: 'DELETE'
-        });
+        if (!userId) return { success: false, error: 'User ID required', status: 0 };
+        return this._request(`/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
     }
 
-    // ============ ARTIST MANAGEMENT ============
+    // Artist management
     async getAllArtists() {
-        return this.request('/admin/artists');
+        return this._request('/artists', { method: 'GET' });
     }
 
     async getAllArtistsForAdmin(search = '', verified = null) {
-        let url = '/admin/artists/list';
-        const params = [];
-        if (search) params.push(`search=${encodeURIComponent(search)}`);
-        if (verified !== null) params.push(`verified=${verified}`);
-        if (params.length) url += `?${params.join('&')}`;
-        return this.request(url);
+        return this._request(`/artists/list${this._buildQuery({ search, verified })}`, { method: 'GET' });
     }
 
     async verifyArtist(artistId) {
-        if (!artistId) return { error: 'Artist ID required' };
-        return this.request(`/admin/artists/${artistId}/verify`, {
-            method: 'POST'
+        if (!artistId) return { success: false, error: 'Artist ID required', status: 0 };
+        return this._request(`/artists/${encodeURIComponent(artistId)}/verify`, { method: 'POST' });
+    }
+
+    async unverifyArtist(artistId) {
+        if (!artistId) return { success: false, error: 'Artist ID required', status: 0 };
+        return this._request(`/artists/${encodeURIComponent(artistId)}/unverify`, { method: 'POST' });
+    }
+
+    async featureArtist(artistId, featured = true) {
+        if (!artistId) return { success: false, error: 'Artist ID required', status: 0 };
+        return this._request(`/artists/${encodeURIComponent(artistId)}/feature`, {
+            method: 'POST',
+            body: JSON.stringify({ featured })
         });
     }
 
-    async featureArtist(artistId) {
-        if (!artistId) return { error: 'Artist ID required' };
-        return this.request(`/admin/artists/${artistId}/feature`, {
-            method: 'POST'
-        });
-    }
-
-    // ============ SONG MANAGEMENT ============
+    // Song management
     async getAllSongs(page = 1, limit = 50, status = null) {
-        let url = `/admin/songs?page=${page}&limit=${limit}`;
-        if (status && status !== '') url += `&status=${status}`;
-        return this.request(url);
+        return this._request(`/songs${this._buildQuery({ page, limit, status })}`, { method: 'GET' });
     }
 
     async getAllSongsForAdmin(filters = {}) {
-        let url = '/admin/songs/all?';
-        const params = [];
-        if (filters.page) params.push(`page=${filters.page}`);
-        if (filters.limit) params.push(`limit=${filters.limit}`);
-        if (filters.status) params.push(`status=${filters.status}`);
-        if (filters.genre) params.push(`genre=${filters.genre}`);
-        if (filters.artistId) params.push(`artistId=${filters.artistId}`);
-        if (filters.search) params.push(`search=${encodeURIComponent(filters.search)}`);
-        if (filters.isVideo !== undefined) params.push(`isVideo=${filters.isVideo}`);
-        if (filters.sortBy) params.push(`sortBy=${filters.sortBy}`);
-        if (filters.sortOrder) params.push(`sortOrder=${filters.sortOrder}`);
-        url += params.join('&');
-        return this.request(url);
+        return this._request(`/songs/all${this._buildQuery(filters)}`, { method: 'GET' });
     }
 
     async getSongStatistics() {
-        return this.request('/admin/songs/statistics');
+        return this._request('/songs/statistics', { method: 'GET' });
     }
 
     async getPendingSongs() {
-        return this.request('/admin/songs/pending');
+        return this._request('/songs/pending', { method: 'GET' });
     }
 
     async approveSong(songId) {
-        if (!songId) return { error: 'Song ID required' };
-        return this.request(`/admin/songs/${songId}/approve`, {
-            method: 'POST'
-        });
+        if (!songId) return { success: false, error: 'Song ID required', status: 0 };
+        return this._request(`/songs/${encodeURIComponent(songId)}/approve`, { method: 'POST' });
     }
 
     async rejectSong(songId, reason) {
-        if (!songId) return { error: 'Song ID required' };
-        return this.request(`/admin/songs/${songId}/reject`, {
+        if (!songId) return { success: false, error: 'Song ID required', status: 0 };
+        return this._request(`/songs/${encodeURIComponent(songId)}/reject`, {
             method: 'POST',
             body: JSON.stringify({ reason: reason || 'Content guidelines violation' })
         });
     }
 
     async deleteSong(songId) {
-        if (!songId) return { error: 'Song ID required' };
-        return this.request(`/admin/songs/${songId}`, {
-            method: 'DELETE'
-        });
+        if (!songId) return { success: false, error: 'Song ID required', status: 0 };
+        return this._request(`/songs/${encodeURIComponent(songId)}`, { method: 'DELETE' });
     }
 
     async bulkAction(songIds, action, data = null) {
-        if (!songIds || !songIds.length) return { error: 'No songs selected' };
-        return this.request('/admin/songs/bulk-action', {
+        if (!Array.isArray(songIds) || songIds.length === 0) {
+            return { success: false, error: 'No songs selected', status: 0 };
+        }
+        if (songIds.length > 500) {
+            return { success: false, error: 'Cannot process more than 500 at once', status: 0 };
+        }
+        return this._request('/songs/bulk-action', {
             method: 'POST',
             body: JSON.stringify({ songIds, action, data })
         });
     }
 
-    // ============ ALBUM MANAGEMENT ============
-    async getAllAlbums() {
-        return this.request('/admin/albums');
+    // Album management
+    async getAllAlbums(page = 1, limit = 50) {
+        return this._request(`/albums${this._buildQuery({ page, limit })}`, { method: 'GET' });
     }
 
     async deleteAlbum(albumId) {
-        if (!albumId) return { error: 'Album ID required' };
-        return this.request(`/admin/albums/${albumId}`, {
-            method: 'DELETE'
+        if (!albumId) return { success: false, error: 'Album ID required', status: 0 };
+        return this._request(`/albums/${encodeURIComponent(albumId)}`, { method: 'DELETE' });
+    }
+
+    // Video management
+    async getAllVideos(page = 1, limit = 50, status = null) {
+        // Videos live in the Song collection with isVideo: true. The
+        // backend exposes a dedicated admin endpoint for clarity.
+        return this._request(`/videos${this._buildQuery({ page, limit, status })}`, { method: 'GET' });
+    }
+
+    async approveVideo(videoId) {
+        if (!videoId) return { success: false, error: 'Video ID required', status: 0 };
+        return this._request(`/videos/${encodeURIComponent(videoId)}/approve`, { method: 'POST' });
+    }
+
+    async rejectVideo(videoId, reason) {
+        if (!videoId) return { success: false, error: 'Video ID required', status: 0 };
+        return this._request(`/videos/${encodeURIComponent(videoId)}/reject`, {
+            method: 'POST',
+            body: JSON.stringify({ reason: reason || 'Content guidelines violation' })
         });
     }
 
-    // ============ ANALYTICS ============
-    async getPlatformAnalytics() {
-        return this.request('/admin/analytics');
+    async deleteVideo(videoId) {
+        if (!videoId) return { success: false, error: 'Video ID required', status: 0 };
+        return this._request(`/videos/${encodeURIComponent(videoId)}`, { method: 'DELETE' });
     }
 
-    async getRevenueAnalytics() {
-        return this.request('/admin/analytics/revenue');
+    // Analytics
+    async getPlatformAnalytics(period = null) {
+        return this._request(`/analytics${this._buildQuery({ period })}`, { method: 'GET' });
     }
 
-    // ============ WITHDRAWALS ============
-    async getWithdrawals(status = null) {
-        let url = '/admin/withdrawals';
-        if (status && status !== '') url += `?status=${status}`;
-        return this.request(url);
+    async getRevenueAnalytics(period = null) {
+        return this._request(`/analytics/revenue${this._buildQuery({ period })}`, { method: 'GET' });
     }
 
-    async processWithdrawal(withdrawalId, action, transactionReference = null) {
-        if (!withdrawalId) return { error: 'Withdrawal ID required' };
+    // Withdrawals
+    async getWithdrawals(status = null, page = 1, limit = 50) {
+        return this._request(`/withdrawals${this._buildQuery({ status, page, limit })}`, { method: 'GET' });
+    }
+
+    async processWithdrawal(withdrawalId, action, transactionReference = null, notes = null) {
+        if (!withdrawalId) return { success: false, error: 'Withdrawal ID required', status: 0 };
+        const validActions = ['approve', 'reject', 'complete', 'fail'];
+        if (!validActions.includes(action)) {
+            return { success: false, error: 'Invalid action', status: 0 };
+        }
         const body = { action };
         if (transactionReference) body.transactionReference = transactionReference;
-        return this.request(`/admin/withdrawals/${withdrawalId}/process`, {
+        if (notes) body.notes = notes;
+        return this._request(`/withdrawals/${encodeURIComponent(withdrawalId)}/process`, {
             method: 'POST',
             body: JSON.stringify(body)
         });
     }
 
-    // ============ REPORTS ============
-    async getReports() {
-        return this.request('/admin/reports');
+    // Reports (content reports)
+    async getReports(status = null, page = 1, limit = 50) {
+        return this._request(`/reports${this._buildQuery({ status, page, limit })}`, { method: 'GET' });
     }
 
-    async resolveReport(reportId, action, adminNotes) {
-        if (!reportId) return { error: 'Report ID required' };
-        return this.request(`/admin/reports/${reportId}/resolve`, {
+    async resolveReport(reportId, action, adminNotes = '') {
+        if (!reportId) return { success: false, error: 'Report ID required', status: 0 };
+        return this._request(`/reports/${encodeURIComponent(reportId)}/resolve`, {
             method: 'POST',
-            body: JSON.stringify({ action, adminNotes: adminNotes || '' })
+            body: JSON.stringify({ action, adminNotes })
         });
     }
 
-    // ============ SETTINGS ============
+    async dismissReport(reportId, adminNotes = '') {
+        return this.resolveReport(reportId, 'dismiss', adminNotes);
+    }
+
+    // Reported comments
+    async getReportedComments(page = 1, limit = 50) {
+        return this._request(`/comments/reported${this._buildQuery({ page, limit })}`, { method: 'GET' });
+    }
+
+    async deleteComment(commentId) {
+        if (!commentId) return { success: false, error: 'Comment ID required', status: 0 };
+        return this._request(`/comments/${encodeURIComponent(commentId)}`, { method: 'DELETE' });
+    }
+
+    async dismissCommentReport(commentId) {
+        if (!commentId) return { success: false, error: 'Comment ID required', status: 0 };
+        return this._request(`/comments/${encodeURIComponent(commentId)}/dismiss`, { method: 'POST' });
+    }
+
     async getSystemSettings() {
-        return this.request('/admin/settings');
+        return this._request('/settings', { method: 'GET' });
     }
 
     async updateSystemSettings(settings) {
-        return this.request('/admin/settings', {
+        return this._request('/settings', {
             method: 'PUT',
             body: JSON.stringify(settings)
         });
     }
 
-    // ============ BACKUP ============
+    // Backup
     async triggerBackup() {
-        return this.request('/admin/backup', {
-            method: 'POST'
-        });
+        return this._request('/backup', { method: 'POST' });
     }
 
-    // ============ REPORTED COMMENTS ============
-    async getReportedComments() {
-        return this.request('/admin/comments/reported');
-    }
-
-    async deleteComment(commentId) {
-        if (!commentId) return { error: 'Comment ID required' };
-        return this.request(`/admin/comments/${commentId}`, {
-            method: 'DELETE'
-        });
-    }
-
-    // ============ ADMIN UPLOADS ============
+    // Admin uploads (multipart)
     async adminUploadSong(formData) {
-        const token = this.getToken();
-        const response = await fetch(`${this.apiUrl}/admin/upload-song`, {
+        return this._request('/upload-song', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
             body: formData
+            // No Content-Type — browser sets multipart/form-data with boundary
         });
-        return response.json();
     }
 
     async adminUploadVideo(formData) {
-        const token = this.getToken();
-        const response = await fetch(`${this.apiUrl}/admin/upload-video`, {
+        return this._request('/upload-video', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
             body: formData
         });
-        return response.json();
     }
 
     async adminUploadAlbum(formData) {
-        const token = this.getToken();
-        const response = await fetch(`${this.apiUrl}/admin/upload-album`, {
+        return this._request('/upload-album', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
             body: formData
         });
-        return response.json();
     }
 }
 

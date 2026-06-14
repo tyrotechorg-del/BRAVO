@@ -1,148 +1,200 @@
-/**
- * Admin Comments Page - Moderate User Comments
- */
+
 
 class AdminCommentsPage {
     constructor() {
         this.comments = [];
-        this.isLoading = false;
-        this.adminAPI = null;
-        this.staticUrl = window.APP_CONFIG.STATIC_URL;
+        this.adminAPI = new AdminAPI();
+        this.processing = new Set();
     }
 
     async render() {
-        this.adminAPI = new AdminAPI();
-        await this.loadComments();
-        
         return `
             <div class="admin-comments-page">
                 <div class="page-header">
-                    <h1><i class="fas fa-comment"></i> Comments Moderation</h1>
-                    <p>Review and manage reported comments</p>
+                    <h1><i class="fas fa-comment"></i> Reported Comments</h1>
+                    <p>Review and moderate comments flagged by users.</p>
                 </div>
-                
-                <div class="comments-stats">
+
+                <div class="comments-stats" style="margin-bottom:16px;">
                     <div class="stat-card-sm reported">
-                        <div class="stat-value">${this.comments.length}</div>
+                        <div class="stat-value" id="ac-stat-count">—</div>
                         <div class="stat-label">Reported Comments</div>
                     </div>
                 </div>
-                
-                <div class="comments-table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Song</th>
-                                <th>Comment</th>
-                                <th>Report Reason</th>
-                                <th>Reported On</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="comments-table-body">
-                            ${this.renderCommentsList()}
-                        </tbody>
-                    </table>
+
+                <div class="comments-table-container" id="ac-container" aria-live="polite">
+                    <div class="loading-container"><div class="spinner"></div></div>
                 </div>
             </div>
         `;
     }
 
-    async loadComments() {
-        this.isLoading = true;
-        
-        try {
-            const result = await this.adminAPI.getReportedComments();
-            if (!result.error) {
-                this.comments = result;
-            } else {
-                this.comments = [];
-            }
-        } catch (error) {
-            console.error('Load comments error:', error);
-            this.comments = [];
-        } finally {
-            this.isLoading = false;
+    async afterRender() {
+        if (!window.authService?.isAdmin?.()) {
+            Toast.show?.('Admin access required', 'error');
+            return;
         }
+        await this._loadComments();
+        this._renderTable();
     }
 
-    renderCommentsList() {
-        if (this.isLoading) {
-            return '<tr><td colspan="6" class="loading-cell">Loading comments...</td></tr>';
+    async _loadComments() {
+        const result = await this.adminAPI.getReportedComments();
+        if (result.success) {
+            this.comments = Array.isArray(result.data) ? result.data : (result.data?.comments || []);
+        } else {
+            this.comments = [];
         }
-        
+        const stat = document.getElementById('ac-stat-count');
+        if (stat) stat.textContent = String(this.comments.length);
+    }
+
+    _renderTable() {
+        const container = document.getElementById('ac-container');
+        if (!container) return;
+
         if (this.comments.length === 0) {
-            return '<tr><td colspan="6" class="empty-cell">No reported comments found</td></tr>';
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>No reported comments</h3>
+                    <p>Nothing to moderate right now.</p>
+                </div>
+            `;
+            return;
         }
-        
-        return this.comments.map(comment => `
-            <tr data-comment-id="${comment._id}">
-                <td><strong>${this.escapeHtml(comment.user?.username || 'Unknown')}</strong><br><small>${comment.user?._id || ''}</small></td>
-                <td>${comment.song?.title || 'Unknown Song'}</td>
-                <td class="comment-text">"${this.escapeHtml(comment.content)}"</td>
-                <td>${this.escapeHtml(comment.flaggedReason || 'No reason provided')}</td>
-                <td>${new Date(comment.flaggedAt).toLocaleString()}</td>
-                <td class="actions-cell">
-                    <button class="btn-danger delete-comment" data-id="${comment._id}" title="Delete Comment">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                    <button class="btn-warning dismiss-comment" data-id="${comment._id}" title="Dismiss Report">
-                        <i class="fas fa-check"></i> Dismiss
-                    </button>
-                    <button class="btn-icon view-song" data-song-id="${comment.song?._id}" title="View Song">
+
+        container.innerHTML = `
+            <table class="data-table" id="ac-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Song</th>
+                        <th>Comment</th>
+                        <th>Reason</th>
+                        <th>Reported At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ac-tbody"></tbody>
+            </table>
+        `;
+
+        const tbody = document.getElementById('ac-tbody');
+        this.comments.forEach(c => tbody.appendChild(this._buildRow(c)));
+
+        document.getElementById('ac-table')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn || btn.disabled) return;
+            const row = btn.closest('[data-comment-id]');
+            if (!row) return;
+            const comment = this.comments.find(c => String(c._id) === String(row.dataset.commentId));
+            if (!comment) return;
+            const action = btn.dataset.action;
+            if (action === 'delete') this._delete(comment, row);
+            else if (action === 'dismiss') this._dismiss(comment, row);
+            else if (action === 'view-song') this._viewSong(comment);
+        });
+    }
+
+    _buildRow(c) {
+        const safeUsername = this._escapeHtml(c.user?.username || 'Unknown');
+        const safeSongTitle = this._escapeHtml(c.song?.title || 'Unknown Song');
+        const safeContent = this._escapeHtml(c.content || '');
+        const safeReason = this._escapeHtml(c.flaggedReason || c.reportReason || 'No reason provided');
+        const reportedAt = c.flaggedAt || c.reportedAt || c.createdAt;
+        const dateStr = reportedAt ? new Date(reportedAt).toLocaleString() : '—';
+
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-comment-id', c._id);
+        tr.innerHTML = `
+            <td><strong>${safeUsername}</strong></td>
+            <td>${safeSongTitle}</td>
+            <td class="comment-text">"${safeContent}"</td>
+            <td>${safeReason}</td>
+            <td>${this._escapeHtml(dateStr)}</td>
+            <td class="actions-cell">
+                <button class="btn-danger btn-sm" type="button" data-action="delete" aria-label="Delete comment">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+                <button class="btn-warning btn-sm" type="button" data-action="dismiss" aria-label="Dismiss report">
+                    <i class="fas fa-check"></i> Dismiss
+                </button>
+                ${c.song?._id ? `
+                    <button class="btn-icon" type="button" data-action="view-song" aria-label="View song">
                         <i class="fas fa-music"></i>
                     </button>
-                </td>
-             </tr>
-        `).join('');
+                ` : ''}
+            </td>
+        `;
+        return tr;
     }
 
-    async afterRender() {
-        this.attachEventListeners();
+    async _delete(comment, rowEl) {
+        if (this.processing.has(comment._id)) return;
+
+        const doDelete = async () => {
+            this.processing.add(comment._id);
+            rowEl?.querySelectorAll('button').forEach(b => b.disabled = true);
+
+            const result = await this.adminAPI.deleteComment(comment._id);
+            this.processing.delete(comment._id);
+
+            if (!result.success) {
+                Toast.show?.(result.error || 'Failed to delete', 'error');
+                rowEl?.querySelectorAll('button').forEach(b => b.disabled = false);
+                return;
+            }
+
+            this.comments = this.comments.filter(c => c._id !== comment._id);
+            if (rowEl?.parentNode) rowEl.parentNode.removeChild(rowEl);
+            const stat = document.getElementById('ac-stat-count');
+            if (stat) stat.textContent = String(this.comments.length);
+            if (this.comments.length === 0) this._renderTable();
+            Toast.show?.('Comment deleted', 'success');
+        };
+
+        if (window.Modal?.confirm) {
+            Modal.confirm('Delete this comment permanently?', doDelete);
+        } else if (confirm('Delete this comment permanently?')) {
+            doDelete();
+        }
     }
 
-    attachEventListeners() {
-        document.querySelectorAll('.delete-comment').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const commentId = btn.dataset.id;
-                if (confirm('Delete this comment permanently?')) {
-                    const result = await this.adminAPI.deleteComment(commentId);
-                    if (!result.error) {
-                        Toast.show('Comment deleted', 'success');
-                        await this.loadComments();
-                        await this.render();
-                        await this.afterRender();
-                    } else {
-                        Toast.show(result.error, 'error');
-                    }
-                }
-            });
-        });
-        
-        document.querySelectorAll('.dismiss-comment').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const commentId = btn.dataset.id;
-                // Just dismiss the report without deleting
-                Toast.show('Comment report dismissed', 'info');
-                btn.closest('tr')?.remove();
-            });
-        });
-        
-        document.querySelectorAll('.view-song').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const songId = btn.dataset.songId;
-                if (songId) {
-                    window.location.hash = `song/${songId}`;
-                }
-            });
-        });
+    
+    async _dismiss(comment, rowEl) {
+        if (this.processing.has(comment._id)) return;
+        this.processing.add(comment._id);
+        rowEl?.querySelectorAll('button').forEach(b => b.disabled = true);
+
+        const result = await this.adminAPI.dismissCommentReport(comment._id);
+        this.processing.delete(comment._id);
+
+        if (!result.success) {
+            Toast.show?.(result.error || 'Failed to dismiss', 'error');
+            rowEl?.querySelectorAll('button').forEach(b => b.disabled = false);
+            return;
+        }
+
+        this.comments = this.comments.filter(c => c._id !== comment._id);
+        if (rowEl?.parentNode) rowEl.parentNode.removeChild(rowEl);
+        const stat = document.getElementById('ac-stat-count');
+        if (stat) stat.textContent = String(this.comments.length);
+        if (this.comments.length === 0) this._renderTable();
+        Toast.show?.('Report dismissed', 'info');
     }
 
-    escapeHtml(text) {
-        if (!text) return '';
+    _viewSong(comment) {
+        const songId = comment.song?._id;
+        if (!songId) return;
+        if (window.bravoApp?.navigateTo) window.bravoApp.navigateTo(`song/${songId}`);
+        else window.location.hash = `song/${songId}`;
+    }
+
+    _escapeHtml(text) {
+        if (text == null) return '';
         const div = document.createElement('div');
-        div.textContent = text;
+        div.textContent = String(text);
         return div.innerHTML;
     }
 }

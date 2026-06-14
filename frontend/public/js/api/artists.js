@@ -1,169 +1,108 @@
-/**
- * Artists API Client
- */
+
 
 class ArtistsAPI {
     constructor() {
         this.apiUrl = window.API_BASE_URL;
+        this.basePath = (window.API_ENDPOINTS && window.API_ENDPOINTS.ARTISTS) || '/artists';
     }
 
-    getToken() {
-        return localStorage.getItem('bravo_token');
+    // Internal helpers
+    async _publicGet(path) {
+        try {
+            const response = await fetch(`${this.apiUrl}${this.basePath}${path}`);
+            const data = await response.json().catch(() => null);
+            if (!response.ok) {
+                return { success: false, error: data?.error || 'Request failed', status: response.status };
+            }
+            return { success: true, data, status: response.status };
+        } catch (err) {
+            return { success: false, error: 'Network error', status: 0 };
+        }
     }
+
+    async _authedRequest(path, options = {}) {
+        if (!window.authService) {
+            return { success: false, error: 'Auth service not available', status: 0 };
+        }
+        const { ok, data, status } = await window.authService.api._request(
+            `${this.basePath}${path}`,
+            options
+        );
+        if (ok) return { success: true, data, status };
+        return { success: false, error: data?.error || 'Request failed', status };
+    }
+
+    // Public endpoints
+
+    async getById(artistId) {
+        const result = await this._publicGet(`/${encodeURIComponent(artistId)}`);
+        // Some callers expect raw artist; keep both shapes accessible.
+        // The wrapper returns { success, data }; ArtistProfile checks both.
+        return result;
+    }
+
+    async getList(page = 1, limit = 20) {
+        const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+        const result = await this._publicGet(`?${params.toString()}`);
+        return result;
+    }
+
+    async getTrending() {
+        const result = await this._publicGet('/trending');
+        return result.success ? result.data : [];
+    }
+
+    // Authenticated endpoints (artist-owned)
 
     async getDashboard() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ARTISTS}/dashboard`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get dashboard error:', error);
-            return null;
-        }
+        return this._authedRequest('/dashboard', { method: 'GET' });
     }
 
     async getAnalytics() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ARTISTS}/analytics`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get analytics error:', error);
-            return null;
-        }
+        return this._authedRequest('/analytics', { method: 'GET' });
     }
 
     async getEarnings() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ARTISTS}/earnings`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get earnings error:', error);
-            return null;
-        }
+        return this._authedRequest('/earnings', { method: 'GET' });
     }
 
     async updateProfile(data) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ARTISTS}/profile`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Update profile error:', error);
-            return { error: 'Failed to update profile' };
-        }
+        return this._authedRequest('/profile', {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
     }
 
     async getMySongs() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ARTISTS}/songs`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get songs error:', error);
-            return [];
-        }
+        return this._authedRequest('/songs', { method: 'GET' });
     }
 
     async getMyAlbums() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ARTISTS}/albums`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get albums error:', error);
-            return [];
-        }
+        return this._authedRequest('/albums', { method: 'GET' });
     }
 
     async requestWithdrawal(amount, method, accountDetails) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ARTISTS}/withdraw`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ amount, method, accountDetails })
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Withdrawal error:', error);
-            return { error: 'Failed to request withdrawal' };
-        }
+        return this._authedRequest('/withdraw', {
+            method: 'POST',
+            body: JSON.stringify({ amount, method, accountDetails })
+        });
     }
 
     async getWithdrawals() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ARTISTS}/withdrawals`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get withdrawals error:', error);
-            return [];
-        }
+        return this._authedRequest('/withdrawals', { method: 'GET' });
     }
 
-    async purchaseCredits(packageId) {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ARTISTS}/purchase-credits`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ packageId })
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Purchase credits error:', error);
-            return { error: 'Failed to purchase credits' };
-        }
+    async purchaseCredits(packageId, paymentMethod = 'wallet', phoneNumber = null) {
+        const body = { packageId, paymentMethod };
+        if (phoneNumber) body.phoneNumber = phoneNumber;
+        return this._authedRequest('/purchase-credits', {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
     }
 
     async getSubscription() {
-        try {
-            const token = this.getToken();
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ARTISTS}/subscription`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Get subscription error:', error);
-            return null;
-        }
-    }
-
-    async getById(artistId) {
-        try {
-            const response = await fetch(`${this.apiUrl}${window.API_ENDPOINTS.ARTISTS}/${artistId}`);
-            return await response.json();
-        } catch (error) {
-            console.error('Get artist error:', error);
-            return null;
-        }
+        return this._authedRequest('/subscription', { method: 'GET' });
     }
 }
 

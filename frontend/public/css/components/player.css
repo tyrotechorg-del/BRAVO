@@ -1,4 +1,19 @@
-/* Audio Player Component - ULTRA COMPACT MOBILE PLAYER */
+/* ============================================================
+ * Audio Player — Compact Unified Design
+ *
+ * Same layout at all screen sizes. The historical "expand the
+ * player on desktop" pattern just took up real estate without
+ * adding controls — the unified compact form gives more room
+ * for content and consistent muscle memory across devices.
+ *
+ * Layout (left → right):
+ *   [cover + title]   [prev]  [play]  [next]   [progress bar]   [share/download]
+ *
+ * Volume UI is removed — users control loudness via the OS/device.
+ *
+ * Bottom padding on `body` clears the fixed player so content
+ * doesn't hide behind it.
+ * ============================================================ */
 
 #audio-player-container {
     position: fixed;
@@ -7,9 +22,20 @@
     right: 0;
     z-index: 1000;
     background: rgba(5, 5, 5, 0.98);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid var(--border-color);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border-color, #2a2a3e);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.5);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Clear space below the page content so the fixed player
+   doesn't cover the last row. */
+body {
+    padding-bottom: 76px;
+}
+@media (max-width: 480px) {
+    body { padding-bottom: 64px; }
 }
 
 .player-container {
@@ -17,19 +43,20 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    background: transparent;
     padding: 8px 16px;
-    transition: all 0.3s ease;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
-/* Song Info */
+/* ===== Song info (cover + title) ===== */
 .player-info {
     display: flex;
     align-items: center;
     gap: 10px;
-    min-width: 130px;
-    flex: 2;
+    min-width: 0;
+    flex: 1 1 0;
     cursor: pointer;
+    max-width: 250px;
 }
 
 .player-cover {
@@ -38,6 +65,7 @@
     border-radius: 6px;
     object-fit: cover;
     flex-shrink: 0;
+    background: #1a1a2e;
 }
 
 .player-details {
@@ -46,375 +74,198 @@
 }
 
 .player-title {
-    font-weight: 500;
-    font-size: 12px;
+    font-weight: 600;
+    font-size: 13px;
     margin-bottom: 2px;
-    color: var(--text-primary);
+    color: var(--text-primary, #fff);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .player-artist {
-    font-size: 10px;
-    color: var(--text-secondary);
+    font-size: 11px;
+    color: var(--text-secondary, #aaa);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Controls - All buttons visible on desktop */
+/* ===== Controls (prev / play / next) — visible at all sizes ===== */
 .player-controls {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     flex-shrink: 0;
+    order: 2;
 }
 
 .player-btn {
-    background: none;
-    border: none;
-    color: var(--text-primary);
-    font-size: 15px;
-    cursor: pointer;
-    padding: 5px;
-    transition: all 0.2s ease;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
+    background: transparent;
+    color: var(--text-primary, #fff);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    font-size: 14px;
+    transition: background 0.15s ease, transform 0.1s ease;
+    -webkit-tap-highlight-color: transparent;
 }
-
 .player-btn:hover {
-    color: var(--primary-color);
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+}
+.player-btn:active {
+    transform: scale(0.92);
 }
 
-.player-btn:active {
+/* Play/Pause button: centered between prev and next, bigger, gradient */
+.play-pause {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, #6c63ff, #9b59b6);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
+}
+.play-pause:hover {
+    background: linear-gradient(135deg, #7d75ff, #ad6cca);
+    transform: scale(1.05);
+}
+.play-pause:active {
     transform: scale(0.95);
 }
-
-.play-pause {
-    background: var(--primary-color);
-    width: 38px;
-    height: 38px;
-}
-
-.play-pause:hover {
-    background: var(--primary-dark);
-    transform: scale(1.02);
-}
-
 .play-pause i {
     font-size: 16px;
+    margin-left: 2px;
+}
+.play-pause.playing i {
+    margin-left: 0;
 }
 
-/* Progress Bar */
+/* Shuffle/repeat: secondary. Visible only on wide desktops. */
+#shuffle-btn, #repeat-btn {
+    display: none;
+}
+@media (min-width: 1024px) {
+    #shuffle-btn, #repeat-btn { display: inline-flex; }
+}
+
+/* ===== Progress bar ===== */
 .player-progress {
-    flex: 2;
     display: flex;
     align-items: center;
     gap: 8px;
-    min-width: 160px;
+    flex: 2 1 0;
+    min-width: 120px;
+    order: 3;
 }
 
-.current-time,
-.duration {
-    font-size: 11px;
-    color: var(--text-secondary);
-    min-width: 35px;
+.current-time, .duration {
+    font-size: 10px;
+    color: var(--text-secondary, #aaa);
+    min-width: 28px;
     text-align: center;
-    font-family: monospace;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
 }
 
 .progress-bar {
     flex: 1;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 3px;
-    cursor: pointer;
-    position: relative;
-}
-
-.progress-bar:hover {
     height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: height 0.15s ease;
 }
+.progress-bar:hover { height: 6px; }
 
 .progress-fill {
     height: 100%;
-    background: var(--primary-color);
-    border-radius: 3px;
-    width: 0%;
+    background: linear-gradient(90deg, #6c63ff, #9b59b6);
+    border-radius: 2px;
     transition: width 0.1s linear;
 }
 
-/* Action Buttons - Like, Share, Download (desktop) */
-.player-actions {
+/* ===== Right-side actions (like/share/download) ===== */
+.player-extra {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     flex-shrink: 0;
+    order: 4;
 }
 
-.player-actions .player-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 50%;
+/* ===== Volume UI removed entirely — defense in depth ===== */
+.player-volume,
+#volume-slider,
+#mute-btn,
+#volume-icon {
+    display: none !important;
 }
 
-.player-actions .player-btn:hover {
-    background: var(--primary-color);
-    color: white;
-}
-
-/* Active like button state */
-.player-actions .like-active {
-    color: var(--danger-color);
-}
-
-.player-actions .like-active i {
-    color: var(--danger-color);
-}
-
-/* ========== DESKTOP (min-width 769px) ========== */
-@media (min-width: 769px) {
-    .player-container {
-        padding: 10px 24px;
-    }
-    
-    .player-cover {
-        width: 48px;
-        height: 48px;
-    }
-    
-    .player-title {
-        font-size: 14px;
-    }
-    
-    .player-artist {
-        font-size: 12px;
-    }
-    
-    .player-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
-    }
-    
-    .play-pause {
-        width: 44px;
-        height: 44px;
-    }
-    
-    .play-pause i {
-        font-size: 18px;
-    }
-    
-    .player-actions .player-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
-    }
-}
-
-/* ========== MOBILE (max-width 768px) - ULTRA COMPACT ========== */
+/* ===== Mobile (≤ 768px) ===== */
 @media (max-width: 768px) {
-    /* Main container - reduce padding significantly */
-    #audio-player-container {
-        background: rgba(5, 5, 5, 0.95);
-    }
-    
     .player-container {
-        padding: 4px 10px;
+        padding: 6px 10px;
         gap: 8px;
-        flex-wrap: nowrap;
-        align-items: center;
     }
-    
-    /* Song info - smaller and inline */
-    .player-info {
-        min-width: 0;
-        flex: 1;
-        gap: 6px;
-        margin-bottom: 0;
-        width: auto;
-        order: 1;
-    }
-    
-    .player-cover {
-        width: 28px;
-        height: 28px;
-    }
-    
-    .player-title {
-        font-size: 10px;
-        max-width: 80px;
-    }
-    
-    .player-artist {
-        font-size: 8px;
-    }
-    
-    /* Hide artist on mobile to save space */
-    .player-artist {
-        display: none;
-    }
-    
-    /* Hide next, previous, shuffle, repeat buttons on mobile */
-    #prev-btn,
-    #next-btn,
-    #shuffle-btn,
-    #repeat-btn {
-        display: none !important;
-    }
-    
-    /* Controls - play button only, centered */
-    .player-controls {
-        order: 2;
-        flex-shrink: 0;
-        gap: 8px;
-        margin: 0;
-    }
-    
-    .play-pause {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .play-pause i {
-        font-size: 14px;
-    }
-    
-    /* Share and Download buttons on sides */
-    .player-actions {
-        order: 3;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-shrink: 0;
-    }
-    
-    .player-actions .player-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 13px;
-        background: rgba(255, 255, 255, 0.08);
-    }
-    
-    /* Hide like button on mobile */
-    #like-player-btn {
-        display: none;
-    }
-    
-    /* Progress bar - compact and inline */
-    .player-progress {
-        order: 4;
-        width: auto;
-        flex: 1;
-        min-width: 100px;
-        gap: 4px;
-        margin-top: 0;
-    }
-    
-    .current-time,
-    .duration {
-        font-size: 9px;
-        min-width: 25px;
-    }
-    
-    .progress-bar {
-        height: 2px;
-    }
+    .player-cover { width: 36px; height: 36px; }
+    .player-info { max-width: 110px; gap: 8px; }
+    .player-title { font-size: 12px; }
+    .player-artist { font-size: 10px; }
+
+    /* Prev/play/next stay visible on mobile — primary control surface */
+    .player-controls { gap: 4px; }
+    .player-btn { width: 32px; height: 32px; font-size: 13px; }
+    .play-pause { width: 40px; height: 40px; }
+    .play-pause i { font-size: 14px; }
+
+    .player-progress { gap: 6px; min-width: 80px; }
+    .current-time, .duration { font-size: 9px; min-width: 24px; }
+
+    /* Like is duplicated on song cards / detail; drop from player on mobile. */
+    #like-player-btn { display: none; }
+
+    .player-extra { gap: 2px; }
+    .player-extra .player-btn { width: 30px; height: 30px; font-size: 12px; }
 }
 
-/* ========== VERY SMALL MOBILE (max-width 480px) ========== */
+/* ===== Very small (≤ 480px) ===== */
 @media (max-width: 480px) {
-    .player-container {
-        padding: 3px 8px;
-        gap: 6px;
-    }
-    
-    .player-cover {
-        width: 24px;
-        height: 24px;
-    }
-    
-    .player-title {
-        font-size: 9px;
-        max-width: 70px;
-    }
-    
-    .play-pause {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .play-pause i {
-        font-size: 12px;
-    }
-    
-    .player-actions .player-btn {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-    }
-    
-    .player-progress {
-        min-width: 80px;
-        gap: 3px;
-    }
-    
-    .current-time,
-    .duration {
-        font-size: 8px;
-        min-width: 22px;
-    }
-    
-    .progress-bar {
-        height: 2px;
-    }
+    .player-container { padding: 5px 8px; gap: 6px; }
+    .player-info { max-width: 90px; }
+    .player-cover { width: 32px; height: 32px; }
+    .player-title { font-size: 11px; }
+    .player-artist { display: none; }
+    #share-player-btn { display: none; }
+    .progress-bar { height: 3px; }
+    .progress-bar:hover { height: 4px; }
 }
 
-/* Touch Optimizations */
+/* ===== Touch devices: bigger tap targets ===== */
 @media (hover: none) and (pointer: coarse) {
-    .player-btn {
-        min-width: 36px;
-        min-height: 36px;
-    }
-    
-    .progress-bar {
-        min-height: 4px;
-    }
+    .player-btn { min-width: 36px; min-height: 36px; }
+    .play-pause { min-width: 44px; min-height: 44px; }
 }
 
-/* Animation for playing */
-@keyframes playingPulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
+/* ===== Playing animation ===== */
 .play-pause.playing {
-    animation: playingPulse 1s ease-in-out infinite;
+    animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4); }
+    50%      { box-shadow: 0 4px 20px rgba(108, 99, 255, 0.7); }
 }
 
-/* Light mode support */
+/* ===== Light theme ===== */
 .light-theme #audio-player-container {
     background: rgba(255, 255, 255, 0.98);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    border-top-color: rgba(0, 0, 0, 0.1);
 }
-
-.light-theme .progress-bar {
-    background: rgba(0, 0, 0, 0.1);
-}
+.light-theme .progress-bar { background: rgba(0, 0, 0, 0.1); }
+.light-theme .player-btn:hover { background: rgba(0, 0, 0, 0.06); }

@@ -1,9 +1,6 @@
-/**
- * Form Validators
- */
+
 
 class Validators {
-    // Required field
     static required(value, fieldName = 'This field') {
         if (!value || (typeof value === 'string' && !value.trim())) {
             return `${fieldName} is required`;
@@ -11,7 +8,6 @@ class Validators {
         return null;
     }
 
-    // Min length
     static minLength(value, min, fieldName = 'This field') {
         if (value && value.length < min) {
             return `${fieldName} must be at least ${min} characters`;
@@ -19,7 +15,6 @@ class Validators {
         return null;
     }
 
-    // Max length
     static maxLength(value, max, fieldName = 'This field') {
         if (value && value.length > max) {
             return `${fieldName} must not exceed ${max} characters`;
@@ -27,7 +22,6 @@ class Validators {
         return null;
     }
 
-    // Email validation
     static email(value) {
         if (!value) return null;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -37,11 +31,10 @@ class Validators {
         return null;
     }
 
-    // Password validation
     static password(value) {
         if (!value) return null;
-        if (value.length < 6) {
-            return 'Password must be at least 6 characters';
+        if (value.length < 8) {
+            return 'Password must be at least 8 characters';
         }
         if (!/[A-Z]/.test(value)) {
             return 'Password must contain at least one uppercase letter';
@@ -49,10 +42,12 @@ class Validators {
         if (!/[0-9]/.test(value)) {
             return 'Password must contain at least one number';
         }
+        if (!/[^A-Za-z0-9]/.test(value)) {
+            return 'Password must contain at least one special character';
+        }
         return null;
     }
 
-    // Password match
     static confirmPassword(password, confirmPassword) {
         if (password !== confirmPassword) {
             return 'Passwords do not match';
@@ -60,141 +55,97 @@ class Validators {
         return null;
     }
 
-    // URL validation
-    static url(value) {
+    // Username: letters, numbers, dot, underscore, hyphen.
+    static username(value) {
         if (!value) return null;
-        const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-        if (!urlRegex.test(value)) {
-            return 'Please enter a valid URL';
+        if (value.length < 3 || value.length > 30) {
+            return 'Username must be 3-30 characters';
+        }
+        if (!/^[a-zA-Z0-9_.-]+$/.test(value)) {
+            return 'Username can only contain letters, numbers, dots, underscores, and hyphens';
         }
         return null;
     }
 
-    // Number validation
-    static number(value, min, max, fieldName = 'This field') {
-        const num = parseFloat(value);
-        if (isNaN(num)) {
+    // Zambian phone format: 09xxxxxxxx, +260xxxxxxxxx, 260xxxxxxxxx.
+    static phoneNumber(value) {
+        if (!value) return null;
+        const cleaned = String(value).replace(/[\s-]/g, '');
+        if (!/^(\+?260|0)?[97][567]\d{7}$/.test(cleaned)) {
+            return 'Please enter a valid Zambian phone number';
+        }
+        return null;
+    }
+
+    static url(value) {
+        if (!value) return null;
+        try {
+            new URL(value);
+            return null;
+        } catch {
+            return 'Please enter a valid URL';
+        }
+    }
+
+    static number(value, fieldName = 'This field') {
+        if (value === null || value === undefined || value === '') return null;
+        const num = Number(value);
+        if (!Number.isFinite(num)) {
             return `${fieldName} must be a number`;
         }
-        if (min !== undefined && num < min) {
+        return null;
+    }
+
+    static min(value, min, fieldName = 'This field') {
+        const num = Number(value);
+        if (Number.isFinite(num) && num < min) {
             return `${fieldName} must be at least ${min}`;
         }
-        if (max !== undefined && num > max) {
+        return null;
+    }
+
+    static max(value, max, fieldName = 'This field') {
+        const num = Number(value);
+        if (Number.isFinite(num) && num > max) {
             return `${fieldName} must not exceed ${max}`;
         }
         return null;
     }
 
-    // File size validation
-    static fileSize(file, maxMB, fieldName = 'This file') {
+    static fileSize(file, maxSizeMB) {
         if (!file) return null;
-        const maxBytes = maxMB * 1024 * 1024;
-        if (file.size > maxBytes) {
-            return `${fieldName} must be less than ${maxMB}MB`;
+        const sizeMB = file.size / (1024 * 1024);
+        if (sizeMB > maxSizeMB) {
+            return `File size must not exceed ${maxSizeMB}MB`;
         }
         return null;
     }
 
-    // File type validation
-    static fileType(file, allowedTypes, fieldName = 'This file') {
+    static fileType(file, allowedTypes) {
         if (!file) return null;
         if (!allowedTypes.includes(file.type)) {
-            return `${fieldName} must be of type: ${allowedTypes.join(', ')}`;
+            return `File type not allowed. Allowed: ${allowedTypes.join(', ')}`;
         }
         return null;
     }
 
-    // Phone number validation (Zambian)
-    static phoneZambia(value) {
-        if (!value) return null;
-        const phoneRegex = /^(09|09[5-7]|2609|2609[5-7])[0-9]{8}$/;
-        if (!phoneRegex.test(value.replace(/\D/g, ''))) {
-            return 'Please enter a valid Zambian phone number (e.g., 0977123456)';
-        }
-        return null;
-    }
-
-    // Username validation
-    static username(value) {
-        if (!value) return null;
-        if (value.length < 3) {
-            return 'Username must be at least 3 characters';
-        }
-        if (value.length > 30) {
-            return 'Username must not exceed 30 characters';
-        }
-        if (!/^[a-zA-Z0-9_]+$/.test(value)) {
-            return 'Username can only contain letters, numbers, and underscores';
-        }
-        return null;
-    }
-
-    // Validate form
-    static validateForm(formData, rules) {
+    /**
+     * Validate a whole form-values object against a schema.
+     * Returns { isValid, errors } where errors is { field: 'message' }.
+     */
+    static validateForm(values, schema) {
         const errors = {};
-        
-        for (const [field, validators] of Object.entries(rules)) {
-            const value = formData.get(field);
-            
-            for (const validator of validators) {
-                const error = validator(value, field);
-                if (error) {
-                    errors[field] = error;
-                    break;
+        for (const [field, rules] of Object.entries(schema)) {
+            const value = values[field];
+            for (const rule of rules) {
+                const err = rule(value, values);
+                if (err) {
+                    errors[field] = err;
+                    break; // first error per field
                 }
             }
         }
-        
-        return {
-            isValid: Object.keys(errors).length === 0,
-            errors
-        };
-    }
-
-    // Show form errors
-    static showFormErrors(form, errors) {
-        form.querySelectorAll('.field-error').forEach(el => el.remove());
-        form.querySelectorAll('.error-input').forEach(el => el.classList.remove('error-input'));
-        
-        for (const [field, message] of Object.entries(errors)) {
-            const input = form.querySelector(`[name="${field}"]`);
-            if (input) {
-                input.classList.add('error-input');
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'field-error';
-                errorDiv.textContent = message;
-                input.parentNode.insertBefore(errorDiv, input.nextSibling);
-            }
-        }
-    }
-
-    // Clear form errors
-    static clearFormErrors(form) {
-        form.querySelectorAll('.field-error').forEach(el => el.remove());
-        form.querySelectorAll('.error-input').forEach(el => el.classList.remove('error-input'));
-    }
-
-    // Validate entire form on submit
-    static attachValidation(form, rules, onSubmit) {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const formData = new FormData(form);
-            const result = this.validateForm(formData, rules);
-            
-            if (result.isValid) {
-                onSubmit(formData);
-            } else {
-                this.showFormErrors(form, result.errors);
-            }
-        });
-        
-        form.querySelectorAll('input, select, textarea').forEach(input => {
-            input.addEventListener('input', () => {
-                input.classList.remove('error-input');
-                const errorDiv = input.parentNode.querySelector('.field-error');
-                if (errorDiv) errorDiv.remove();
-            });
-        });
+        return { isValid: Object.keys(errors).length === 0, errors };
     }
 }
 

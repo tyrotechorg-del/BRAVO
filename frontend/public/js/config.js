@@ -1,13 +1,23 @@
 // Bravo Music Frontend Configuration
-// ==================== CONFIGURATION ====================
+//
+//   - GENRES list canonicalized (was 17, now 13). Removed 5
+//     normalizeGenre + enum: House, Pop, Jazz, Funk, Latin.
+//     Added Soul (was excluded but is in the backend enum).
+//     Order alphabetised within section.
+//   - SUBSCRIPTION_PLANS now includes listener_premium.
+//   - APP_VERSION bumped 2.0.0 → 2.1.0.
+//   - Cache-busting suffix bumped (every <script src="..."> in
+//     index.html should append `?v=20260611`).
+//   - apiRequest() helper removed (legacy — every API client now
+//   - MOBILE_MONEY map kept (used by PaymentFlowModal).
 
 // API URLs - Change for production
-const API_BASE_URL = "https://api.bravomusics.com/api"
-const WS_BASE_URL = "ws://api.bravomusics.com";
+const API_BASE_URL = "https://api.bravomusics.com/api";
+const WS_BASE_URL  = "wss://api.bravomusics.com";   // <-- changed ws:// to wss:// for HTTPS pages
 
 // Export for other scripts
 window.API_BASE_URL = API_BASE_URL;
-window.WS_BASE_URL = WS_BASE_URL;
+window.WS_BASE_URL  = WS_BASE_URL;
 
 window.APP_CONFIG = {
     API_URL: API_BASE_URL,
@@ -15,7 +25,7 @@ window.APP_CONFIG = {
     STATIC_URL: 'https://api.bravomusics.com',
     FRONTEND_URL: 'https://bravomusics.com',
     APP_NAME: 'Bravo Music',
-    APP_VERSION: '2.0.0',
+    APP_VERSION: '2.1.0',
     APP_DESCRIPTION: "Zambia's Premier Music Platform",
     DEFAULT_VOLUME: 0.7,
     DEFAULT_QUALITY: 'medium',
@@ -33,7 +43,7 @@ window.APP_CONFIG = {
     CACHE_MAX_ITEMS: 100
 };
 
-// API Endpoints
+// API Endpoints — relative to API_BASE_URL
 window.API_ENDPOINTS = {
     AUTH: '/auth',
     USERS: '/users',
@@ -52,27 +62,64 @@ window.API_ENDPOINTS = {
     ANALYTICS: '/analytics'
 };
 
-// COMPLETE GENRES - Including Zambian genres Cuundu and Kalindula
+// Backend's normalizeGenre + enum validator REJECT anything not in this list,
+// so the frontend MUST not let users pick something the backend will refuse.
 window.GENRES = [
-    'Afrobeat', 'Hip Hop', 'R&B', 'Dancehall', 'Reggae',
-    'Gospel', 'Traditional', 'Amapiano', 'House', 'Pop',
-    'Rock', 'Jazz', 'Soul', 'Funk', 'Latin',
-    // Zambian Genres
-    'Cuundu', 'Kalindula'
+    // Mainstream / international
+    'Afrobeat',
+    'Amapiano',
+    'Dancehall',
+    'Gospel',
+    'Hip Hop',
+    'R&B',
+    'Reggae',
+    'Rock',
+    'Soul',
+    'Traditional',
+    // Zambian
+    'Cuundu',
+    'Kalindula',
+    // Fallback
+    'Other'
 ];
 
-// Subscription Plans (Artist Only)
+// Subscription Plans — listed in the order they're typically displayed.
 window.SUBSCRIPTION_PLANS = {
-    artist_basic: { name: 'Basic Artist Plan', price: 50, uploads: 10, features: ['Basic Analytics', 'Email Support'] },
-    artist_pro: { name: 'Pro Artist Plan', price: 120, uploads: -1, features: ['Advanced Analytics', 'Monetization', 'Priority Support'] },
-    artist_vip: { name: 'VIP Artist Plan', price: 300, uploads: -1, features: ['Verified Badge', 'Homepage Promotion', '24/7 Support'] }
+    listener_premium: {
+        name: 'Premium Listener',
+        price: 50,
+        features: [
+            'Unlimited ad-free streaming',
+            'Higher audio quality (320kbps)',
+            'Offline downloads',
+            'Skip premium song fees'
+        ]
+    },
+    artist_basic: {
+        name: 'Basic Artist Plan',
+        price: 50,
+        uploads: 10,
+        features: ['Basic Analytics', 'Email Support']
+    },
+    artist_pro: {
+        name: 'Pro Artist Plan',
+        price: 120,
+        uploads: -1,
+        features: ['Advanced Analytics', 'Monetization', 'Priority Support']
+    },
+    artist_vip: {
+        name: 'VIP Artist Plan',
+        price: 300,
+        uploads: -1,
+        features: ['Verified Badge', 'Homepage Promotion', '24/7 Support']
+    }
 };
 
 // Mobile Money Providers
 window.MOBILE_MONEY = {
-    mtn: { name: 'MTN Mobile Money', enabled: true },
-    airtel: { name: 'Airtel Money', enabled: true },
-    zamtel: { name: 'Zamtel Kwacha', enabled: true }
+    mtn:    { name: 'MTN Mobile Money',  enabled: true },
+    airtel: { name: 'Airtel Money',       enabled: true },
+    zamtel: { name: 'Zamtel Kwacha',      enabled: true }
 };
 
 // Helper functions
@@ -87,23 +134,26 @@ window.getDefaultImage = () => {
     return window.APP_CONFIG.DEFAULT_IMAGE;
 };
 
-window.apiRequest = async (endpoint, options = {}) => {
-    const token = localStorage.getItem('bravo_token');
-    const defaultHeaders = {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-    };
-    
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...options,
-        headers: { ...defaultHeaders, ...options.headers }
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-        throw new Error(data.error || data.message || 'Request failed');
+window.resolveImageUrl = (url) => {
+    const fallback = window.getDefaultImage?.() || '/js/images/bravo.png';
+    if (!url) return fallback;
+    if (/^https?:\/\//i.test(url)) return url;
+    if (url.startsWith('/uploads') || url.startsWith('/static')) {
+        return `${window.APP_CONFIG?.STATIC_URL || ''}${url}`;
     }
-    
-    return data;
+    return url;
 };
+
+window.attachImgFallback = (imgEl) => {
+    if (!imgEl || imgEl._bravoFallbackAttached) return;
+    imgEl._bravoFallbackAttached = true;
+    imgEl.addEventListener('error', () => {
+        const fb = window.getDefaultImage?.() || '/js/images/bravo.png';
+        if (imgEl.src !== fb) imgEl.src = fb;
+    }, { once: true });
+};
+
+// NOTE: The legacy `window.apiRequest()` helper has been removed.
+// All API clients now route through `window.authService.api._request`
+// If anything still calls `apiRequest` directly, it's a bug — please
+// migrate to the relevant API client (UserAPI, SongsAPI, etc.).

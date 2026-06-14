@@ -3,40 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <meta name="theme-color" content="#1a1a1a">
+    <meta name="theme-color" content="#6c63ff">
     <meta name="description" content="Bravo Music - Zambia's Premier Music Streaming Platform">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#6c63ff">
     <title>Bravo Music - Zambia's Premier Music Platform</title>
+
+    <!-- ==================== Fonts + icons ==================== -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/main.css?v=20260606">
-    <link rel="stylesheet" href="css/touch-fixes.css?v=20260606">
-    <link rel="stylesheet" href="css/responsive.css?v=20260606">
-    <link rel="stylesheet" href="css/animations.css?v=20260606">
-    <link rel="stylesheet" href="css/themes/dark.css?v=20260606">
-    <link rel="stylesheet" href="css/themes/light.css?v=20260606">
-    <link rel="stylesheet" href="css/components/navbar.css?v=20260606">
-    <link rel="stylesheet" href="css/components/sidebar.css?v=20260606">
-    <link rel="stylesheet" href="css/components/player.css?v=20260606">
-    <link rel="stylesheet" href="css/components/cards.css?v=20260606">
-    <link rel="stylesheet" href="css/components/button.css?v=20260606">
-    <link rel="stylesheet" href="css/components/modals.css?v=20260606">
-    <link rel="stylesheet" href="css/components/forms.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/home.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/browse.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/dashboard.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/upload.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/settings.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/artist.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/album.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/downloads.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/search.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/admin.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/song.css?v=20260606">
-    <link rel="stylesheet" href="css/pages/verify.css?v=20260606">
+
+    <!-- ==================== Stylesheets ==================== -->
+    <!-- These are your existing CSS files. The hardening batches didn't
+         touch CSS, so keep your existing files. Bump the ?v=... suffix
+         on each deploy to bust caches. -->
+    <link rel="stylesheet" href="css/main.css?v=20260612">
+    <link rel="stylesheet" href="css/touch-fixes.css?v=20260612">
+    <link rel="stylesheet" href="css/responsive.css?v=20260612">
+    <link rel="stylesheet" href="css/animations.css?v=20260612">
+    <link rel="stylesheet" href="css/themes/dark.css?v=20260612">
+    <link rel="stylesheet" href="css/themes/light.css?v=20260612">
+    <link rel="stylesheet" href="css/components/navbar.css?v=20260612">
+    <link rel="stylesheet" href="css/components/sidebar.css?v=20260612">
+    <link rel="stylesheet" href="css/components/player.css?v=20260612">
+    <link rel="stylesheet" href="css/components/cards.css?v=20260612">
+    <link rel="stylesheet" href="css/components/button.css?v=20260612">
+    <link rel="stylesheet" href="css/components/modals.css?v=20260612">
+    <link rel="stylesheet" href="css/components/forms.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/home.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/browse.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/dashboard.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/upload.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/settings.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/artist.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/album.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/downloads.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/search.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/admin.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/song.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/verify.css?v=20260612">
+    <link rel="stylesheet" href="css/pages/account.css?v=20260612">
 </head>
 <body>
     <div id="app">
@@ -44,9 +51,281 @@
         <div class="app-container">
             <div id="sidebar-container"></div>
             <main id="main-content">
-                <div class="loading-container">
-                    <div class="spinner"></div>
-                    <p>Loading Bravo Music...</p>
+                <div class="bravo-loader" role="status" aria-label="Loading Bravo Music">
+                    <style>
+                        .bravo-loader {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                            min-height: 60vh;
+                            padding: 20px;
+                            text-align: center;
+                        }
+                        .bravo-loader svg { width: 240px; height: 260px; }
+
+                        /* Whole figure: subtle bob + sway */
+                        .bl-figure {
+                            transform-origin: 120px 240px;
+                            animation: bl-bob 1.6s ease-in-out infinite;
+                        }
+                        @keyframes bl-bob {
+                            0%, 100% { transform: translate(0,    0) rotate(0deg); }
+                            25%      { transform: translate(-2px,-3px) rotate(-1.5deg); }
+                            50%      { transform: translate(0,   -5px) rotate(0deg); }
+                            75%      { transform: translate(2px, -3px) rotate(1.5deg); }
+                        }
+
+                        /* Head tilts gently */
+                        .bl-head {
+                            transform-origin: 120px 110px;
+                            animation: bl-head 1.6s ease-in-out infinite;
+                        }
+                        @keyframes bl-head {
+                            0%, 100% { transform: rotate(0deg);    }
+                            25%      { transform: rotate(-2deg);   }
+                            75%      { transform: rotate(2deg);    }
+                        }
+
+                        /* Right arm: raised hand near headphone, moves slightly */
+                        .bl-arm-raised {
+                            transform-origin: 162px 145px;
+                            animation: bl-arm-r 1.6s ease-in-out infinite;
+                        }
+                        @keyframes bl-arm-r {
+                            0%, 100% { transform: rotate(0deg);  }
+                            50%      { transform: rotate(-4deg); }
+                        }
+
+                        /* Left arm: relaxed at side, tiny sway */
+                        .bl-arm-relaxed {
+                            transform-origin: 90px 150px;
+                            animation: bl-arm-l 1.6s ease-in-out infinite;
+                        }
+                        @keyframes bl-arm-l {
+                            0%, 100% { transform: rotate(0deg);  }
+                            50%      { transform: rotate(3deg);  }
+                        }
+
+                        /* Hips/weight-shift on legs (subtle) */
+                        .bl-legs {
+                            transform-origin: 120px 210px;
+                            animation: bl-hips 1.6s ease-in-out infinite;
+                        }
+                        @keyframes bl-hips {
+                            0%, 100% { transform: skewX(0deg); }
+                            25%      { transform: skewX(1deg);  }
+                            75%      { transform: skewX(-1deg); }
+                        }
+
+                        /* Sound waves: smooth pulse outward, staggered */
+                        .bl-wave {
+                            fill: none;
+                            stroke-linecap: round;
+                            opacity: 0;
+                            transform-box: fill-box;
+                            transform-origin: center;
+                            animation: bl-wave 1.8s ease-out infinite;
+                        }
+                        .bl-wave-1 { animation-delay: 0s;    }
+                        .bl-wave-2 { animation-delay: 0.45s; }
+                        .bl-wave-3 { animation-delay: 0.9s;  }
+                        @keyframes bl-wave {
+                            0%   { opacity: 0;    transform: scale(0.7); }
+                            30%  { opacity: 0.85; }
+                            100% { opacity: 0;    transform: scale(1.45); }
+                        }
+
+                        .bravo-loader .bl-text {
+                            margin-top: 24px;
+                            font-size: 15px;
+                            color: #a8a8c0;
+                            letter-spacing: 0.06em;
+                            font-weight: 500;
+                        }
+                        .bravo-loader .bl-text-dot {
+                            display: inline-block;
+                            width: 0;
+                            overflow: hidden;
+                            vertical-align: bottom;
+                            animation: bl-dots 1.4s steps(4, end) infinite;
+                        }
+                        @keyframes bl-dots {
+                            0%, 24%   { width: 0; }
+                            25%, 49%  { width: 0.4em; }
+                            50%, 74%  { width: 0.8em; }
+                            75%, 100% { width: 1.2em; }
+                        }
+
+                        @media (prefers-reduced-motion: reduce) {
+                            .bl-figure, .bl-head, .bl-arm-raised, .bl-arm-relaxed,
+                            .bl-legs, .bl-wave, .bl-text-dot {
+                                animation: none !important;
+                            }
+                            .bl-wave { opacity: 0.4; }
+                            .bl-text-dot { width: 1.2em; }
+                        }
+                    </style>
+
+                    <svg viewBox="0 0 240 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <defs>
+                            <!-- Brand purple gradient for the shirt -->
+                            <linearGradient id="bl-shirt" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%"  stop-color="#7d75ff"/>
+                                <stop offset="100%" stop-color="#5d4fd9"/>
+                            </linearGradient>
+                            <!-- Sound-wave gradient (purple→fade) -->
+                            <linearGradient id="bl-wave-grad" x1="0" y1="0" x2="1" y2="0">
+                                <stop offset="0%"  stop-color="#6c63ff" stop-opacity="0.9"/>
+                                <stop offset="100%" stop-color="#9b59b6" stop-opacity="0.4"/>
+                            </linearGradient>
+                            <!-- Headphone metallic accent -->
+                            <linearGradient id="bl-hp" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%"  stop-color="#3a3a52"/>
+                                <stop offset="100%" stop-color="#1f1f33"/>
+                            </linearGradient>
+                            <!-- Skin tone (warm neutral) -->
+                            <linearGradient id="bl-skin" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%"  stop-color="#f2c8a2"/>
+                                <stop offset="100%" stop-color="#e6b58c"/>
+                            </linearGradient>
+                            <!-- Pants/trousers -->
+                            <linearGradient id="bl-pants" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%"  stop-color="#2a3854"/>
+                                <stop offset="100%" stop-color="#1c2840"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Sound waves (left side) — concentric arcs around left headphone -->
+                        <g stroke="url(#bl-wave-grad)" stroke-width="3" fill="none">
+                            <path class="bl-wave bl-wave-1" d="M 60 115 Q 38 130 60 165"/>
+                            <path class="bl-wave bl-wave-2" d="M 48 105 Q 18 130 48 175"/>
+                            <path class="bl-wave bl-wave-3" d="M 36 95  Q -2 130 36 185"/>
+                        </g>
+                        <!-- Sound waves (right side) -->
+                        <g stroke="url(#bl-wave-grad)" stroke-width="3" fill="none">
+                            <path class="bl-wave bl-wave-1" d="M 180 115 Q 202 130 180 165"/>
+                            <path class="bl-wave bl-wave-2" d="M 192 105 Q 222 130 192 175"/>
+                            <path class="bl-wave bl-wave-3" d="M 204 95  Q 242 130 204 185"/>
+                        </g>
+
+                        <!-- The figure: human-proportioned, animated as one unit -->
+                        <g class="bl-figure">
+
+                            <!-- ====== LEGS (drawn first so body overlaps top) ====== -->
+                            <g class="bl-legs">
+                                <!-- Left leg -->
+                                <path d="M 102 198
+                                         C 100 220, 96 245, 95 270
+                                         L 110 270
+                                         C 111 245, 112 220, 114 198 Z"
+                                      fill="url(#bl-pants)"/>
+                                <!-- Right leg (slightly forward) -->
+                                <path d="M 126 198
+                                         C 128 220, 132 245, 134 270
+                                         L 149 270
+                                         C 148 245, 144 220, 142 198 Z"
+                                      fill="url(#bl-pants)"/>
+                                <!-- Shoes -->
+                                <ellipse cx="103" cy="270" rx="13" ry="5" fill="#0d0d18"/>
+                                <ellipse cx="141" cy="270" rx="13" ry="5" fill="#0d0d18"/>
+                            </g>
+
+                            <!-- ====== TORSO / SHIRT ====== -->
+                            <!-- Shirt: wider at shoulders, tapers slightly at waist -->
+                            <path d="M 82 150
+                                     C 80 145, 90 138, 100 138
+                                     L 140 138
+                                     C 150 138, 160 145, 158 150
+                                     L 156 200
+                                     C 156 205, 150 208, 145 208
+                                     L 95 208
+                                     C 90 208, 84 205, 84 200 Z"
+                                  fill="url(#bl-shirt)"/>
+                            <!-- Subtle shirt collar -->
+                            <path d="M 108 138 Q 120 144 132 138"
+                                  fill="none" stroke="#4a3fa8" stroke-width="1.5" stroke-linecap="round"/>
+
+                            <!-- ====== ARMS ====== -->
+                            <!-- Left arm (relaxed at side) -->
+                            <g class="bl-arm-relaxed">
+                                <path d="M 84 150
+                                         C 76 165, 72 185, 76 200
+                                         C 78 205, 84 205, 86 200
+                                         C 88 185, 90 165, 95 152 Z"
+                                      fill="url(#bl-shirt)"/>
+                                <!-- Hand -->
+                                <circle cx="81" cy="203" r="7" fill="url(#bl-skin)"/>
+                            </g>
+
+                            <!-- Right arm (raised, hand near headphone) -->
+                            <g class="bl-arm-raised">
+                                <path d="M 156 150
+                                         C 168 145, 174 132, 168 122
+                                         C 165 118, 158 119, 156 124
+                                         C 152 134, 148 145, 145 152 Z"
+                                      fill="url(#bl-shirt)"/>
+                                <!-- Hand on headphone -->
+                                <circle cx="167" cy="120" r="7" fill="url(#bl-skin)"/>
+                            </g>
+
+                            <!-- ====== NECK ====== -->
+                            <path d="M 110 138 L 110 132 Q 120 134 130 132 L 130 138 Z"
+                                  fill="url(#bl-skin)"/>
+
+                            <!-- ====== HEAD ====== -->
+                            <g class="bl-head">
+                                <!-- Face shape: ellipse, slightly taller than wide -->
+                                <ellipse cx="120" cy="100" rx="36" ry="38" fill="url(#bl-skin)"/>
+
+                                <!-- Hair: a small curve on top -->
+                                <path d="M 88 88
+                                         C 90 70, 110 60, 120 62
+                                         C 132 60, 148 68, 152 88
+                                         C 144 80, 136 78, 128 80
+                                         C 120 80, 112 78, 104 82
+                                         C 98 84, 92 86, 88 88 Z"
+                                      fill="#2a2438"/>
+
+                                <!-- Closed dreamy eyes (curved arcs) -->
+                                <path d="M 102 102 Q 108 98 114 102"
+                                      fill="none" stroke="#1a1a2e" stroke-width="2.2" stroke-linecap="round"/>
+                                <path d="M 126 102 Q 132 98 138 102"
+                                      fill="none" stroke="#1a1a2e" stroke-width="2.2" stroke-linecap="round"/>
+                                <!-- Eyelashes (tiny accents) -->
+                                <line x1="102" y1="101" x2="100" y2="99" stroke="#1a1a2e" stroke-width="1.2" stroke-linecap="round"/>
+                                <line x1="138" y1="101" x2="140" y2="99" stroke="#1a1a2e" stroke-width="1.2" stroke-linecap="round"/>
+
+                                <!-- Smile -->
+                                <path d="M 110 116 Q 120 124 130 116"
+                                      fill="none" stroke="#1a1a2e" stroke-width="2.2" stroke-linecap="round"/>
+                                <!-- Subtle blush -->
+                                <ellipse cx="98" cy="112" rx="4" ry="2.5" fill="#e88a8a" opacity="0.4"/>
+                                <ellipse cx="142" cy="112" rx="4" ry="2.5" fill="#e88a8a" opacity="0.4"/>
+
+                                <!-- ====== HEADPHONES ====== -->
+                                <!-- Padded band: thick arc with inner padding line -->
+                                <path d="M 84 96
+                                         C 86 65, 154 65, 156 96"
+                                      fill="none" stroke="url(#bl-hp)" stroke-width="7" stroke-linecap="round"/>
+                                <path d="M 88 92
+                                         C 92 72, 148 72, 152 92"
+                                      fill="none" stroke="#6c63ff" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+
+                                <!-- Left ear can: outer cushion + inner speaker housing -->
+                                <ellipse cx="83" cy="105" rx="11" ry="13" fill="url(#bl-hp)"/>
+                                <ellipse cx="83" cy="105" rx="7" ry="9" fill="#1a1a2e"/>
+                                <circle cx="83" cy="105" r="2.5" fill="#6c63ff"/>
+
+                                <!-- Right ear can -->
+                                <ellipse cx="157" cy="105" rx="11" ry="13" fill="url(#bl-hp)"/>
+                                <ellipse cx="157" cy="105" rx="7" ry="9" fill="#1a1a2e"/>
+                                <circle cx="157" cy="105" r="2.5" fill="#6c63ff"/>
+                            </g>
+                        </g>
+                    </svg>
+
+                    <p class="bl-text">Tuning in<span class="bl-text-dot">...</span></p>
                 </div>
             </main>
         </div>
@@ -54,78 +333,135 @@
     </div>
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- Config -->
-    <script src="js/config.js?v=20260606"></script>
-    
-    <!-- Utils -->
-    <script src="js/utils/helpers.js?v=20260606"></script>
-    <script src="js/utils/formatters.js?v=20260606"></script>
-    <script src="js/utils/validators.js?v=20260606"></script>
-    <script src="js/utils/storage.js?v=20260606"></script>
-    
-    <!-- API Clients -->
-    <script src="js/api/auth.js?v=20260606"></script>
-    <script src="js/api/songs.js?v=20260606"></script>
-    <script src="js/api/artists.js?v=20260606"></script>
-    <script src="js/api/admin.js?v=20260606"></script>
-    <script src="js/api/upload.js?v=20260606"></script>
-    <script src="js/api/user.js?v=20260606"></script>
-    <script src="js/api/albums.js?v=20260606"></script>
-    <script src="js/api/playlists.js?v=20260606"></script>
-    <script src="js/api/payments.js?v=20260606"></script>
-    <script src="js/api/subscriptions.js?v=20260606"></script>
-    
-    <!-- Components -->
-    <script src="js/components/Toast.js?v=20260606"></script>
-    <script src="js/components/Modal.js?v=20260606"></script>
-    <script src="js/components/AudioPlayer.js?v=20260606"></script>
-    <script src="js/components/Navbar.js?v=20260606"></script>
-    <script src="js/components/Sidebar.js?v=20260606"></script>
-    <script src="js/components/SongCard.js?v=20260606"></script>
-    <script src="js/components/PlaylistCard.js?v=20260606"></script>
-    <script src="js/components/CommentSection.js?v=20260606"></script>
-    <script src="js/components/Waveform.js?v=20260606"></script>
-    <script src="js/components/UploadForm.js?v=20260606"></script>
-    <script src="js/components/Notification.js?v=20260606"></script>
-    <script src="js/components/DownloadManager.js?v=20260606"></script>
-    <script src="js/components/ShareModal.js?v=20260606"></script>
-    
-    <!-- Pages -->
-    <script src="js/pages/Home.js?v=20260606"></script>
-    <script src="js/pages/Browse.js?v=20260606"></script>
-    <script src="js/pages/Login.js?v=20260606"></script>
-    <script src="js/pages/Register.js?v=20260606"></script>
-    <script src="js/pages/UploadPage.js?v=20260606"></script>
-    <script src="js/pages/ArtistDashboard.js?v=20260606"></script>
-    <script src="js/pages/ListenerDashboard.js?v=20260606"></script>
-    <script src="js/pages/AdminDashboard.js?v=20260606"></script>
-    <script src="js/pages/AdminSongsPage.js?v=20260606"></script>
-    <script src="js/pages/AdminUsersPage.js?v=20260606"></script>
-    <script src="js/pages/Settings.js?v=20260606"></script>
-    <script src="js/pages/Earnings.js?v=20260606"></script>
-    <script src="js/pages/Downloads.js?v=20260606"></script>
-    <script src="js/pages/ArtistProfile.js?v=20260606"></script>
-    <script src="js/pages/AlbumView.js?v=20260606"></script>
-    <script src="js/pages/SongDetailPage.js?v=20260606"></script>
-    <script src="js/pages/TrendingPage.js?v=20260606"></script>
-    <script src="js/pages/LikedPage.js?v=20260606"></script>
-    <script src="js/pages/RecentPage.js?v=20260606"></script>
-    <script src="js/pages/VerifyEmail.js?v=20260606"></script>
-    <script src="js/pages/ForgotPasswordPage.js?v=20260606"></script>
-    <script src="js/pages/ResetPasswordPage.js?v=20260606"></script>
-    <script src="js/pages/AlbumsPage.js?v=20260606"></script>
-    <script src="js/pages/AdminAllSongsPage.js?v=20260606"></script>
-    <script src="js/pages/AdminArtistsPage.js?v=20260606"></script>
-    
-    <!-- Services -->
-    <script src="js/services/authService.js?v=20260606"></script>
-    <script src="js/services/playerService.js?v=20260606"></script>
-    <script src="js/services/cacheService.js?v=20260606"></script>
-    <script src="js/services/notificationService.js?v=20260606"></script>
-    <script src="js/services/analyticsService.js?v=20260606"></script>
-    
-    <!-- Main App -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="js/app.js?v=20260606"></script>
+    <!-- ============================================================
+         SCRIPT LOAD ORDER - CRITICAL
+         ============================================================
+         Order matters because later scripts reference window.X classes
+         defined by earlier scripts.
+
+         Each layer depends only on layers above it:
+           1. Config (no deps)
+           2. Utils (no deps)
+           3. Auth API + AuthService (core auth — every API client uses this)
+           4. Other API clients (depend on AuthService)
+           5. Base UI components (Toast, Modal — no other component deps)
+           6. AudioPlayer (depends on Waveform)
+           7. Other components (depend on Toast, Modal)
+           8. Pages (depend on everything above)
+           9. app.js (the orchestrator — LAST)
+
+         If you see "X is not defined" in the console, that means X is
+         being used before it loaded — fix the order.
+         ============================================================ -->
+
+    <!-- ==================== 1. Config ==================== -->
+    <script src="js/config.js?v=20260612"></script>
+
+    <!-- ==================== 2. Utils ==================== -->
+    <script src="js/utils/validators.js?v=20260612"></script>
+
+    <!-- ==================== 3. Auth (must come before other API clients) ==================== -->
+    <script src="js/api/auth.js?v=20260612"></script>
+    <script src="js/services/authService.js?v=20260612"></script>
+
+    <!-- ==================== 4. Other API clients ==================== -->
+    <script src="js/api/user.js?v=20260612"></script>
+    <script src="js/api/songs.js?v=20260612"></script>
+    <script src="js/api/artists.js?v=20260612"></script>
+    <script src="js/api/albums.js?v=20260612"></script>
+    <script src="js/api/playlists.js?v=20260612"></script>
+    <script src="js/api/search.js?v=20260612"></script>
+    <script src="js/api/upload.js?v=20260612"></script>
+    <script src="js/api/admin.js?v=20260612"></script>
+    <script src="js/api/wallet.js?v=20260612"></script>
+    <script src="js/api/payments.js?v=20260612"></script>
+    <script src="js/api/subscriptions.js?v=20260612"></script>
+    <script src="js/api/notifications.js?v=20260612"></script>
+
+    <!-- ==================== 5. Base UI components ==================== -->
+    <script src="js/components/Toast.js?v=20260612"></script>
+    <script src="js/components/Modal.js?v=20260612"></script>
+    <script src="js/components/Waveform.js?v=20260612"></script>
+
+    <!-- ==================== 6. AudioPlayer (uses Waveform) ==================== -->
+    <script src="js/components/AudioPlayer.js?v=20260612"></script>
+
+    <!-- ==================== 7. Other components ==================== -->
+    <script src="js/components/SongCard.js?v=20260612"></script>
+    <script src="js/components/PlaylistCard.js?v=20260612"></script>
+    <script src="js/components/CommentSection.js?v=20260612"></script>
+    <script src="js/components/UploadForm.js?v=20260612"></script>
+    <script src="js/components/PaymentFlowModal.js?v=20260612"></script>
+    <script src="js/components/PurchaseFlow.js?v=20260612"></script>
+    <script src="js/components/Navbar.js?v=20260612"></script>
+    <script src="js/components/Sidebar.js?v=20260612"></script>
+
+    <!-- ==================== OPTIONAL components ==================== -->
+    <!-- These weren't part of the hardening audit. If you have them in
+         your existing repo, uncomment to keep their functionality. The
+         hardened code defensively checks `window.X` before using them,
+         so leaving them out won't crash anything — features just won't
+         activate (e.g., no real-time updates without SocketService,
+         no share modal without ShareModal). -->
+    <!-- <script src="js/services/socketService.js?v=20260612"></script> -->
+    <!-- <script src="js/components/ShareModal.js?v=20260612"></script> -->
+    <!-- <script src="js/components/DownloadManager.js?v=20260612"></script> -->
+    <!-- <script src="js/components/Notification.js?v=20260612"></script> -->
+
+    <!-- ==================== 8. Pages ==================== -->
+    <!-- Auth -->
+    <script src="js/pages/Login.js?v=20260612"></script>
+    <script src="js/pages/Register.js?v=20260612"></script>
+    <script src="js/pages/ForgotPasswordPage.js?v=20260612"></script>
+    <script src="js/pages/ResetPasswordPage.js?v=20260612"></script>
+    <script src="js/pages/VerifyEmail.js?v=20260612"></script>
+
+    <!-- Discovery -->
+    <script src="js/pages/Home.js?v=20260612"></script>
+    <script src="js/pages/Browse.js?v=20260612"></script>
+    <script src="js/pages/TrendingPage.js?v=20260612"></script>
+    <script src="js/pages/SearchPage.js?v=20260612"></script>
+    <script src="js/pages/AlbumsPage.js?v=20260612"></script>
+    <script src="js/pages/AlbumView.js?v=20260612"></script>
+    <script src="js/pages/ArtistProfile.js?v=20260612"></script>
+    <script src="js/pages/SongDetailPage.js?v=20260612"></script>
+
+    <!-- Upload -->
+    <script src="js/pages/UploadPage.js?v=20260612"></script>
+
+    <!-- User dashboards -->
+    <script src="js/pages/ListenerDashboard.js?v=20260612"></script>
+    <script src="js/pages/ArtistDashboard.js?v=20260612"></script>
+    <script src="js/pages/ArtistAlbumsPage.js?v=20260612"></script>
+    <script src="js/pages/Settings.js?v=20260612"></script>
+    <script src="js/pages/Earnings.js?v=20260612"></script>
+    <script src="js/pages/Downloads.js?v=20260612"></script>
+    <script src="js/pages/LikedPage.js?v=20260612"></script>
+    <script src="js/pages/RecentPage.js?v=20260612"></script>
+    <script src="js/pages/PlaylistsPage.js?v=20260612"></script>
+    <script src="js/pages/NotificationsPage.js?v=20260612"></script>
+    <script src="js/pages/VideosPage.js?v=20260612"></script>
+    <script src="js/pages/UpgradePage.js?v=20260612"></script>
+
+    <!-- Wallet & subscriptions -->
+    <script src="js/pages/WalletPage.js?v=20260612"></script>
+    <script src="js/pages/SubscriptionPage.js?v=20260612"></script>
+    <script src="js/pages/PaymentHistoryPage.js?v=20260612"></script>
+
+    <!-- Admin -->
+    <script src="js/pages/AdminDashboard.js?v=20260612"></script>
+    <script src="js/pages/AdminUsersPage.js?v=20260612"></script>
+    <script src="js/pages/AdminArtistsPage.js?v=20260612"></script>
+    <script src="js/pages/AdminAllSongsPage.js?v=20260612"></script>
+    <script src="js/pages/AdminSongsPage.js?v=20260612"></script>
+    <script src="js/pages/AdminAlbumsPage.js?v=20260612"></script>
+    <script src="js/pages/AdminVideosPage.js?v=20260612"></script>
+    <script src="js/pages/AdminWithdrawalsPage.js?v=20260612"></script>
+    <script src="js/pages/AdminReportsPage.js?v=20260612"></script>
+    <script src="js/pages/AdminCommentsPage.js?v=20260612"></script>
+    <script src="js/pages/AdminSettingsPage.js?v=20260612"></script>
+
+    <!-- ==================== 9. App boot (LAST) ==================== -->
+    <script src="js/app.js?v=20260612"></script>
 </body>
 </html>

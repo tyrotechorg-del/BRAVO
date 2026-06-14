@@ -1,244 +1,109 @@
-/**
- * Authentication Service - With Email Verification (Artists Only)
- */
+
 
 class AuthService {
     constructor() {
-        this.storage = new StorageManager();
-        this.apiUrl = window.API_BASE_URL;
+        // If the global instance already exists, return it. This means
+        // `new AuthService()` always yields the same instance regardless
+        // of how many callers do it — which is what the page code in
+        // the wild does. The global is also exposed as `window.authService`.
+        if (window.__authServiceInstance) {
+            return window.__authServiceInstance;
+        }
+
+        this.api = new AuthAPI();
+        // For event listeners that want to know when the user state
+        // changes (Navbar/Sidebar render).
+        this._listeners = new Set();
+
+        window.__authServiceInstance = this;
+    }
+
+    // Subscribe to auth state changes
+    onChange(listener) {
+        this._listeners.add(listener);
+        return () => this._listeners.delete(listener);
+    }
+
+    _emit() {
+        const user = this.api.getUser();
+        for (const fn of this._listeners) {
+            try { fn(user); } catch (e) { console.error('auth listener error:', e); }
+        }
+    }
+
+    // State accessors
+    getUser() { return this.api.getUser(); }
+    getToken() { return this.api.getToken(); }
+    isAuthenticated() { return this.api.isAuthenticated(); }
+    isTokenExpired() { return this.api.isTokenExpired(); }
+    isAdmin() { return this.api.isAdmin(); }
+    isArtist() { return this.api.isArtist(); }
+    isListener() {
+        const user = this.api.getUser();
+        return Boolean(user && user.role === 'listener');
+    }
+    isEmailVerified() { return this.api.isEmailVerified(); }
+
+    hasRole(role) {
+        const user = this.api.getUser();
+        return Boolean(user && user.role === role);
+    }
+
+    // Auth flow methods
+    // Each one delegates to AuthAPI for HTTP work, then handles the
+    // "state changed" notification + analytics ping.
+
+    async login(credentials) {
+        const result = await this.api.login(credentials);
+        if (result.success) {
+            window.analyticsService?.trackLogin?.('email');
+            this._emit();
+        }
+        return result;
     }
 
     async register(userData) {
-        try {
-            const response = await fetch(`${this.apiUrl}/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                if (data.token) this.storage.setToken(data.token);
-                if (data.user) this.storage.setUser(data.user);
-                window.analyticsService?.trackRegister(userData.role);
-                return { success: true, user: data.user, message: data.message };
-            }
-            
-            return { success: false, error: data.error };
-        } catch (error) {
-            console.error('Registration error:', error);
-            return { success: false, error: 'Network error' };
+        const result = await this.api.register(userData);
+        if (result.success) {
+            window.analyticsService?.trackRegister?.(userData.role);
+            this._emit();
         }
-    }
-
-    async login(credentials) {
-        try {
-            const response = await fetch(`${this.apiUrl}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(credentials)
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                this.storage.setToken(data.token);
-                this.storage.setRefreshToken(data.refreshToken);
-                this.storage.setUser(data.user);
-                window.analyticsService?.trackLogin('email');
-                return { success: true, user: data.user };
-            }
-            
-            return { success: false, error: data.error };
-        } catch (error) {
-            console.error('Login error:', error);
-            return { success: false, error: 'Network error' };
-        }
-    }
-
-    async verifyEmail(token) {
-        try {
-            const response = await fetch(`${this.apiUrl}/auth/verify-email/${token}`);
-            const data = await response.json();
-            
-            if (response.ok) {
-                return { success: true, message: data.message };
-            }
-            return { success: false, error: data.error };
-        } catch (error) {
-            return { success: false, error: 'Verification failed' };
-        }
-    }
-
-    async resendVerification(email) {
-        try {
-            const response = await fetch(`${this.apiUrl}/auth/resend-verification`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-            const data = await response.json();
-            return { success: response.ok, message: data.message, error: data.error };
-        } catch (error) {
-            return { success: false, error: 'Failed to resend verification' };
-        }
-    }
-
-    async forgotPassword(email) {
-        try {
-            const response = await fetch(`${this.apiUrl}/auth/forgot-password`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-            const data = await response.json();
-            return { success: response.ok, message: data.message, error: data.error };
-        } catch (error) {
-            return { success: false, error: 'Failed to send reset email' };
-        }
-    }
-
-    async resetPassword(token, password) {
-        try {
-            const response = await fetch(`${this.apiUrl}/auth/reset-password/${token}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
-            });
-            const data = await response.json();
-            return { success: response.ok, message: data.message, error: data.error };
-        } catch (error) {
-            return { success: false, error: 'Password reset failed' };
-        }
+        return result;
     }
 
     async logout() {
-        try {
-            const token = this.storage.getToken();
-            await fetch(`${this.apiUrl}/auth/logout`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-        } catch (error) {
-            console.error('Logout error:', error);
+        const result = await this.api.logout();
+        this._emit();
+        return result;
+    }
+
+    // The next four are pure passthroughs but kept on the service so
+    // callers don't have to know which layer owns which endpoint.
+    async forgotPassword(email) { return this.api.forgotPassword(email); }
+    async resetPassword(token, password) { return this.api.resetPassword(token, password); }
+    async verifyEmail(token) {
+        const result = await this.api.verifyEmail(token);
+        if (result.success) {
+            // After successful verification, refresh user state so the
+            // navbar/sidebar reflect the new isVerified flag.
+            const me = await this.api.getMe();
+            if (me.success) this._emit();
         }
-        
-        this.storage.clear();
-        return { success: true };
+        return result;
+    }
+    async resendVerification(email) { return this.api.resendVerification(email); }
+
+    async updatePassword(currentPassword, newPassword) {
+        return this.api.updatePassword(currentPassword, newPassword);
     }
 
-    async refreshToken() {
-        const refreshToken = this.storage.getRefreshToken();
-        if (!refreshToken) return null;
-        
-        try {
-            const response = await fetch(`${this.apiUrl}/auth/refresh-token`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refreshToken })
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                this.storage.setToken(data.token);
-                this.storage.setRefreshToken(data.refreshToken);
-                return data.token;
-            }
-        } catch (error) {
-            console.error('Refresh token error:', error);
-        }
-        return null;
-    }
-
-    // Add these methods to the AuthService class
-
-async forgotPassword(email) {
-    try {
-        const response = await fetch(`${this.apiUrl}/auth/forgot-password`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-        const data = await response.json();
-        
-        if (response.ok) {
-            return { success: true, message: data.message };
-        }
-        return { success: false, error: data.error };
-    } catch (error) {
-        console.error('Forgot password error:', error);
-        return { success: false, error: 'Network error' };
-    }
-}
-
-async resetPassword(token, password) {
-    try {
-        const response = await fetch(`${this.apiUrl}/auth/reset-password/${token}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password })
-        });
-        const data = await response.json();
-        
-        if (response.ok) {
-            return { success: true, message: data.message };
-        }
-        return { success: false, error: data.error };
-    } catch (error) {
-        console.error('Reset password error:', error);
-        return { success: false, error: 'Network error' };
-    }
-}
-
-    async getCurrentUser() {
-        const token = this.storage.getToken();
-        if (!token) return null;
-        
-        try {
-            const response = await fetch(`${this.apiUrl}/users/profile`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const user = data.user || data;
-                this.storage.setUser(user);
-                return user;
-            }
-        } catch (error) {
-            console.error('Get current user error:', error);
-        }
-        
-        return null;
-    }
-
-    isAuthenticated() {
-        return !!this.storage.getToken();
-    }
-
-    getUser() {
-        return this.storage.getUser();
-    }
-
-    hasRole(role) {
-        const user = this.getUser();
-        return user && user.role === role;
-    }
-
-    isArtist() {
-        return this.hasRole('artist');
-    }
-
-    isAdmin() {
-        return this.hasRole('admin');
-    }
-
-    isEmailVerified() {
-        const user = this.getUser();
-        return user && user.isVerified === true;
+    async refreshUser() {
+        const result = await this.api.getMe();
+        if (result.success) this._emit();
+        return result;
     }
 }
 
 window.AuthService = AuthService;
+// Eagerly create the singleton so `window.authService` is always available.
+window.authService = new AuthService();

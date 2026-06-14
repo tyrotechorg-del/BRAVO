@@ -35,19 +35,19 @@
     gap: 20px;
 }
 
-.stats-info span {
+.download-count, .storage-used {
     font-size: 14px;
     color: var(--text-secondary);
 }
 
-.stats-info i {
+.download-count i, .storage-used i {
     margin-right: 8px;
     color: var(--primary-color);
 }
 
 .downloads-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
 }
 
@@ -116,6 +116,24 @@
     color: white;
 }
 
+/* Download Badge on Song Card */
+.downloaded-badge {
+    background: var(--success-color);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    margin-left: 8px;
+}
+
+.download-btn.downloaded {
+    background: var(--success-color);
+}
+
+.download-btn.downloaded i {
+    color: white;
+}
+
 /* Empty State */
 .empty-state {
     text-align: center;
@@ -139,6 +157,7 @@
     margin-bottom: 20px;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
     .downloads-grid {
         grid-template-columns: 1fr;

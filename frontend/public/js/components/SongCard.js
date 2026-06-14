@@ -1,196 +1,379 @@
-/**
- * Song Card Component - WITH DOWNLOAD AND SHARE BUTTONS FIXED
- */
+
 
 class SongCard {
-    constructor(song, container, onPlay) {
+    constructor(song, container, options = {}) {
         this.song = song;
         this.container = container;
-        this.onPlay = onPlay;
-        this.staticUrl = window.APP_CONFIG.STATIC_URL;
+        this.rank = options.rank || null;
+        this.playlist = options.playlist || null;
+        this.hideDownload = options.hideDownload === true;
+        this.onPlay = options.onPlay || ((song) => {
+            if (window.bravoApp?.audioPlayer) {
+                window.bravoApp.audioPlayer.loadSong(song, this.playlist);
+            }
+        });
+        this.staticUrl = window.APP_CONFIG?.STATIC_URL || window.location.origin;
+        this.songsAPI = new SongsAPI();
         this.render();
     }
 
-    getFullUrl(url) {
-        if (!url) return window.getDefaultImage();
+    // Helpers
+    _escapeHtml(text) {
+        if (text == null) return '';
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+    }
+
+    _getFullUrl(url) {
+        if (!url) return window.getDefaultImage?.() || '/js/images/bravo.png';
         if (url.startsWith('http')) return url;
-        if (url.startsWith('/uploads')) return `${this.staticUrl}${url}`;
+        if (url.startsWith('/uploads') || url.startsWith('/static')) {
+            return `${this.staticUrl}${url}`;
+        }
         return url;
     }
 
+    _formatNumber(num) {
+        if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
+        if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+        return String(num || 0);
+    }
+
+    _extOf(url) {
+        const m = /\.([a-zA-Z0-9]{2,5})(?:\?|$)/.exec(url || '');
+        return m ? m[1].toLowerCase() : 'mp3';
+    }
+
+    _getLikedSongs() {
+        try {
+            return JSON.parse(localStorage.getItem('bravo_liked_songs') || '[]');
+        } catch {
+            return [];
+        }
+    }
+
+    _isDownloaded() {
+        try {
+            const downloads = JSON.parse(localStorage.getItem('bravo_downloaded_songs') || '[]');
+            return downloads.some(d => d._id === this.song._id);
+        } catch {
+            return false;
+        }
+    }
+
+    // Render
     render() {
-        const likedSongs = JSON.parse(localStorage.getItem('bravo_liked_songs') || '[]');
-        const isLiked = likedSongs.includes(this.song._id);
-        const isDownloaded = this.isSongDownloaded();
-        
-        const coverUrl = this.getFullUrl(this.song.coverArt) || window.getDefaultImage();
-        const audioUrl = this.getFullUrl(this.song.audioUrl);
-        
+        const liked = this._getLikedSongs().includes(this.song._id);
+        const downloaded = this._isDownloaded();
+        const coverUrl = this._getFullUrl(this.song.coverArt);
+        const isPremium = this.song.isPremium === true;
+        const fallbackImg = window.getDefaultImage?.() || '/js/images/bravo.png';
+
         const card = document.createElement('div');
-        card.className = 'song-card';
+        card.className = 'song-card' + (this.rank ? ' trending-card' : '');
         card.setAttribute('data-song-id', this.song._id);
+
+        // Build with createElement so we never interpolate untrusted
+        // values into innerHTML. The inner overlay HTML uses static
+        // strings and pre-escaped values.
+        const safeTitle = this._escapeHtml(this.song.title);
+        const safeArtist = this._escapeHtml(this.song.artist?.stageName || 'Unknown Artist');
+        const safeGenre = this._escapeHtml(this.song.genre || '');
+
+        const rankBadge = this.rank
+            ? `<div class="trending-rank">#${this.rank}</div>`
+            : '';
+
+        const premiumBadge = isPremium
+            ? `<div class="premium-badge" title="Premium content"><i class="fas fa-crown"></i></div>`
+            : '';
+
+        const downloadButton = this.hideDownload ? '' : `
+            <button class="download-btn ${downloaded ? 'downloaded' : ''}"
+                    type="button" data-action="download"
+                    title="${downloaded ? 'Downloaded' : 'Download'}"
+                    aria-label="Download">
+                <i class="fas fa-download"></i>
+            </button>`;
+
+        const downloadedBadge = downloaded
+            ? '<span class="downloaded-badge"><i class="fas fa-check"></i> Downloaded</span>'
+            : '';
+
         card.innerHTML = `
-            <img src="${coverUrl}" alt="${this.escapeHtml(this.song.title)}" onerror="this.src='${window.getDefaultImage()}'">
+            ${rankBadge}
+            ${premiumBadge}
+            <img class="song-card-cover" alt="${safeTitle}">
             <div class="song-card-overlay">
-                <button class="play-btn" title="Play"><i class="fas fa-play"></i></button>
-                <button class="like-btn ${isLiked ? 'liked' : ''}" title="Like"><i class="fas fa-heart"></i></button>
-                <button class="download-btn ${isDownloaded ? 'downloaded' : ''}" title="${isDownloaded ? 'Downloaded' : 'Download'}">
-                    <i class="fas fa-download"></i>
+                <button class="play-btn" type="button" data-action="play" title="Play" aria-label="Play">
+                    <i class="fas fa-play"></i>
                 </button>
-                <button class="share-btn" title="Share"><i class="fas fa-share-alt"></i></button>
+                <button class="like-btn ${liked ? 'liked' : ''}" type="button" data-action="like"
+                        title="${liked ? 'Unlike' : 'Like'}" aria-label="${liked ? 'Unlike' : 'Like'}">
+                    <i class="${liked ? 'fas' : 'far'} fa-heart"></i>
+                </button>
+                ${downloadButton}
+                <button class="share-btn" type="button" data-action="share"
+                        title="Share" aria-label="Share">
+                    <i class="fas fa-share-alt"></i>
+                </button>
             </div>
             <div class="song-card-info">
-                <h4 class="song-title">${this.escapeHtml(this.song.title)}</h4>
-                <p class="song-artist">${this.song.artist?.stageName || 'Unknown Artist'}</p>
+                <h4 class="song-title">${safeTitle}</h4>
+                <p class="song-artist">${safeArtist}</p>
                 <div class="song-stats">
-                    <span><i class="fas fa-play"></i> ${this.formatNumber(this.song.playCount || 0)}</span>
-                    <span><i class="fas fa-heart"></i> ${this.formatNumber(this.song.likeCount || 0)}</span>
-                    ${isDownloaded ? '<span class="downloaded-badge"><i class="fas fa-check"></i> Downloaded</span>' : ''}
+                    <span><i class="fas fa-play"></i> ${this._formatNumber(this.song.playCount || 0)}</span>
+                    <span><i class="fas fa-heart"></i> ${this._formatNumber(this.song.likeCount || 0)}</span>
+                    ${safeGenre ? `<span><i class="fas fa-tag"></i> ${safeGenre}</span>` : ''}
+                    ${downloadedBadge}
                 </div>
             </div>
         `;
-        
-        const playBtn = card.querySelector('.play-btn');
-        const likeBtn = card.querySelector('.like-btn');
-        const downloadBtn = card.querySelector('.download-btn');
-        const shareBtn = card.querySelector('.share-btn');
-        
-        if (playBtn) {
-            playBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const songWithFullUrl = {
-                    ...this.song,
-                    audioUrl: audioUrl,
-                    coverArt: coverUrl
-                };
-                if (this.onPlay) this.onPlay(songWithFullUrl);
-            });
+
+        // Set the cover image src via JS so we can attach an onerror
+        // handler without inline interpolation.
+        const img = card.querySelector('.song-card-cover');
+        if (img) {
+            img.src = coverUrl;
+            img.addEventListener('error', () => { img.src = fallbackImg; }, { once: true });
         }
-        
-        if (likeBtn) {
-            likeBtn.addEventListener('click', async (e) => {
+
+        // Delegated click handler — one listener for the whole card.
+        card.addEventListener('click', (e) => {
+            const actionEl = e.target.closest('[data-action]');
+            if (actionEl) {
                 e.stopPropagation();
-                await this.toggleLike();
-                likeBtn.classList.toggle('liked');
-            });
-        }
-        
-        if (downloadBtn) {
-            downloadBtn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                await this.downloadSong();
-                downloadBtn.classList.add('downloaded');
-                downloadBtn.title = 'Downloaded';
-            });
-        }
-        
-        if (shareBtn) {
-            shareBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                ShareModal.show(this.song);
-            });
-        }
-        
-        card.addEventListener('click', () => {
-            window.location.hash = `song/${this.song._id}`;
+                this._handleAction(actionEl.dataset.action, card);
+                return;
+            }
+            // Card click without an action button → navigate to detail.
+            if (window.bravoApp?.navigateTo) {
+                window.bravoApp.navigateTo(`song/${this.song._id}`);
+            } else {
+                window.location.hash = `song/${this.song._id}`;
+            }
         });
-        
+
         this.container.appendChild(card);
     }
 
-    async toggleLike() {
-        const token = localStorage.getItem('bravo_token');
-        if (!token) {
-            Toast.show('Please login to like songs', 'info');
-            window.location.hash = 'login';
-            return;
-        }
-        
-        const songsAPI = new SongsAPI();
-        const likedSongs = JSON.parse(localStorage.getItem('bravo_liked_songs') || '[]');
-        const isLiked = likedSongs.includes(this.song._id);
-        
-        if (isLiked) {
-            await songsAPI.unlike(this.song._id);
-            const newLiked = likedSongs.filter(id => id !== this.song._id);
-            localStorage.setItem('bravo_liked_songs', JSON.stringify(newLiked));
-            Toast.show('Removed from liked songs', 'info');
-        } else {
-            await songsAPI.like(this.song._id);
-            likedSongs.push(this.song._id);
-            localStorage.setItem('bravo_liked_songs', JSON.stringify(likedSongs));
-            Toast.show('Added to liked songs! ❤️', 'success');
+    // Actions
+    _handleAction(action, card) {
+        switch (action) {
+            case 'play': return this._handlePlay();
+            case 'like': return this._handleLike(card);
+            case 'download': return this._handleDownload(card);
+            case 'share': return this._handleShare();
         }
     }
 
-    async downloadSong() {
-        const token = localStorage.getItem('bravo_token');
-        if (!token) {
-            Toast.show('Please login to download', 'info');
-            window.location.hash = 'login';
+    _handlePlay() {
+        // The song object goes straight to AudioPlayer which (from
+        // + tap-to-play handling. We don't need to mutate the song
+        // object here — pass it through.
+        const songForPlayer = {
+            ...this.song,
+            // The cover URL is what AudioPlayer displays directly.
+            // Still need to resolve to a full URL since AudioPlayer
+            // doesn't know about staticUrl.
+            coverArt: this._getFullUrl(this.song.coverArt)
+        };
+        this.onPlay(songForPlayer);
+    }
+
+    async _handleLike(card) {
+        const likeBtn = card.querySelector('.like-btn');
+        if (!likeBtn) return;
+
+        const isLoggedIn = window.authService?.isAuthenticated?.();
+        const likedSongs = this._getLikedSongs();
+        const wasLiked = likedSongs.includes(this.song._id);
+
+        // Optimistic UI
+        if (wasLiked) {
+            this._setLikedSongs(likedSongs.filter(id => id !== this.song._id));
+            this._setLikeButtonState(likeBtn, false);
+        } else {
+            this._setLikedSongs([...likedSongs, this.song._id]);
+            this._setLikeButtonState(likeBtn, true);
+        }
+
+        if (!isLoggedIn) {
+            Toast.show(wasLiked ? 'Removed from liked' : 'Added to liked', wasLiked ? 'info' : 'success');
             return;
         }
-        
-        Toast.show(`Downloading "${this.song.title}"...`, 'info');
-        
+
         try {
-            let audioUrl = this.song.audioUrl;
-            if (audioUrl && !audioUrl.startsWith('http') && audioUrl.startsWith('/uploads')) {
-                audioUrl = `${this.staticUrl}${audioUrl}`;
+            const result = wasLiked
+                ? await this.songsAPI.unlike(this.song._id)
+                : await this.songsAPI.like(this.song._id);
+
+            if (!result.success) {
+                // Revert
+                if (wasLiked) {
+                    this._setLikedSongs([...likedSongs]);
+                    this._setLikeButtonState(likeBtn, true);
+                } else {
+                    this._setLikedSongs(likedSongs.filter(id => id !== this.song._id));
+                    this._setLikeButtonState(likeBtn, false);
+                }
+                Toast.show(result.error || 'Failed to update like', 'error');
+                return;
             }
-            
-            const response = await fetch(audioUrl);
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${this.song.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp3`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            
-            this.saveToDownloads();
-            Toast.show(`Downloaded "${this.song.title}" successfully! 📥`, 'success');
-        } catch (error) {
-            console.error('Download failed:', error);
+
+            Toast.show(wasLiked ? 'Removed from liked' : 'Added to liked ❤️', wasLiked ? 'info' : 'success');
+        } catch (err) {
+            console.error('Like toggle error:', err);
+        }
+    }
+
+    _setLikedSongs(ids) {
+        localStorage.setItem('bravo_liked_songs', JSON.stringify(ids));
+    }
+
+    _setLikeButtonState(btn, liked) {
+        btn.classList.toggle('liked', liked);
+        const icon = btn.querySelector('i');
+        if (icon) icon.className = `${liked ? 'fas' : 'far'} fa-heart`;
+        btn.title = liked ? 'Unlike' : 'Like';
+        btn.setAttribute('aria-label', liked ? 'Unlike' : 'Like');
+    }
+
+    async _handleDownload(card) {
+        const downloadBtn = card.querySelector('.download-btn');
+        if (!downloadBtn) return;
+
+        Toast.show(`Preparing "${this.song.title}"...`, 'info');
+
+        try {
+            // Hit the backend download endpoint (NOT the static URL).
+            // rate limiting, premium checks, and Download collection
+            // records.
+            const apiBase = window.API_BASE_URL;
+            const downloadUrl = `${apiBase}/downloads/song/${encodeURIComponent(this.song._id)}`;
+            const token = window.authService?.getToken?.();
+
+            const response = await fetch(downloadUrl, {
+                method: 'POST',
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
+            });
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                if (response.status === 403) {
+                    Toast.show(data.error || 'Premium content — subscribe to download.', 'warning');
+                    return;
+                }
+                if (response.status === 429) {
+                    Toast.show('Download limit reached. Try again later.', 'warning');
+                    return;
+                }
+                throw new Error(data.error || `Download failed (${response.status})`);
+            }
+
+            const data = await response.json();
+            const fileUrl = data.url || data.downloadUrl;
+            if (!fileUrl) throw new Error('No download URL in response');
+
+            await this._performFileDownload(fileUrl);
+
+            // Save locally for the "Downloaded" badge
+            this._saveLocalDownload();
+            downloadBtn.classList.add('downloaded');
+            downloadBtn.title = 'Downloaded';
+
+            // Add the "Downloaded" badge to stats if not already there
+            const stats = card.querySelector('.song-stats');
+            if (stats && !stats.querySelector('.downloaded-badge')) {
+                const badge = document.createElement('span');
+                badge.className = 'downloaded-badge';
+                badge.innerHTML = '<i class="fas fa-check"></i> Downloaded';
+                stats.appendChild(badge);
+            }
+
+            Toast.show(`Downloaded "${this.song.title}" 📥`, 'success');
+        } catch (err) {
+            console.error('Download failed:', err);
             Toast.show('Download failed. Please try again.', 'error');
         }
     }
 
-    saveToDownloads() {
-        let downloads = JSON.parse(localStorage.getItem('bravo_downloaded_songs') || '[]');
-        
+    async _performFileDownload(fileUrl) {
+        // Backend may return a full URL (signed S3 in production) or a
+        // relative path (/uploads/... in local dev). Relative paths must
+        // be resolved against APP_CONFIG.STATIC_URL (backend host), NOT
+        // the frontend origin which fetch() would otherwise use.
+        const resolvedUrl = (() => {
+            if (!fileUrl) return fileUrl;
+            if (/^https?:\/\//i.test(fileUrl)) return fileUrl;
+            if (fileUrl.startsWith('/uploads') || fileUrl.startsWith('/static')) {
+                return `${window.APP_CONFIG?.STATIC_URL || ''}${fileUrl}`;
+            }
+            return fileUrl;
+        })();
+
+        const response = await fetch(resolvedUrl);
+        if (!response.ok) throw new Error('File fetch failed');
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        // Use real extension, not hardcoded .mp3
+        const ext = this._extOf(this.song.audioUrl || fileUrl);
+        const safeName = String(this.song.title || 'song')
+            .replace(/[^a-z0-9_\-]+/gi, '_')
+            .toLowerCase();
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${safeName}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    _saveLocalDownload() {
+        let downloads = [];
+        try {
+            downloads = JSON.parse(localStorage.getItem('bravo_downloaded_songs') || '[]');
+            if (!Array.isArray(downloads)) downloads = [];
+        } catch {
+            downloads = [];
+        }
+
         if (!downloads.some(d => d._id === this.song._id)) {
+            // Store only the IDs + minimal metadata. The full song
+            // can be re-fetched via songsAPI.getById when needed.
             downloads.unshift({
                 _id: this.song._id,
                 title: this.song.title,
-                artist: this.song.artist,
                 coverArt: this.song.coverArt,
-                downloadedAt: new Date().toISOString(),
-                duration: this.song.duration
+                downloadedAt: new Date().toISOString()
             });
-            downloads = downloads.slice(0, 50);
+            downloads = downloads.slice(0, 100);
             localStorage.setItem('bravo_downloaded_songs', JSON.stringify(downloads));
         }
     }
 
-    isSongDownloaded() {
-        const downloads = JSON.parse(localStorage.getItem('bravo_downloaded_songs') || '[]');
-        return downloads.some(d => d._id === this.song._id);
-    }
-
-    formatNumber(num) {
-        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return num.toString();
-    }
-
-    escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    _handleShare() {
+        if (window.ShareModal) {
+            ShareModal.show(this.song);
+        } else if (navigator.share) {
+            const songUrl = `${window.location.origin}/#song/${this.song._id}`;
+            navigator.share({
+                title: this.song.title,
+                text: `Check out "${this.song.title}" on Bravo Music`,
+                url: songUrl
+            }).catch(() => {});
+            this.songsAPI.share(this.song._id, 'native').catch(() => {});
+        } else {
+            const songUrl = `${window.location.origin}/#song/${this.song._id}`;
+            navigator.clipboard.writeText(songUrl)
+                .then(() => Toast.show('Link copied to clipboard', 'success'))
+                .catch(() => Toast.show('Share: ' + songUrl, 'info'));
+            this.songsAPI.share(this.song._id, 'copy').catch(() => {});
+        }
     }
 }
 

@@ -1,41 +1,53 @@
-/**
- * Reset Password Page - Clean Working Version
- */
+
 
 class ResetPasswordPage {
     constructor(token = null) {
-        console.log('🔐 ResetPasswordPage constructor, token:', token);
-        this.token = token;
-        this.password = '';
-        this.confirmPassword = '';
+        this.token = this._extractToken(token);
         this.isLoading = false;
         this.isSuccess = false;
         this.error = null;
+        this.tokenInvalid = false; // distinguishes "bad token" from generic errors
+    }
+
+    // it caused subtle ordering issues — render() is supposed to be
+    // pure. Side-effecting reads from window.location belong in
+    // construction.
+    _extractToken(passedToken) {
+        if (passedToken) return passedToken;
+        const hash = window.location.hash || '';
+        const m = hash.match(/reset-password\/(.+)/);
+        return m ? decodeURIComponent(m[1]) : null;
     }
 
     render() {
-        console.log('🎨 Rendering ResetPasswordPage');
-        
-        if (this.isSuccess) {
-            return this.renderSuccess();
-        }
+        if (this.isSuccess) return this._renderSuccess();
+        if (!this.token || this.tokenInvalid) return this._renderInvalidToken();
 
         return `
             <div class="form-container animate-fade-in-up">
                 <h2>Reset Password</h2>
                 <p class="form-description">Enter your new password below.</p>
-                ${this.token ? `<p style="font-size: 11px; color: #666; text-align: center; word-break: break-all;">Token: ${this.token.substring(0, 30)}...</p>` : ''}
-                <form id="reset-password-form">
+                <form id="reset-password-form" novalidate>
                     <div class="form-group">
-                        <label>New Password</label>
-                        <input type="password" id="reset-password" required placeholder="Enter new password">
-                        <small>Must be at least 6 characters with uppercase and number</small>
+                        <label for="reset-password">New Password</label>
+                        <input type="password" id="reset-password" name="password" required
+                            minlength="8"
+                            autocomplete="new-password"
+                            placeholder="Enter new password">
+                        <small>At least 8 characters with uppercase, number, and special character.</small>
                     </div>
                     <div class="form-group">
-                        <label>Confirm Password</label>
-                        <input type="password" id="reset-confirm-password" required placeholder="Confirm new password">
+                        <label for="reset-confirm-password">Confirm Password</label>
+                        <input type="password" id="reset-confirm-password" name="confirmPassword" required
+                            minlength="8"
+                            autocomplete="new-password"
+                            placeholder="Confirm new password">
                     </div>
-                    ${this.error ? `<div class="error-message" style="color: #ff4757; margin-bottom: 16px; padding: 10px; background: rgba(255,71,87,0.1); border-radius: 8px;">${this.escapeHtml(this.error)}</div>` : ''}
+                    ${this.error ? `
+                        <div class="error-message" role="alert" style="color: #ff4757; margin-bottom: 16px; padding: 10px; background: rgba(255,71,87,0.1); border-radius: 8px;">
+                            ${this._escapeHtml(this.error)}
+                        </div>
+                    ` : ''}
                     <button type="submit" class="btn-primary" ${this.isLoading ? 'disabled' : ''} style="width: 100%; padding: 12px;">
                         ${this.isLoading ? '<i class="fas fa-spinner fa-spin"></i> Resetting...' : 'Reset Password'}
                     </button>
@@ -47,138 +59,129 @@ class ResetPasswordPage {
         `;
     }
 
-    renderSuccess() {
+    _renderSuccess() {
         return `
             <div class="form-container animate-fade-in-up">
                 <div class="success-icon" style="text-align: center; margin-bottom: 20px;">
                     <i class="fas fa-check-circle" style="font-size: 64px; color: #4caf50;"></i>
                 </div>
                 <h2 style="text-align: center;">Password Reset Successful!</h2>
-                <p style="text-align: center;">Your password has been changed successfully.</p>
                 <p style="text-align: center;">You can now login with your new password.</p>
                 <div class="form-actions" style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
-                    <button class="btn-primary" onclick="window.bravoApp.navigateTo('login')">Go to Login</button>
+                    <button class="btn-primary" id="goto-login-btn">Go to Login</button>
                 </div>
             </div>
         `;
     }
 
-    async afterRender() {
-        console.log('📄 afterRender called');
-        
-        const form = document.getElementById('reset-password-form');
-        if (form) {
-            const newForm = form.cloneNode(true);
-            form.parentNode.replaceChild(newForm, form);
-            
-            newForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await this.submitResetPassword();
-            });
-            console.log('✅ Form event listener attached');
-        }
-        
-        const passwordInput = document.getElementById('reset-password');
-        if (passwordInput) {
-            passwordInput.focus();
-        }
+    _renderInvalidToken() {
+        return `
+            <div class="form-container animate-fade-in-up">
+                <div class="error-icon" style="text-align: center; margin-bottom: 20px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 64px; color: #ff9800;"></i>
+                </div>
+                <h2 style="text-align: center;">Invalid or Expired Link</h2>
+                <p style="text-align: center;">
+                    This password reset link is invalid or has expired. Reset links are valid for 1 hour.
+                </p>
+                <div class="form-actions" style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                    <button class="btn-primary" id="goto-forgot-btn">Request a New Link</button>
+                    <button class="btn-outline" id="goto-login-btn">Back to Login</button>
+                </div>
+            </div>
+        `;
     }
 
-    async submitResetPassword() {
-        console.log('📤 Submitting reset password');
-        
+    afterRender() {
+        const form = document.getElementById('reset-password-form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this._submit();
+            });
+        }
+
+        const gotoLogin = document.getElementById('goto-login-btn');
+        if (gotoLogin) gotoLogin.addEventListener('click', () => {
+            if (window.bravoApp?.navigateTo) window.bravoApp.navigateTo('login');
+            else window.location.hash = 'login';
+        });
+
+        const gotoForgot = document.getElementById('goto-forgot-btn');
+        if (gotoForgot) gotoForgot.addEventListener('click', () => {
+            if (window.bravoApp?.navigateTo) window.bravoApp.navigateTo('forgot-password');
+            else window.location.hash = 'forgot-password';
+        });
+
         const passwordInput = document.getElementById('reset-password');
-        const confirmInput = document.getElementById('reset-confirm-password');
+        if (passwordInput && !this.isSuccess && !this.tokenInvalid) passwordInput.focus();
+    }
 
-        if (!passwordInput || !confirmInput) {
-            console.error('Inputs not found');
-            return;
-        }
+    async _submit() {
+        if (this.isLoading) return;
 
-        const password = passwordInput.value;
-        const confirmPassword = confirmInput.value;
+        const password = document.getElementById('reset-password')?.value || '';
+        const confirmPassword = document.getElementById('reset-confirm-password')?.value || '';
 
-        if (!password) {
-            this.error = 'Please enter a new password';
-            await this.rerender();
-            return;
-        }
-
-        if (password.length < 6) {
-            this.error = 'Password must be at least 6 characters';
-            await this.rerender();
-            return;
-        }
-        
-        if (!/[A-Z]/.test(password)) {
-            this.error = 'Password must contain at least one uppercase letter';
-            await this.rerender();
-            return;
-        }
-        
-        if (!/[0-9]/.test(password)) {
-            this.error = 'Password must contain at least one number';
-            await this.rerender();
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            this.error = 'Passwords do not match';
-            await this.rerender();
+        const validationError = this._validate(password, confirmPassword);
+        if (validationError) {
+            this.error = validationError;
+            this._rerender();
             return;
         }
 
         this.isLoading = true;
         this.error = null;
-        await this.rerender();
+        this._rerender();
 
-        try {
-            const apiUrl = `${window.API_BASE_URL}/auth/reset-password/${this.token}`;
-            console.log('API URL:', apiUrl);
-            
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
-            });
-            
-            const data = await response.json();
-            console.log('Response:', response.status, data);
-            
-            if (response.ok) {
-                this.isSuccess = true;
-                this.isLoading = false;
-                await this.rerender();
-                Toast.show('Password reset successfully!', 'success');
-            } else {
-                this.error = data.error || 'Failed to reset password. Link may have expired.';
-                this.isLoading = false;
-                await this.rerender();
-            }
-        } catch (error) {
-            console.error('Reset password error:', error);
-            this.error = 'Network error. Please try again.';
-            this.isLoading = false;
-            await this.rerender();
+        const result = await window.authService.resetPassword(this.token, password);
+
+        this.isLoading = false;
+
+        if (result.success) {
+            this.isSuccess = true;
+            this._rerender();
+            Toast.show('Password reset successfully', 'success');
+            return;
         }
+
+        if (result.status === 429) {
+            this.error = 'Too many attempts. Please wait and try again.';
+        } else if (result.status === 400 || (result.error && result.error.toLowerCase().includes('token'))) {
+            // Token invalid or expired — surface the dedicated screen.
+            this.tokenInvalid = true;
+            this._rerender();
+            return;
+        } else {
+            this.error = result.error || 'Failed to reset password. Please try again.';
+        }
+        this._rerender();
     }
-    
-    async rerender() {
+
+    _validate(password, confirmPassword) {
+        if (!password || !confirmPassword) return 'Please fill in both password fields';
+        if (password !== confirmPassword) return 'Passwords do not match';
+        if (password.length < 8) return 'Password must be at least 8 characters';
+        if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+        if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
+        if (!/[^A-Za-z0-9]/.test(password)) return 'Password must contain at least one special character';
+        return null;
+    }
+
+    _rerender() {
         const mainContent = document.getElementById('main-content');
         if (mainContent) {
             mainContent.innerHTML = this.render();
-            await this.afterRender();
+            this.afterRender();
         }
     }
 
-    escapeHtml(text) {
-        if (!text) return '';
+    _escapeHtml(text) {
+        if (text == null) return '';
         const div = document.createElement('div');
-        div.textContent = text;
+        div.textContent = String(text);
         return div.innerHTML;
     }
 }
 
-// Single export
 window.ResetPasswordPage = ResetPasswordPage;
-console.log('✅ ResetPasswordPage loaded and registered');
