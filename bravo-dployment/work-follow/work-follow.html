@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bravo Music — System Flows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+:root {
+    --bg: #0a0a14;
+    --surface: #16162a;
+    --surface-2: #1f1f38;
+    --border: #2a2a45;
+    --text: #e8e8f0;
+    --text-muted: #8a8aa3;
+    --primary: #6c63ff;
+    --primary-soft: rgba(108, 99, 255, 0.15);
+    --amber: #f4b740;
+    --amber-soft: rgba(244, 183, 64, 0.12);
+    --green: #2ecc71;
+    --red: #ff5470;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Layout shell */
+.shell {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Left rail */
+.rail {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 24px;
+    border-right: 1px solid var(--border);
+    background: var(--bg);
+}
+.rail .brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+.rail h1 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+}
+.rail .subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+}
+.rail-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.rail-nav a {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
+}
+.rail-nav a:hover { color: var(--text); background: var(--primary-soft); }
+.rail-nav a.active {
+    color: var(--text);
+    background: var(--primary-soft);
+}
+.rail-nav a.active::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 70%;
+    background: var(--primary);
+    border-radius: 0 2px 2px 0;
+}
+.rail-nav .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.rail-nav a.active .num { color: var(--primary); }
+
+/* Group dividers in rail */
+.rail-group {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 24px 0 8px;
+    padding-left: 8px;
+}
+.rail-group:first-of-type { margin-top: 0; }
+
+/* Main content */
+main {
+    padding: 80px 56px 120px;
+    max-width: 1100px;
+}
+.intro {
+    margin-bottom: 80px;
+    padding-bottom: 56px;
+    border-bottom: 1px solid var(--border);
+}
+.intro .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+.intro h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin: 12px 0 20px;
+}
+.intro h2 em {
+    font-style: normal;
+    color: var(--primary);
+    font-weight: 800;
+}
+.intro p {
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 620px;
+    margin: 0;
+}
+.intro .meta {
+    display: flex;
+    gap: 32px;
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px dashed var(--border);
+}
+.intro .meta div {
+    font-size: 12px;
+}
+.intro .meta strong {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.intro .meta span {
+    color: var(--text);
+    font-weight: 500;
+}
+
+/* Section */
+section.flow {
+    margin-bottom: 88px;
+    scroll-margin-top: 40px;
+}
+section.flow .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--amber);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+section.flow h3 {
+    font-size: 30px;
+    font-weight: 700;
+    margin: 8px 0 12px;
+    letter-spacing: -0.015em;
+}
+section.flow > p.lead {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 720px;
+    margin: 0 0 32px;
+}
+
+/* Diagram container */
+.diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 24px;
+    margin: 24px 0;
+    overflow-x: auto;
+}
+.diagram svg { max-width: 100%; height: auto; }
+
+/* Key files / endpoints / refs */
+.refs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+.refs .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+}
+.refs .card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.refs .card ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.refs .card li {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.7;
+}
+.refs .card li.muted { color: var(--text-muted); }
+.refs .card.amber { border-color: rgba(244, 183, 64, 0.4); background: var(--amber-soft); }
+.refs .card.amber .card-label { color: var(--amber); }
+
+/* Inline code */
+code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85em;
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--text);
+}
+
+/* Table for role matrix */
+table.matrix {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 13px;
+}
+table.matrix th, table.matrix td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+table.matrix th {
+    background: var(--surface-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+table.matrix tr:last-child td { border-bottom: none; }
+table.matrix td:first-child {
+    font-weight: 600;
+    color: var(--text);
+}
+.dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+.dot.yes { background: var(--green); }
+.dot.no  { background: var(--surface-2); }
+.dot.own { background: var(--amber); }
+
+/* Footer */
+footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .rail {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+    main { padding: 40px 24px 80px; }
+    .intro h2 { font-size: 32px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<aside class="rail">
+    <div class="brand">v1.0 · system flows</div>
+    <h1>Bravo Music</h1>
+    <div class="subtitle">Every flow, every endpoint, every model — one page.</div>
+
+    <div class="rail-group">Foundation</div>
+    <nav class="rail-nav">
+        <a href="#arch"><span class="num">01</span><span>Architecture</span></a>
+        <a href="#boot"><span class="num">02</span><span>Bootstrap</span></a>
+        <a href="#routes"><span class="num">03</span><span>Frontend routes</span></a>
+        <a href="#data"><span class="num">04</span><span>Data model</span></a>
+        <a href="#roles"><span class="num">05</span><span>Roles &amp; permissions</span></a>
+    </nav>
+
+    <div class="rail-group">Identity</div>
+    <nav class="rail-nav">
+        <a href="#auth"><span class="num">06</span><span>Authentication</span></a>
+        <a href="#reset"><span class="num">07</span><span>Password reset</span></a>
+        <a href="#upgrade"><span class="num">08</span><span>Become artist</span></a>
+    </nav>
+
+    <div class="rail-group">Content</div>
+    <nav class="rail-nav">
+        <a href="#upload"><span class="num">09</span><span>Song upload</span></a>
+        <a href="#albums"><span class="num">10</span><span>Album management</span></a>
+        <a href="#stream"><span class="num">11</span><span>Stream &amp; gating</span></a>
+        <a href="#download"><span class="num">12</span><span>Download</span></a>
+        <a href="#search"><span class="num">13</span><span>Search</span></a>
+    </nav>
+
+    <div class="rail-group">Money</div>
+    <nav class="rail-nav">
+        <a href="#subscribe"><span class="num">14</span><span>Subscription</span></a>
+        <a href="#withdraw"><span class="num">15</span><span>Withdrawal</span></a>
+    </nav>
+
+    <div class="rail-group">Engagement</div>
+    <nav class="rail-nav">
+        <a href="#comments"><span class="num">16</span><span>Comments &amp; reports</span></a>
+        <a href="#notify"><span class="num">17</span><span>Notifications</span></a>
+    </nav>
+</aside>
+
+<main>
+
+<div class="intro">
+    <div class="label">Bravo Music · system flows</div>
+    <h2>How everything <em>moves</em>, end&#8209;to&#8209;end.</h2>
+    <p>Seventeen flows that cover the platform — from a cold-cache browser hitting <code>index.html</code> to a PawaPay webhook closing out an artist's payout. Each diagram is the canonical reference for that path.</p>
+    <div class="meta">
+        <div><strong>Backend</strong><span>Node 18 / Express / Mongoose</span></div>
+        <div><strong>Frontend</strong><span>Vanilla JS · no framework</span></div>
+        <div><strong>Datastore</strong><span>MongoDB · Redis · S3-compatible</span></div>
+        <div><strong>Payments</strong><span>PawaPay (Zambian mobile money)</span></div>
+    </div>
+</div>
+
+<!-- ================== 01 ARCHITECTURE ================== -->
+<section class="flow" id="arch">
+    <div class="sec-num">01 · Foundation</div>
+    <h3>Architecture overview</h3>
+    <p class="lead">Three tiers separated by HTTPS: a static frontend served by nginx, an API tier on Node, and a data tier holding Mongo for state, Redis for sessions/rate-limit, and disk for media. PawaPay sits outside as a webhook partner for mobile-money flows.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+    User([fa:fa-user Listener / Artist / Admin])
+    Browser[Browser SPA<br/>index.html + vanilla JS]
+
+    subgraph Edge[Edge · nginx]
+        Static[Static<br/>frontend/public]
+        Proxy[Proxy<br/>api.bravomusics.com]
+        Upload[/uploads/ direct<br/>sendfile + range/]
+    end
+
+    subgraph App[App tier · Node]
+        Express[Express<br/>:1000]
+        Multer[Multer<br/>file writer]
+        Socket[Socket.io<br/>real-time]
+    end
+
+    subgraph Data[Data tier]
+        Mongo[(MongoDB<br/>state)]
+        Redis[(Redis<br/>sessions + rate-limit)]
+        Disk[(Disk<br/>/uploads media)]
+    end
+
+    PawaPay[fa:fa-mobile PawaPay<br/>mobile money]
+
+    User -->|HTTPS| Browser
+    Browser -->|HTML/JS/CSS| Static
+    Browser -->|JSON| Proxy
+    Browser -->|audio range| Upload
+    Browser -.->|WSS| Socket
+
+    Proxy --> Express
+    Express --> Multer
+    Multer --> Disk
+    Express --> Mongo
+    Express --> Redis
+    Express -->|REST| PawaPay
+    PawaPay -.->|webhook| Express
+
+    style User fill:#6c63ff,stroke:#6c63ff,color:#fff
+    style PawaPay fill:#f4b740,stroke:#f4b740,color:#000
+    style Mongo fill:#16162a,stroke:#2a2a45,color:#e8e8f0
+    style Redis fill:#16162a,stroke:#2a2a45,color:#e8e8f0
+    style Disk fill:#16162a,stroke:#2a2a45,color:#e8e8f0
+        </pre>
+    </div>
+
+    <div class="refs">
+        <div class="card amber">
+            <div class="card-label">Hot path</div>
+            <ul>
+                <li>nginx serves /uploads/ directly</li>
+                <li class="muted">range requests for audio scrub</li>
+                <li class="muted">node never touches the bytes</li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="card-label">Trust boundary</div>
+            <ul>
+                <li>JWT verifies user identity</li>
+                <li>HMAC verifies PawaPay webhooks</li>
+                <li>Role checks gate every write</li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="card-label">Persistence</div>
+            <ul>
+                <li>Mongo: all domain state</li>
+                <li>Redis: refresh tokens, throttling</li>
+                <li>Disk: audio, video, covers</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ================== 02 BOOTSTRAP ================== -->
+<section class="flow" id="boot">
+    <div class="sec-num">02 · Foundation</div>
+    <h3>Bootstrap &amp; first paint</h3>
+    <p class="lead">Script order matters because there's no bundler. <code>config.js</code> defines globals first; then API clients; then components; finally <code>app.js</code> instantiates <code>BravoMusicApp</code> which wires everything and routes by hash.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant B as Browser
+    participant N as nginx
+    participant Cfg as config.js
+    participant Auth as authService
+    participant App as BravoMusicApp
+    participant Page as Page module
+
+    B->>N: GET /
+    N-->>B: index.html (no-store)
+    B->>N: load /js/config.js
+    N-->>B: cached 1y
+    Cfg->>Cfg: define window.API_BASE_URL, GENRES, DEFAULT_IMAGE
+    B->>N: load API clients (auth, songs, albums...)
+    B->>N: load components (Navbar, Sidebar, AudioPlayer)
+    B->>N: load pages (HomePage, ...UpgradePage)
+    B->>N: load app.js (last)
+    App->>Auth: restore session from localStorage
+    Auth->>Auth: verify token, refresh if expired
+    App->>App: render Navbar + Sidebar + AudioPlayer
+    App->>App: parse location.hash
+    App->>Page: instantiate &amp; mount
+    Page-->>B: rendered DOM
+    App->>Socket: connect (if authenticated)
+        </pre>
+    </div>
+
+    <div class="refs">
+        <div class="card">
+            <div class="card-label">Script order</div>
+            <ul>
+                <li>1. config.js</li>
+                <li>2. services (authService)</li>
+                <li>3. api/*</li>
+                <li>4. components/*</li>
+                <li>5. pages/*</li>
+                <li>6. app.js</li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="card-label">Cache strategy</div>
+            <ul>
+                <li>index.html: no-store</li>
+                <li>?v=... assets: 1y immutable</li>
+                <li>uploads: 30d revalidate</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ================== 03 ROUTES ================== -->
+<section class="flow" id="routes">
+    <div class="sec-num">03 · Foundation</div>
+    <h3>Frontend route map</h3>
+    <p class="lead">All routes are hash-based (<code>#home</code>, <code>#artist/123</code>). The route table in <code>app.js</code> maps each hash to a page constructor. Role-gated routes redirect unauthenticated users to <code>#login</code>.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    Root["#"] --> Main[Main]
+    Root --> Lib[Your library<br/>auth required]
+    Root --> Acct[Account<br/>auth required]
+    Root --> Hub[Artist hub<br/>artist/admin]
+    Root --> Admin[Admin panel<br/>admin only]
+
+    Main --> M1[home]
+    Main --> M2[browse]
+    Main --> M3[trending]
+    Main --> M4[search]
+    Main --> M5[song/:id]
+    Main --> M6[album/:id]
+    Main --> M7[artist/:id]
+
+    Lib --> L1[liked]
+    Lib --> L2[recent]
+    Lib --> L3[downloads]
+    Lib --> L4[playlists]
+    Lib --> L5[playlist/:id]
+    Lib --> L6[videos]
+
+    Acct --> A1[notifications]
+    Acct --> A2[wallet]
+    Acct --> A3[subscription]
+    Acct --> A4[payment-history]
+    Acct --> A5[settings]
+    Acct --> A6[upgrade<br/>listeners only]
+
+    Hub --> H1[dashboard]
+    Hub --> H2[upload]
+    Hub --> H3[earnings]
+    Hub --> H4[artist/albums]
+
+    Admin --> AD1[admin]
+    Admin --> AD2[admin/users]
+    Admin --> AD3[admin/songs]
+    Admin --> AD4[admin/albums]
+    Admin --> AD5[admin/videos]
+    Admin --> AD6[admin/artists]
+    Admin --> AD7[admin/withdrawals]
+    Admin --> AD8[admin/reports]
+    Admin --> AD9[admin/comments]
+    Admin --> AD10[admin/settings]
+
+    classDef gate stroke:#6c63ff,stroke-width:2px;
+    class Lib,Acct,Hub,Admin gate;
+        </pre>
+    </div>
+</section>
+
+<!-- ================== 04 DATA MODEL ================== -->
+<section class="flow" id="data">
+    <div class="sec-num">04 · Foundation</div>
+    <h3>Data model (ERD)</h3>
+    <p class="lead">User is the root entity. Listeners become Artists by creating an Artist document. Songs belong to one Artist; albums group songs. Payments, subscriptions, and withdrawals all reference User + Artist for the money trail.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+erDiagram
+    USER ||--o| ARTIST : "promotes to"
+    USER ||--o{ PLAYLIST : owns
+    USER ||--o{ LIKE : creates
+    USER ||--o{ COMMENT : posts
+    USER ||--o{ SUBSCRIPTION : has
+    USER ||--o{ PAYMENT : makes
+    USER ||--o{ NOTIFICATION : receives
+    USER ||--o| WALLET : has
+    USER ||--o{ DOWNLOAD : records
+
+    ARTIST ||--o{ SONG : produces
+    ARTIST ||--o{ ALBUM : releases
+    ARTIST ||--o{ WITHDRAWAL : requests
+
+    ALBUM ||--o{ SONG : contains
+    SONG ||--o{ LIKE : "liked by"
+    SONG ||--o{ COMMENT : "commented on"
+    SONG ||--o{ PLAYLIST_ITEM : "in playlists"
+    SONG ||--o{ DOWNLOAD : "downloaded as"
+
+    PLAYLIST ||--o{ PLAYLIST_ITEM : holds
+
+    USER {
+        ObjectId _id
+        string username UK
+        string email UK
+        string passwordHash
+        enum role "listener|artist|admin"
+        ObjectId artistId FK
+    }
+    ARTIST {
+        ObjectId _id
+        ObjectId user FK
+        string stageName UK
+        string bio
+        array genres
+        bool isVerified
+        int uploadCredits
+    }
+    SONG {
+        ObjectId _id
+        ObjectId artist FK
+        ObjectId album FK
+        string title
+        string genre
+        string fileUrl
+        string coverArt
+        bool isPremium
+        bool isVideo
+        int playCount
+        int likeCount
+    }
+    SUBSCRIPTION {
+        ObjectId _id
+        ObjectId user FK
+        enum type "listener_premium|artist_pro"
+        enum status "active|expired|cancelled"
+        Date expiresAt
+        string pawapayId
+    }
+    WITHDRAWAL {
+        ObjectId _id
+        ObjectId artist FK
+        decimal amount
+        string phoneNumber
+        enum status "pending|approved|paid|failed"
+        string pawapayId
+    }
+        </pre>
+    </div>
+</section>
+
+<!-- ================== 05 ROLES ================== -->
+<section class="flow" id="roles">
+    <div class="sec-num">05 · Foundation</div>
+    <h3>Role &amp; permission matrix</h3>
+    <p class="lead">Three roles, escalating capabilities. Every backend write checks role via the <code>requireRole</code> middleware. The matrix below shows what each role can do at a glance.</p>
+
+    <table class="matrix">
+        <thead>
+            <tr>
+                <th>Capability</th>
+                <th>Listener</th>
+                <th>Artist</th>
+                <th>Admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Browse, search, play free songs</td>
+                <td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Like, comment, follow</td>
+                <td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Stream premium songs</td>
+                <td><span class="dot own"></span>With sub</td><td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Download paid songs</td>
+                <td><span class="dot own"></span>Per-purchase</td><td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Upload songs &amp; albums</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot own"></span>Own only</td><td><span class="dot yes"></span>Any</td></tr>
+            <tr><td>See earnings dashboard</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot own"></span>Own only</td><td><span class="dot yes"></span>Platform</td></tr>
+            <tr><td>Request withdrawal</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot yes"></span>Yes</td><td><span class="dot no"></span>(approves)</td></tr>
+            <tr><td>Moderate reported comments</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot no"></span>No</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Manage all users / artists</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot no"></span>No</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Add songs to any album</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot own"></span>Own albums</td><td><span class="dot yes"></span>Any</td></tr>
+            <tr><td>Edit system settings</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot no"></span>No</td><td><span class="dot yes"></span>Yes</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- ================== 06 AUTH ================== -->
+<section class="flow" id="auth">
+    <div class="sec-num">06 · Identity</div>
+    <h3>Authentication</h3>
+    <p class="lead">Email/password login returns a short-lived access token (15 min) and a refresh token (30 days, stored in Redis). The frontend's <code>authService</code> intercepts 401s, refreshes silently, and retries the original request.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant F as authService<br/>(frontend)
+    participant API as /api/auth
+    participant DB as Mongo
+    participant R as Redis
+
+    Note over U,R: Login
+    U->>F: submit email + password
+    F->>API: POST /login
+    API->>DB: find user by email
+    API->>API: bcrypt.compare
+    API->>R: store refresh token (30d)
+    API-->>F: { accessToken, refreshToken, user }
+    F->>F: localStorage.set, broadcast 'auth:login'
+    F-->>U: redirect to #home
+
+    Note over U,R: Silent refresh on 401
+    U->>F: any authed request
+    F->>API: GET /something (Bearer ...)
+    API-->>F: 401 expired
+    F->>API: POST /refresh-token
+    API->>R: validate refresh token
+    API-->>F: new accessToken
+    F->>API: retry original request
+    API-->>F: 200 OK
+        </pre>
+    </div>
+
+    <div class="refs">
+        <div class="card">
+            <div class="card-label">Backend</div>
+            <ul>
+                <li>routes/authRoutes.js</li>
+                <li>controllers/authController.js</li>
+                <li>middleware/auth.js</li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="card-label">Frontend</div>
+            <ul>
+                <li>services/authService.js</li>
+                <li>pages/LoginPage.js</li>
+                <li>pages/RegisterPage.js</li>
+            </ul>
+        </div>
+        <div class="card amber">
+            <div class="card-label">Gotcha</div>
+            <ul>
+                <li>Access token in memory</li>
+                <li class="muted">Refresh token in Redis</li>
+                <li class="muted">Both rotate on refresh</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ================== 07 PASSWORD RESET ================== -->
+<section class="flow" id="reset">
+    <div class="sec-num">07 · Identity</div>
+    <h3>Password reset</h3>
+    <p class="lead">Time-boxed token sent by email. The reset URL contains a one-time token; submitting a new password consumes it.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant F as Frontend
+    participant API as /api/auth
+    participant DB as Mongo
+    participant Mail as Mailer
+
+    U->>F: enter email on #forgot-password
+    F->>API: POST /forgot-password
+    API->>DB: find user
+    API->>DB: store reset token + expiry (1h)
+    API->>Mail: send link with token
+    Mail-->>U: email with reset URL
+
+    U->>F: clicks link → #reset-password?token=...
+    F->>F: read token from query
+    U->>F: enters new password
+    F->>API: POST /reset-password { token, password }
+    API->>DB: find user by valid token
+    API->>API: hash new password
+    API->>DB: save user, clear token
+    API-->>F: 200 OK
+    F-->>U: redirect to #login
+        </pre>
+    </div>
+</section>
+
+<!-- ================== 08 BECOME ARTIST ================== -->
+<section class="flow" id="upgrade">
+    <div class="sec-num">08 · Identity</div>
+    <h3>Become an artist</h3>
+    <p class="lead">Self-service listener → artist upgrade. The backend creates an Artist record and flips <code>user.role</code> in a single request. Verification badge stays off until admin reviews.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+    A[Listener visits<br/>#upgrade] --> B{Form valid?<br/>stage name<br/>bio &gt; 30 chars<br/>≥ 1 genre}
+    B -->|No| C[Inline errors]
+    B -->|Yes| D[POST<br/>/api/users/me/upgrade-to-artist]
+    D --> E{Stage name<br/>unique?}
+    E -->|No| F[409 Conflict<br/>'Stage name taken']
+    E -->|Yes| G[Create Artist doc<br/>isVerified: false<br/>uploadCredits: 3]
+    G --> H[Update User<br/>role: 'artist'<br/>artistId: ...]
+    H --> I[Response<br/>updated user + artist]
+    I --> J[Frontend updates<br/>authService.user]
+    J --> K[Redirect to<br/>#dashboard]
+
+    style A fill:#6c63ff,stroke:#6c63ff,color:#fff
+    style K fill:#2ecc71,stroke:#2ecc71,color:#000
+    style F fill:#ff5470,stroke:#ff5470,color:#fff
+        </pre>
+    </div>
+</section>
+
+<!-- ================== 09 SONG UPLOAD ================== -->
+<section class="flow" id="upload">
+    <div class="sec-num">09 · Content</div>
+    <h3>Song upload</h3>
+    <p class="lead">Multipart form streamed through multer directly to disk. The Song document is created only after the file lands safely. Large videos use the same path with a higher size cap (600 MB at the nginx layer).</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant U as Artist/Admin
+    participant F as UploadForm
+    participant N as nginx
+    participant Mul as Multer
+    participant Ctrl as songController
+    participant DB as Mongo
+    participant FS as Disk
+
+    U->>F: pick audio + cover + metadata
+    F->>N: POST /api/admin/upload-song<br/>(multipart, streaming)
+    N->>Mul: proxy_request_buffering off
+    Mul->>FS: write audio to /uploads/audio/...
+    Mul->>FS: write cover to /uploads/covers/...
+    Mul->>Ctrl: req.files populated
+    Ctrl->>Ctrl: validate genre, isPremium, title
+    Ctrl->>DB: Song.create({...})
+    DB-->>Ctrl: saved song
+    Ctrl-->>F: 201 { song }
+    F-->>U: toast 'Uploaded'<br/>refresh list
+
+    alt File write fails
+        Mul-->>Ctrl: error
+        Ctrl-->>F: 500
+        Note over Ctrl,FS: Partial files cleaned by cron
+    end
+        </pre>
+    </div>
+
+    <div class="refs">
+        <div class="card">
+            <div class="card-label">Limits</div>
+            <ul>
+                <li>Audio: 20 MB</li>
+                <li>Video: 600 MB</li>
+                <li>Cover: 5 MB</li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="card-label">Validation</div>
+            <ul>
+                <li>MIME type allowlist</li>
+                <li>Magic-byte sniffing</li>
+                <li>Genre enum check</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ================== 10 ALBUMS ================== -->
+<section class="flow" id="albums">
+    <div class="sec-num">10 · Content</div>
+    <h3>Album management</h3>
+    <p class="lead">Albums and songs are separate documents linked by ID. The "Manage Tracks" modal adds/removes the link; the song file stays put. Admins see all songs; artists see only their own.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TB
+    Start[Artist/Admin clicks<br/>music-note icon] --> Open[Open Manage Tracks modal]
+    Open --> Fetch[Fetch album with<br/>populated songs]
+    Open --> List{Who is viewer?}
+    List -->|Artist| MySongs[GET /api/artists/me/songs]
+    List -->|Admin| AllSongs[GET /api/admin/songs?limit=500]
+
+    MySongs --> Render
+    AllSongs --> Render[Render two lists:<br/>'In album' + 'Available']
+
+    Render --> Action{User clicks}
+    Action -->|+| Add[POST /api/albums/:id/add-song]
+    Action -->|×| Remove[DELETE /api/albums/:id/remove-song]
+
+    Add --> Update[Backend pushes songId<br/>to album.songs array]
+    Remove --> Update2[Backend pulls songId<br/>from album.songs array]
+
+    Update --> RefreshUI[Modal re-renders<br/>card badge updates]
+    Update2 --> RefreshUI
+
+    style Start fill:#6c63ff,stroke:#6c63ff,color:#fff
+    style RefreshUI fill:#2ecc71,stroke:#2ecc71,color:#000
+        </pre>
+    </div>
+</section>
+
+<!-- ================== 11 STREAM ================== -->
+<section class="flow" id="stream">
+    <div class="sec-num">11 · Content</div>
+    <h3>Stream &amp; premium gating</h3>
+    <p class="lead">Every play hits <code>/api/songs/:id/stream</code> first — the backend authorizes, increments play count atomically, then redirects to the actual file URL. The audio element follows the 302. Range requests after that go directly to nginx.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant AP as AudioPlayer
+    participant API as /api/songs
+    participant DB as Mongo
+    participant N as nginx
+
+    U->>AP: click play
+    AP->>API: GET /:id/stream
+    API->>DB: find song
+    API->>API: check song.isPremium
+
+    alt Premium song + no subscription
+        API-->>AP: 403 'Subscription required'
+        AP-->>U: show upgrade modal
+    else Free, or premium + active sub
+        API->>DB: $inc playCount atomically
+        API->>DB: insert Analytics event
+        API-->>AP: 302 redirect to /uploads/audio/...
+        AP->>N: GET /uploads/audio/... Range: bytes=0-
+        N-->>AP: 206 Partial Content (zero-copy)
+        AP-->>U: audio plays
+    end
+
+    Note over AP,N: All subsequent range requests<br/>(scrubbing) go straight to nginx,<br/>not Node — fast and parallel.
+        </pre>
+    </div>
+
+    <div class="refs">
+        <div class="card amber">
+            <div class="card-label">Why redirect?</div>
+            <ul>
+                <li>Node never touches bytes</li>
+                <li class="muted">Auth happens once, up front</li>
+                <li class="muted">nginx handles all ranges</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ================== 12 DOWNLOAD ================== -->
+<section class="flow" id="download">
+    <div class="sec-num">12 · Content</div>
+    <h3>Download (free + paid)</h3>
+    <p class="lead">Free songs download in one step. Paid songs require either an active subscription <em>or</em> a one-time purchase. The backend issues a short-lived signed URL that nginx can validate.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    Start[Click download button] --> Check{Song price?}
+    Check -->|Free| Free[GET /api/songs/:id/download]
+    Check -->|Paid| Sub{User has<br/>active sub?}
+    Sub -->|Yes| Free
+    Sub -->|No| Buy[Show purchase modal]
+
+    Buy --> PawaPay[POST /api/payments/initiate]
+    PawaPay --> STK[PawaPay sends<br/>STK push to phone]
+    STK --> Wait[User enters PIN<br/>on phone]
+    Wait --> WH[Webhook fires<br/>POST /api/payments/webhook]
+    WH --> Verify{Signature<br/>valid?}
+    Verify -->|No| Drop[Drop request<br/>log warning]
+    Verify -->|Yes| Mark[Mark payment 'completed'<br/>create Download record]
+    Mark --> Free
+
+    Free --> Sign[Backend generates<br/>signed token]
+    Sign --> Resolve[302 → /uploads/audio/...<br/>?sig=...&exp=...]
+    Resolve --> Pull[Browser pulls file]
+
+    style Buy fill:#f4b740,stroke:#f4b740,color:#000
+    style Pull fill:#2ecc71,stroke:#2ecc71,color:#000
+    style Drop fill:#ff5470,stroke:#ff5470,color:#fff
+        </pre>
+    </div>
+</section>
+
+<!-- ================== 13 SEARCH ================== -->
+<section class="flow" id="search">
+    <div class="sec-num">13 · Content</div>
+    <h3>Search</h3>
+    <p class="lead">Debounced 150ms after each keystroke. Backend uses ReDoS-safe substring regex on indexed fields. Results stream back as the user types — no "enter to search" gesture required.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant SP as SearchPage
+    participant API as /api/search
+    participant DB as Mongo
+
+    U->>SP: types 'a'
+    SP->>SP: q.length &lt; 2, skip
+    U->>SP: types 'af'
+    SP->>SP: start 150ms timer
+    U->>SP: types 'afr' (cancels timer)
+    SP->>SP: restart 150ms timer
+    Note over SP: 150ms idle...
+    SP->>API: GET /songs?q=afr&page=1
+    API->>API: escapeRegex(q) — ReDoS-safe
+    API->>DB: $or [<br/>title regex,<br/>artist.stageName regex,<br/>genre regex<br/>]
+    DB-->>API: matching songs<br/>(.lean() for speed)
+    API-->>SP: { songs, totalPages }
+    SP-->>U: render results in tabs
+        </pre>
+    </div>
+
+    <div class="refs">
+        <div class="card">
+            <div class="card-label">Indexed fields</div>
+            <ul>
+                <li>Song.title</li>
+                <li>Artist.stageName</li>
+                <li>Album.title</li>
+                <li>genre + isPremium</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ================== 14 SUBSCRIBE ================== -->
+<section class="flow" id="subscribe">
+    <div class="sec-num">14 · Money</div>
+    <h3>Subscription purchase</h3>
+    <p class="lead">PawaPay STK push is async — the user authorizes on their phone, the webhook arrives some seconds later. The frontend polls for status while showing a waiting screen.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant F as Subscription page
+    participant API as /api/subscriptions
+    participant PP as PawaPay
+    participant Phone as User's phone
+
+    U->>F: pick plan, enter phone
+    F->>API: POST /initiate { phone, plan }
+    API->>API: create Subscription (status: pending)
+    API->>PP: deposit request
+    PP-->>API: { transactionId, status: 'submitted' }
+    API-->>F: { pollUrl, txId }
+    PP->>Phone: STK push prompt
+    F-->>U: 'Check your phone'
+
+    U->>Phone: enter mobile-money PIN
+    Phone->>PP: confirm
+
+    par Webhook (preferred)
+        PP->>API: POST /webhook (signed)
+        API->>API: verify HMAC
+        API->>API: mark Subscription 'active'
+        API->>API: set expiresAt = now + 30d
+        API->>Socket: emit 'subscription:activated'
+        Socket->>F: real-time update
+    and Polling (fallback)
+        F->>API: GET /status/:txId (every 3s)
+        API-->>F: 'active' once webhook fires
+    end
+
+    F-->>U: 'Welcome to Premium' + redirect
+
+    Note over API,PP: Webhook is the source of truth.<br/>Polling is just a UX nicety.
+        </pre>
+    </div>
+</section>
+
+<!-- ================== 15 WITHDRAW ================== -->
+<section class="flow" id="withdraw">
+    <div class="sec-num">15 · Money</div>
+    <h3>Artist withdrawal</h3>
+    <p class="lead">Withdrawals are NOT auto-processed — admin reviews each request before triggering the PawaPay payout. This prevents fraud and gives a manual checkpoint.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant A as Artist
+    participant Adm as Admin
+    participant API as /api/wallet
+    participant DB as Mongo
+    participant PP as PawaPay
+
+    A->>API: POST /withdraw { amount, phone }
+    API->>DB: check wallet.balance &gt;= amount
+    API->>DB: create Withdrawal (status: pending)<br/>debit wallet (hold)
+    API-->>A: 'Awaiting admin review'
+    API->>Socket: emit 'withdrawal:new' to admin
+
+    Adm->>API: GET /admin/withdrawals?status=pending
+    Adm->>API: POST /admin/withdrawals/:id/approve
+
+    API->>PP: payout request
+    PP-->>API: { transactionId }
+    API->>DB: mark Withdrawal 'approved' + txId
+
+    PP-->>A: SMS 'You received K500'
+    PP->>API: webhook 'payout success'
+    API->>API: verify HMAC
+    API->>DB: mark Withdrawal 'paid'
+    API->>Socket: emit 'withdrawal:paid' to artist
+
+    alt PawaPay rejects
+        PP->>API: webhook 'payout failed'
+        API->>DB: refund wallet, mark 'failed'
+        API->>Socket: emit to artist + admin
+    end
+        </pre>
+    </div>
+
+    <div class="refs">
+        <div class="card amber">
+            <div class="card-label">Atomicity</div>
+            <ul>
+                <li>Wallet debit + Withdrawal create</li>
+                <li class="muted">happen in one transaction</li>
+                <li class="muted">refund auto-fires on failure</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ================== 16 COMMENTS ================== -->
+<section class="flow" id="comments">
+    <div class="sec-num">16 · Engagement</div>
+    <h3>Comments &amp; moderation</h3>
+    <p class="lead">Any authenticated user can comment on songs. Other users can flag comments; flagged ones land in the admin queue at <code>#admin/comments</code>. Admin can delete, suspend the commenter, or dismiss the report.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+    subgraph Post[Posting]
+        P1[User types comment] --> P2[POST /api/comments]
+        P2 --> P3[Create Comment doc<br/>sanitize body]
+        P3 --> P4[Broadcast via socket]
+    end
+
+    subgraph Report[Reporting]
+        R1[User clicks flag] --> R2[POST /api/comments/:id/report]
+        R2 --> R3[Increment reportCount<br/>store reporter ID]
+        R3 --> R4[If reportCount &gt;= 3<br/>auto-flag for admin]
+    end
+
+    subgraph Mod[Admin moderation]
+        M1[Admin opens<br/>#admin/comments] --> M2[GET /api/admin/comments<br/>?status=reported]
+        M2 --> M3{Action}
+        M3 -->|Delete| M4[DELETE /api/comments/:id]
+        M3 -->|Suspend| M5[POST /api/admin/users/:id/suspend]
+        M3 -->|Dismiss| M6[POST /api/admin/comments/:id/clear]
+    end
+
+    Post --> Report
+    Report --> Mod
+        </pre>
+    </div>
+</section>
+
+<!-- ================== 17 NOTIFY ================== -->
+<section class="flow" id="notify">
+    <div class="sec-num">17 · Engagement</div>
+    <h3>Notifications (real-time)</h3>
+    <p class="lead">Backend emits to <code>io.to(userId)</code> after any event that warrants a notification. Frontend's notification badge updates immediately; the notifications page loads the full list with pagination.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant Src as Source event<br/>(like, follow, payment, etc.)
+    participant API as Backend controller
+    participant DB as Mongo
+    participant IO as socket.io
+    participant FE as Frontend
+    participant Bell as Navbar bell
+
+    Src->>API: any controller action
+    API->>DB: Notification.create({<br/>  user, type, title, message, link<br/>})
+    API->>IO: io.to(userId).emit('notification:new', notif)
+
+    alt User online
+        IO->>FE: 'notification:new'
+        FE->>Bell: increment unread badge
+        FE->>FE: Toast.show(title)
+    else User offline
+        Note over IO,FE: Stored in Mongo,<br/>fetched when they return
+    end
+
+    Note over FE: User opens #notifications
+    FE->>API: GET /api/notifications?page=1
+    API->>DB: find by user, sort -createdAt
+    API-->>FE: paginated list + unreadCount
+    FE-->>Bell: update badge from total
+        </pre>
+    </div>
+
+    <div class="refs">
+        <div class="card">
+            <div class="card-label">Event types</div>
+            <ul>
+                <li>like, comment, follow</li>
+                <li>subscription, payment</li>
+                <li>withdrawal, admin</li>
+                <li>welcome, artist_update</li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="card-label">Delivery</div>
+            <ul>
+                <li>socket.io if online</li>
+                <li>Mongo always (durable)</li>
+                <li>Email for some types</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div>Bravo Music · system flows · generated for refactor reference</div>
+    <div>17 flows · 14 diagrams · 1 page</div>
+</footer>
+
+</main>
+</div>
+
+<script>
+// Mermaid setup — dark theme with Bravo palette
+mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+        primaryColor: '#1f1f38',
+        primaryTextColor: '#e8e8f0',
+        primaryBorderColor: '#2a2a45',
+        lineColor: '#6c63ff',
+        secondaryColor: '#16162a',
+        tertiaryColor: '#16162a',
+        background: '#0a0a14',
+        mainBkg: '#1f1f38',
+        secondBkg: '#16162a',
+        textColor: '#e8e8f0',
+        nodeBorder: '#2a2a45',
+        clusterBkg: '#0e0e1e',
+        clusterBorder: '#2a2a45',
+        defaultLinkColor: '#6c63ff',
+        actorBkg: '#1f1f38',
+        actorBorder: '#6c63ff',
+        actorTextColor: '#e8e8f0',
+        actorLineColor: '#6c63ff',
+        signalColor: '#e8e8f0',
+        signalTextColor: '#e8e8f0',
+        labelBoxBkgColor: '#1f1f38',
+        labelBoxBorderColor: '#6c63ff',
+        labelTextColor: '#e8e8f0',
+        loopTextColor: '#e8e8f0',
+        noteBorderColor: '#f4b740',
+        noteBkgColor: '#2a2118',
+        noteTextColor: '#f4b740',
+        activationBorderColor: '#6c63ff',
+        activationBkgColor: '#2a2a45'
+    },
+    sequence: {
+        actorMargin: 80,
+        boxMargin: 10,
+        mirrorActors: false,
+        useMaxWidth: true
+    },
+    flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+    },
+    er: {
+        useMaxWidth: true
+    }
+});
+
+// Scroll-spy for active section in left rail
+const sections = document.querySelectorAll('section.flow, .intro');
+const navLinks = document.querySelectorAll('.rail-nav a');
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const id = entry.target.id;
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+            });
+        }
+    });
+}, {
+    rootMargin: '-30% 0px -60% 0px',
+    threshold: 0
+});
+
+sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
