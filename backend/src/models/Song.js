@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { GENRES, normalizeGenre } from './genres.js';
+import { GENRES, normalizeGenre } from './Genres.js';
 
 const songSchema = new mongoose.Schema(
   {
@@ -23,7 +23,6 @@ const songSchema = new mongoose.Schema(
     audioFileId: String,
     coverArt: {
       type: String,
-      default: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=300',
     },
     isVideo: { type: Boolean, default: false },
 

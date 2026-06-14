@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { GENRES, normalizeGenre } from './genres.js';
+import { GENRES, normalizeGenre } from './Genres.js';
 
 const albumSchema = new mongoose.Schema(
   {
