@@ -73,7 +73,7 @@ const songSchema = new mongoose.Schema(
 // Text index for ReDoS-safe full-text search (proper alternative to
 // regex search — searchController could be migrated to use $text in
 // a future pass).
-songSchema.index({ title: 'text', tags: 'text', lyrics: 'text' });
+songSchema.index({ title: 'text', tags: 'text', genre: 'text', lyrics: 'text' }, { name: 'title_text_tags_text_genre_text' });
 
 // Listing queries.
 songSchema.index({ status: 1, createdAt: -1 });
