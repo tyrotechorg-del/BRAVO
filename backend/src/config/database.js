@@ -50,7 +50,7 @@ async function ensureCollections() {
     
     await db.collection('users').createIndex({ email: 1 }, { unique: true });
     await db.collection('users').createIndex({ username: 1 }, { unique: true });
-    await db.collection('songs').createIndex({ title: 'text', tags: 'text' });
+    await db.collection('songs').createIndex({ title: 'text', tags: 'text', genre: 'text', lyrics: 'text' }, { name: 'title_text_tags_text_genre_text' });
     await db.collection('songs').createIndex({ artist: 1, createdAt: -1 });
     await db.collection('artists').createIndex({ userId: 1 }, { unique: true });
     await db.collection('artists').createIndex({ stageName: 1 }, { unique: true });
