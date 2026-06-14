@@ -133,7 +133,7 @@ function buildAllowedOrigins() {
     return [
         'https://bravomusics.com',
         'https://www.bravomusics.com',
-	'https://api.bravomusics.com'
+	    'https://api.bravomusics.com',
         'http://localhost:3000',
         'http://localhost:1000',
         'http://localhost:5500',
