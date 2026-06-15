@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bravo Music — System Flows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+:root {
+    --bg: #0a0a14;
+    --surface: #16162a;
+    --surface-2: #1f1f38;
+    --border: #2a2a45;
+    --text: #e8e8f0;
+    --text-muted: #8a8aa3;
+    --primary: #6c63ff;
+    --primary-soft: rgba(108, 99, 255, 0.15);
+    --primary-strong: rgba(108, 99, 255, 0.35);
+    --amber: #f4b740;
+    --amber-soft: rgba(244, 183, 64, 0.12);
+    --green: #2ecc71;
+    --red: #ff5470;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Layout shell */
+.shell {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Left rail */
+.rail {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 24px;
+    border-right: 1px solid var(--border);
+    background: var(--bg);
+}
+.rail .brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+.rail h1 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+}
+.rail .subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+.hint-card {
+    background: var(--primary-soft);
+    border: 1px solid var(--primary-strong);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 24px;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.5;
+}
+.hint-card strong {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+.rail-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.rail-nav a {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
+}
+.rail-nav a:hover { color: var(--text); background: var(--primary-soft); }
+.rail-nav a.active {
+    color: var(--text);
+    background: var(--primary-soft);
+}
+.rail-nav a.active::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 70%;
+    background: var(--primary);
+    border-radius: 0 2px 2px 0;
+}
+.rail-nav .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.rail-nav a.active .num { color: var(--primary); }
+
+.rail-group {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 20px 0 8px;
+    padding-left: 8px;
+}
+.rail-group:first-of-type { margin-top: 0; }
+
+/* Main content */
+main {
+    padding: 64px 56px 120px;
+    max-width: 1100px;
+}
+.intro {
+    margin-bottom: 64px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+}
+.intro .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+.intro h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin: 12px 0 20px;
+}
+.intro h2 em {
+    font-style: normal;
+    color: var(--primary);
+    font-weight: 800;
+}
+.intro p {
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 620px;
+    margin: 0 0 24px;
+}
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 24px;
+}
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+}
+.legend-item .swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+}
+
+/* Section */
+section.flow {
+    margin-bottom: 88px;
+    scroll-margin-top: 24px;
+}
+section.flow .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--amber);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+section.flow h3 {
+    font-size: 30px;
+    font-weight: 700;
+    margin: 8px 0 12px;
+    letter-spacing: -0.015em;
+}
+section.flow > p.lead {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 720px;
+    margin: 0 0 24px;
+}
+
+/* Diagram container */
+.diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0 8px;
+    overflow-x: auto;
+    position: relative;
+}
+.diagram svg { max-width: 100%; height: auto; }
+.diagram-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.diagram-hint::before {
+    content: '↗';
+    color: var(--primary);
+    font-size: 14px;
+}
+
+/* Mermaid node click affordance */
+.diagram svg .clickable {
+    cursor: pointer;
+    transition: filter 0.15s;
+}
+.diagram svg .clickable:hover {
+    filter: brightness(1.2);
+}
+.diagram svg .node.clickable rect,
+.diagram svg .node.clickable polygon,
+.diagram svg .node.clickable circle {
+    stroke-width: 2px;
+}
+
+/* Reference cards */
+.refs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+}
+.refs .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+}
+.refs .card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.refs .card ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.refs .card li {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.7;
+}
+.refs .card li.muted { color: var(--text-muted); }
+.refs .card.amber { border-color: rgba(244, 183, 64, 0.4); background: var(--amber-soft); }
+.refs .card.amber .card-label { color: var(--amber); }
+
+/* Inline code */
+code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85em;
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--text);
+}
+
+/* Table for role matrix */
+table.matrix {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 13px;
+}
+table.matrix th, table.matrix td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+table.matrix th {
+    background: var(--surface-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+table.matrix tr:last-child td { border-bottom: none; }
+table.matrix td:first-child {
+    font-weight: 600;
+    color: var(--text);
+}
+.dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+.dot.yes { background: var(--green); }
+.dot.no  { background: var(--surface-2); }
+.dot.own { background: var(--amber); }
+
+/* ============== SIDE DRAWER ============== */
+.drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 100;
+}
+.drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+.drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 440px;
+    max-width: 90vw;
+    height: 100vh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
+    z-index: 101;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+.drawer.open {
+    transform: translateX(0);
+}
+.drawer-head {
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+}
+.drawer-head .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.drawer-head h4 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+    padding-right: 32px;
+    line-height: 1.25;
+}
+.drawer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+.drawer-close:hover {
+    background: var(--surface-2);
+    color: var(--text);
+}
+.drawer-body {
+    padding: 24px 28px;
+    overflow-y: auto;
+    flex: 1;
+}
+.drawer-section {
+    margin-bottom: 24px;
+}
+.drawer-section:last-child { margin-bottom: 0; }
+.drawer-section h5 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+    font-weight: 500;
+}
+.drawer-section p {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.55;
+}
+.drawer-section ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.drawer-section li {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.8;
+    padding-left: 14px;
+    position: relative;
+}
+.drawer-section li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+}
+.drawer-section.gotcha {
+    background: var(--amber-soft);
+    border: 1px solid rgba(244, 183, 64, 0.3);
+    border-radius: 6px;
+    padding: 14px;
+    margin-top: 16px;
+}
+.drawer-section.gotcha h5 { color: var(--amber); margin-bottom: 6px; }
+.drawer-section.gotcha p { font-size: 13px; }
+
+.drawer-empty {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 40px 0;
+}
+
+/* Footer */
+footer {
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .rail {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+    main { padding: 32px 20px 80px; }
+    .intro h2 { font-size: 28px; }
+    .drawer { width: 100vw; max-width: 100vw; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<aside class="rail">
+    <div class="brand">v2.0 · interactive</div>
+    <h1>Bravo Music</h1>
+    <div class="subtitle">Every flow, every endpoint, every model.</div>
+
+    <div class="hint-card">
+        <strong>How to use</strong>
+        Click any node in a diagram to see its files, endpoints, and gotchas.
+    </div>
+
+    <div class="rail-group">Foundation</div>
+    <nav class="rail-nav">
+        <a href="#arch"><span class="num">01</span><span>Architecture</span></a>
+        <a href="#boot"><span class="num">02</span><span>Bootstrap</span></a>
+        <a href="#routes"><span class="num">03</span><span>Frontend routes</span></a>
+        <a href="#data"><span class="num">04</span><span>Data model</span></a>
+        <a href="#roles"><span class="num">05</span><span>Roles &amp; permissions</span></a>
+    </nav>
+
+    <div class="rail-group">Identity</div>
+    <nav class="rail-nav">
+        <a href="#auth"><span class="num">06</span><span>Authentication</span></a>
+        <a href="#reset"><span class="num">07</span><span>Password reset</span></a>
+        <a href="#upgrade"><span class="num">08</span><span>Become artist</span></a>
+    </nav>
+
+    <div class="rail-group">Content</div>
+    <nav class="rail-nav">
+        <a href="#upload"><span class="num">09</span><span>Song upload</span></a>
+        <a href="#albums"><span class="num">10</span><span>Album management</span></a>
+        <a href="#stream"><span class="num">11</span><span>Stream &amp; gating</span></a>
+        <a href="#download"><span class="num">12</span><span>Download</span></a>
+        <a href="#search"><span class="num">13</span><span>Search</span></a>
+    </nav>
+
+    <div class="rail-group">Money</div>
+    <nav class="rail-nav">
+        <a href="#subscribe"><span class="num">14</span><span>Subscription</span></a>
+        <a href="#withdraw"><span class="num">15</span><span>Withdrawal</span></a>
+    </nav>
+
+    <div class="rail-group">Engagement</div>
+    <nav class="rail-nav">
+        <a href="#comments"><span class="num">16</span><span>Comments &amp; reports</span></a>
+        <a href="#notify"><span class="num">17</span><span>Notifications</span></a>
+    </nav>
+</aside>
+
+<main>
+
+<div class="intro">
+    <div class="label">Bravo Music · interactive system flows</div>
+    <h2>Click anywhere. Everything <em>explains</em> itself.</h2>
+    <p>Seventeen flows, one consistent layout. Every step is a decision tree from top to bottom — click any node to see the files, endpoints, and gotchas behind it.</p>
+    <div class="legend">
+        <div class="legend-item"><span class="swatch" style="background:#6c63ff"></span>User action / entry point</div>
+        <div class="legend-item"><span class="swatch" style="background:#1f1f38;border-color:#6c63ff"></span>Internal step</div>
+        <div class="legend-item"><span class="swatch" style="background:#f4b740;border-color:#f4b740"></span>External service / critical branch</div>
+        <div class="legend-item"><span class="swatch" style="background:#2ecc71;border-color:#2ecc71"></span>Success</div>
+        <div class="legend-item"><span class="swatch" style="background:#ff5470;border-color:#ff5470"></span>Failure / error</div>
+    </div>
+</div>
+
+<!-- ================== 01 ARCHITECTURE ================== -->
+<section class="flow" id="arch">
+    <div class="sec-num">01 · Foundation</div>
+    <h3>Architecture overview</h3>
+    <p class="lead">Three tiers. nginx serves static assets and proxies the API; Node handles logic; Mongo + Redis + disk hold state. PawaPay is the only external service that calls back into the system.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    a01_user([User · browser]):::user
+    a01_nginx[nginx · edge]:::step
+    a01_static[Static files<br/>frontend/public]:::step
+    a01_api[Node API<br/>:1000]:::step
+    a01_uploads[Static uploads<br/>backend/uploads]:::step
+    a01_mongo[(MongoDB<br/>domain state)]:::step
+    a01_redis[(Redis<br/>tokens · rate-limit)]:::step
+    a01_pawapay[PawaPay<br/>mobile money]:::external
+
+    a01_user -->|HTTPS| a01_nginx
+    a01_nginx -->|HTML / CSS / JS| a01_static
+    a01_nginx -->|proxy /api/*| a01_api
+    a01_nginx -->|sendfile + Range| a01_uploads
+    a01_api --> a01_mongo
+    a01_api --> a01_redis
+    a01_api -->|REST| a01_pawapay
+    a01_pawapay -.->|webhooks| a01_api
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef external fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+
+    click a01_user nodeClick
+    click a01_nginx nodeClick
+    click a01_static nodeClick
+    click a01_api nodeClick
+    click a01_uploads nodeClick
+    click a01_mongo nodeClick
+    click a01_redis nodeClick
+    click a01_pawapay nodeClick
+        </pre>
+        <div class="diagram-hint">Click any node above for files, endpoints, and gotchas.</div>
+    </div>
+</section>
+
+<!-- ================== 02 BOOTSTRAP ================== -->
+<section class="flow" id="boot">
+    <div class="sec-num">02 · Foundation</div>
+    <h3>Bootstrap &amp; first paint</h3>
+    <p class="lead">Script order matters because there's no bundler. Each layer defines globals the next layer needs.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    b02_req([Browser requests /]):::user
+    b02_serve[nginx serves index.html<br/>Cache-Control: no-store]:::step
+    b02_config[Load config.js<br/>defines window.API_BASE_URL]:::step
+    b02_api[Load API clients<br/>auth · songs · albums · ...]:::step
+    b02_comp[Load components<br/>Navbar · Sidebar · AudioPlayer]:::step
+    b02_pages[Load pages<br/>HomePage · LikedPage · ...]:::step
+    b02_app[Load app.js<br/>last in chain]:::step
+    b02_auth{Token in<br/>localStorage?}:::decision
+    b02_refresh[authService refreshes<br/>silently]:::step
+    b02_init[App.init runs]:::step
+    b02_chrome[Render Navbar + Sidebar + AudioPlayer]:::step
+    b02_route[Parse location.hash]:::step
+    b02_mount[Mount page module]:::step
+    b02_socket[Connect socket.io<br/>if authenticated]:::success
+
+    b02_req --> b02_serve
+    b02_serve --> b02_config
+    b02_config --> b02_api
+    b02_api --> b02_comp
+    b02_comp --> b02_pages
+    b02_pages --> b02_app
+    b02_app --> b02_auth
+    b02_auth -->|Yes| b02_refresh
+    b02_auth -->|No| b02_init
+    b02_refresh --> b02_init
+    b02_init --> b02_chrome
+    b02_chrome --> b02_route
+    b02_route --> b02_mount
+    b02_mount --> b02_socket
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+
+    click b02_req nodeClick
+    click b02_serve nodeClick
+    click b02_config nodeClick
+    click b02_api nodeClick
+    click b02_comp nodeClick
+    click b02_pages nodeClick
+    click b02_app nodeClick
+    click b02_auth nodeClick
+    click b02_refresh nodeClick
+    click b02_init nodeClick
+    click b02_chrome nodeClick
+    click b02_route nodeClick
+    click b02_mount nodeClick
+    click b02_socket nodeClick
+        </pre>
+        <div class="diagram-hint">Click any step to see what each layer defines.</div>
+    </div>
+</section>
+
+<!-- ================== 03 ROUTES ================== -->
+<section class="flow" id="routes">
+    <div class="sec-num">03 · Foundation</div>
+    <h3>Frontend route map</h3>
+    <p class="lead">All routes are hash-based. Five groups, each with its own access gate. Routes outside Main require authentication; Hub requires artist or admin; Panel requires admin.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    r03_root(["#"]):::user
+    r03_main[Main · public]:::step
+    r03_lib[Your library · auth required]:::decision
+    r03_acct[Account · auth required]:::decision
+    r03_hub[Artist hub · artist/admin]:::decision
+    r03_admin[Admin panel · admin only]:::external
+
+    r03_root --> r03_main
+    r03_root --> r03_lib
+    r03_root --> r03_acct
+    r03_root --> r03_hub
+    r03_root --> r03_admin
+
+    r03_main --> r03_m1[home · browse · trending]
+    r03_main --> r03_m2[search · song/:id]
+    r03_main --> r03_m3[album/:id · artist/:id]
+
+    r03_lib --> r03_l1[liked · recent · downloads]
+    r03_lib --> r03_l2[playlists · playlist/:id]
+    r03_lib --> r03_l3[videos]
+
+    r03_acct --> r03_a1[notifications · wallet]
+    r03_acct --> r03_a2[subscription · payment-history]
+    r03_acct --> r03_a3[settings · upgrade]
+
+    r03_hub --> r03_h1[dashboard · upload]
+    r03_hub --> r03_h2[earnings · artist/albums]
+
+    r03_admin --> r03_ad1[admin · users · songs]
+    r03_admin --> r03_ad2[albums · videos · artists]
+    r03_admin --> r03_ad3[withdrawals · reports · comments]
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef external fill:#ff5470,stroke:#ff5470,color:#fff
+
+    click r03_root nodeClick
+    click r03_main nodeClick
+    click r03_lib nodeClick
+    click r03_acct nodeClick
+    click r03_hub nodeClick
+    click r03_admin nodeClick
+        </pre>
+        <div class="diagram-hint">Click any group for the full route list + gating logic.</div>
+    </div>
+</section>
+
+<!-- ================== 04 DATA MODEL ================== -->
+<section class="flow" id="data">
+    <div class="sec-num">04 · Foundation</div>
+    <h3>Data model</h3>
+    <p class="lead">User is the root entity. Listeners become Artists by creating an Artist document. Songs belong to one Artist; albums group songs. Payments, subscriptions, and withdrawals all reference User + Artist for the money trail.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+erDiagram
+    USER ||--o| ARTIST : "promotes to"
+    USER ||--o{ PLAYLIST : owns
+    USER ||--o{ LIKE : creates
+    USER ||--o{ COMMENT : posts
+    USER ||--o{ SUBSCRIPTION : has
+    USER ||--o{ PAYMENT : makes
+    USER ||--o{ NOTIFICATION : receives
+    USER ||--o| WALLET : has
+    USER ||--o{ DOWNLOAD : records
+
+    ARTIST ||--o{ SONG : produces
+    ARTIST ||--o{ ALBUM : releases
+    ARTIST ||--o{ WITHDRAWAL : requests
+
+    ALBUM ||--o{ SONG : contains
+    SONG ||--o{ LIKE : "liked by"
+    SONG ||--o{ COMMENT : "commented on"
+    SONG ||--o{ DOWNLOAD : "downloaded as"
+
+    PLAYLIST ||--o{ PLAYLIST_ITEM : holds
+    SONG ||--o{ PLAYLIST_ITEM : "in playlists"
+
+    USER {
+        ObjectId _id
+        string username UK
+        string email UK
+        string passwordHash
+        enum role
+        ObjectId artistId FK
+    }
+    ARTIST {
+        ObjectId _id
+        ObjectId user FK
+        string stageName UK
+        string bio
+        array genres
+        bool isVerified
+    }
+    SONG {
+        ObjectId _id
+        ObjectId artist FK
+        ObjectId album FK
+        string title
+        string fileUrl
+        bool isPremium
+        int playCount
+        int likeCount
+    }
+    SUBSCRIPTION {
+        ObjectId _id
+        ObjectId user FK
+        enum type
+        enum status
+        Date expiresAt
+        string pawapayId
+    }
+    WITHDRAWAL {
+        ObjectId _id
+        ObjectId artist FK
+        decimal amount
+        string phoneNumber
+        enum status
+        string pawapayId
+    }
+        </pre>
+        <div class="diagram-hint">ER diagrams aren't clickable — see the role matrix below for who can access what.</div>
+    </div>
+</section>
+
+<!-- ================== 05 ROLES ================== -->
+<section class="flow" id="roles">
+    <div class="sec-num">05 · Foundation</div>
+    <h3>Roles &amp; permissions</h3>
+    <p class="lead">Three roles, escalating capabilities. Every backend write checks role via <code>requireRole</code>. The matrix shows what each role can do.</p>
+
+    <table class="matrix">
+        <thead>
+            <tr>
+                <th>Capability</th>
+                <th>Listener</th>
+                <th>Artist</th>
+                <th>Admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Browse, search, play free songs</td>
+                <td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Like, comment, follow</td>
+                <td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Stream premium songs</td>
+                <td><span class="dot own"></span>With sub</td><td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Download paid songs</td>
+                <td><span class="dot own"></span>Per-purchase</td><td><span class="dot yes"></span>Yes</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Upload songs &amp; albums</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot own"></span>Own only</td><td><span class="dot yes"></span>Any</td></tr>
+            <tr><td>See earnings dashboard</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot own"></span>Own only</td><td><span class="dot yes"></span>Platform</td></tr>
+            <tr><td>Request withdrawal</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot yes"></span>Yes</td><td><span class="dot no"></span>(approves)</td></tr>
+            <tr><td>Moderate reported comments</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot no"></span>No</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Manage all users / artists</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot no"></span>No</td><td><span class="dot yes"></span>Yes</td></tr>
+            <tr><td>Add songs to any album</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot own"></span>Own albums</td><td><span class="dot yes"></span>Any</td></tr>
+            <tr><td>Edit system settings</td>
+                <td><span class="dot no"></span>No</td><td><span class="dot no"></span>No</td><td><span class="dot yes"></span>Yes</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- ================== 06 AUTH ================== -->
+<section class="flow" id="auth">
+    <div class="sec-num">06 · Identity</div>
+    <h3>Authentication</h3>
+    <p class="lead">Email/password login returns an access token (15 min) and a refresh token (30 days, stored in Redis). 401s trigger silent refresh before the original request retries.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    au06_start([Submit login form]):::user
+    au06_post[POST /api/auth/login]:::step
+    au06_find{Email found?}:::decision
+    au06_pass{Password<br/>matches?}:::decision
+    au06_store[Store refresh token in Redis<br/>TTL 30 days]:::step
+    au06_return[Return access + refresh + user]:::step
+    au06_save[Frontend stores in localStorage]:::step
+    au06_done[Redirect to #home]:::success
+    au06_fail[401 Invalid credentials]:::failure
+
+    au06_start --> au06_post
+    au06_post --> au06_find
+    au06_find -->|Yes| au06_pass
+    au06_find -->|No| au06_fail
+    au06_pass -->|Yes| au06_store
+    au06_pass -->|No| au06_fail
+    au06_store --> au06_return
+    au06_return --> au06_save
+    au06_save --> au06_done
+
+    au06_req([Any authed request later]):::user
+    au06_401{Token<br/>expired?}:::decision
+    au06_refresh[POST /api/auth/refresh-token]:::step
+    au06_valid{Refresh token<br/>valid?}:::decision
+    au06_rotate[Rotate tokens<br/>old refresh invalidated]:::step
+    au06_retry[Retry original request]:::success
+    au06_logout[Force logout<br/>redirect to #login]:::failure
+
+    au06_req --> au06_401
+    au06_401 -->|Yes| au06_refresh
+    au06_401 -->|No| au06_retry
+    au06_refresh --> au06_valid
+    au06_valid -->|Yes| au06_rotate
+    au06_valid -->|No| au06_logout
+    au06_rotate --> au06_retry
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+    classDef failure fill:#ff5470,stroke:#ff5470,color:#fff
+
+    click au06_start nodeClick
+    click au06_post nodeClick
+    click au06_find nodeClick
+    click au06_pass nodeClick
+    click au06_store nodeClick
+    click au06_return nodeClick
+    click au06_save nodeClick
+    click au06_done nodeClick
+    click au06_fail nodeClick
+    click au06_req nodeClick
+    click au06_401 nodeClick
+    click au06_refresh nodeClick
+    click au06_valid nodeClick
+    click au06_rotate nodeClick
+    click au06_retry nodeClick
+    click au06_logout nodeClick
+        </pre>
+        <div class="diagram-hint">Two flows: login (top) and silent refresh on 401 (bottom).</div>
+    </div>
+</section>
+
+<!-- ================== 07 PASSWORD RESET ================== -->
+<section class="flow" id="reset">
+    <div class="sec-num">07 · Identity</div>
+    <h3>Password reset</h3>
+    <p class="lead">Time-boxed token (1h) sent by email. Submitting a new password consumes the token in one shot.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    pr07_start([Enter email on #forgot-password]):::user
+    pr07_post[POST /api/auth/forgot-password]:::step
+    pr07_find{User exists?}:::decision
+    pr07_token[Generate reset token<br/>store with 1h expiry]:::step
+    pr07_email[Send email with reset link]:::step
+    pr07_silent[Return 200 silently<br/>even if user not found]:::step
+
+    pr07_click([User clicks email link]):::user
+    pr07_form[Extract token from URL<br/>show new-password form]:::step
+    pr07_submit[POST /api/auth/reset-password<br/>token + new password]:::step
+    pr07_valid{Token valid<br/>and unexpired?}:::decision
+    pr07_hash[bcrypt hash new password]:::step
+    pr07_save[Save user, clear token]:::step
+    pr07_done[Redirect to #login]:::success
+    pr07_expired[400 Token expired<br/>or invalid]:::failure
+
+    pr07_start --> pr07_post
+    pr07_post --> pr07_find
+    pr07_find -->|Yes| pr07_token
+    pr07_find -->|No| pr07_silent
+    pr07_token --> pr07_email
+    pr07_silent --> pr07_email
+
+    pr07_click --> pr07_form
+    pr07_form --> pr07_submit
+    pr07_submit --> pr07_valid
+    pr07_valid -->|Yes| pr07_hash
+    pr07_valid -->|No| pr07_expired
+    pr07_hash --> pr07_save
+    pr07_save --> pr07_done
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+    classDef failure fill:#ff5470,stroke:#ff5470,color:#fff
+
+    click pr07_start nodeClick
+    click pr07_post nodeClick
+    click pr07_find nodeClick
+    click pr07_token nodeClick
+    click pr07_email nodeClick
+    click pr07_silent nodeClick
+    click pr07_click nodeClick
+    click pr07_form nodeClick
+    click pr07_submit nodeClick
+    click pr07_valid nodeClick
+    click pr07_hash nodeClick
+    click pr07_save nodeClick
+    click pr07_done nodeClick
+    click pr07_expired nodeClick
+        </pre>
+        <div class="diagram-hint">Click "Return 200 silently" — that's the email enumeration defense.</div>
+    </div>
+</section>
+
+<!-- ================== 08 BECOME ARTIST ================== -->
+<section class="flow" id="upgrade">
+    <div class="sec-num">08 · Identity</div>
+    <h3>Become an artist</h3>
+    <p class="lead">Self-service listener → artist upgrade. Backend creates an Artist record and flips <code>user.role</code> atomically. The verified badge stays off until admin reviews.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    bc08_start([Listener visits #upgrade]):::user
+    bc08_form[Fills form<br/>stage name · bio · genres · socials]:::step
+    bc08_valid{Form valid?<br/>name ≥ 2 chars<br/>bio ≥ 30 chars<br/>≥ 1 genre}:::decision
+    bc08_post[POST /api/users/me/upgrade-to-artist]:::step
+    bc08_unique{Stage name<br/>unique?}:::decision
+    bc08_create[Create Artist doc<br/>isVerified: false<br/>uploadCredits: 3]:::step
+    bc08_update[Update user.role to artist<br/>set user.artistId]:::step
+    bc08_response[Return updated user + artist]:::step
+    bc08_authsvc[Frontend updates<br/>authService.user]:::step
+    bc08_done[Redirect to #dashboard]:::success
+    bc08_errform[Show inline errors]:::failure
+    bc08_taken[409 Stage name taken]:::failure
+
+    bc08_start --> bc08_form
+    bc08_form --> bc08_valid
+    bc08_valid -->|No| bc08_errform
+    bc08_valid -->|Yes| bc08_post
+    bc08_post --> bc08_unique
+    bc08_unique -->|No| bc08_taken
+    bc08_unique -->|Yes| bc08_create
+    bc08_create --> bc08_update
+    bc08_update --> bc08_response
+    bc08_response --> bc08_authsvc
+    bc08_authsvc --> bc08_done
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+    classDef failure fill:#ff5470,stroke:#ff5470,color:#fff
+
+    click bc08_start nodeClick
+    click bc08_form nodeClick
+    click bc08_valid nodeClick
+    click bc08_post nodeClick
+    click bc08_unique nodeClick
+    click bc08_create nodeClick
+    click bc08_update nodeClick
+    click bc08_response nodeClick
+    click bc08_authsvc nodeClick
+    click bc08_done nodeClick
+    click bc08_errform nodeClick
+    click bc08_taken nodeClick
+        </pre>
+        <div class="diagram-hint">Click "Create Artist doc" to see the 3-credit grant policy.</div>
+    </div>
+</section>
+
+<!-- ================== 09 SONG UPLOAD ================== -->
+<section class="flow" id="upload">
+    <div class="sec-num">09 · Content</div>
+    <h3>Song upload</h3>
+    <p class="lead">Multipart form streams through multer directly to disk. The Song document is created only after the file lands safely.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    su09_start([Pick audio + cover<br/>fill metadata]):::user
+    su09_post[POST /api/admin/upload-song<br/>multipart/form-data]:::step
+    su09_nginx[nginx streams body<br/>proxy_request_buffering off]:::step
+    su09_multer[Multer receives chunks]:::step
+    su09_size{File size<br/>within limits?}:::decision
+    su09_mime{MIME type<br/>allowlisted?}:::decision
+    su09_magic{Magic bytes<br/>match MIME?}:::decision
+    su09_write[Write to /uploads/audio/<br/>and /uploads/covers/]:::step
+    su09_metadata[Validate metadata<br/>genre · title · isPremium]:::step
+    su09_create[Song.create]:::step
+    su09_response[201 + song doc]:::success
+    su09_reject[400 + reason<br/>cleanup partial files]:::failure
+
+    su09_start --> su09_post
+    su09_post --> su09_nginx
+    su09_nginx --> su09_multer
+    su09_multer --> su09_size
+    su09_size -->|No| su09_reject
+    su09_size -->|Yes| su09_mime
+    su09_mime -->|No| su09_reject
+    su09_mime -->|Yes| su09_magic
+    su09_magic -->|No| su09_reject
+    su09_magic -->|Yes| su09_write
+    su09_write --> su09_metadata
+    su09_metadata --> su09_create
+    su09_create --> su09_response
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+    classDef failure fill:#ff5470,stroke:#ff5470,color:#fff
+
+    click su09_start nodeClick
+    click su09_post nodeClick
+    click su09_nginx nodeClick
+    click su09_multer nodeClick
+    click su09_size nodeClick
+    click su09_mime nodeClick
+    click su09_magic nodeClick
+    click su09_write nodeClick
+    click su09_metadata nodeClick
+    click su09_create nodeClick
+    click su09_response nodeClick
+    click su09_reject nodeClick
+        </pre>
+        <div class="diagram-hint">Click "Magic bytes match MIME?" — that's defense against extension spoofing.</div>
+    </div>
+</section>
+
+<!-- ================== 10 ALBUMS ================== -->
+<section class="flow" id="albums">
+    <div class="sec-num">10 · Content</div>
+    <h3>Album management</h3>
+    <p class="lead">Albums and songs are separate documents linked by ID. The "Manage Tracks" modal adds/removes the link; the song file stays put.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    al10_start([Click music-note icon<br/>on album card]):::user
+    al10_open[Open Manage Tracks modal]:::step
+    al10_fetch[Fetch album<br/>with populated songs]:::step
+    al10_who{Who is viewer?}:::decision
+    al10_my[GET /api/artists/me/songs]:::step
+    al10_all[GET /api/admin/songs<br/>limit 500]:::step
+    al10_render[Render two lists:<br/>In album · Available]:::step
+    al10_action{User clicks}:::decision
+    al10_add[POST /api/albums/:id/add-song]:::step
+    al10_remove[DELETE /api/albums/:id/remove-song]:::step
+    al10_push[Backend $push songId<br/>to album.songs]:::step
+    al10_pull[Backend $pull songId<br/>from album.songs]:::step
+    al10_done[Modal re-renders<br/>album badge updates]:::success
+
+    al10_start --> al10_open
+    al10_open --> al10_fetch
+    al10_fetch --> al10_who
+    al10_who -->|Artist| al10_my
+    al10_who -->|Admin| al10_all
+    al10_my --> al10_render
+    al10_all --> al10_render
+    al10_render --> al10_action
+    al10_action -->|+| al10_add
+    al10_action -->|×| al10_remove
+    al10_add --> al10_push
+    al10_remove --> al10_pull
+    al10_push --> al10_done
+    al10_pull --> al10_done
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+
+    click al10_start nodeClick
+    click al10_open nodeClick
+    click al10_fetch nodeClick
+    click al10_who nodeClick
+    click al10_my nodeClick
+    click al10_all nodeClick
+    click al10_render nodeClick
+    click al10_action nodeClick
+    click al10_add nodeClick
+    click al10_remove nodeClick
+    click al10_push nodeClick
+    click al10_pull nodeClick
+    click al10_done nodeClick
+        </pre>
+        <div class="diagram-hint">Admin gets a "show all songs" toggle; artist sees only their own.</div>
+    </div>
+</section>
+
+<!-- ================== 11 STREAM ================== -->
+<section class="flow" id="stream">
+    <div class="sec-num">11 · Content</div>
+    <h3>Stream &amp; premium gating</h3>
+    <p class="lead">Every play hits <code>/api/songs/:id/stream</code> first — backend authorizes, increments play count atomically, then redirects to the actual file URL via nginx.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    st11_start([User clicks play]):::user
+    st11_request[GET /api/songs/:id/stream]:::step
+    st11_find[Find song in DB]:::step
+    st11_premium{Song is<br/>premium?}:::decision
+    st11_sub{User has<br/>active sub?}:::decision
+    st11_count[Atomic $inc playCount<br/>+ Analytics insert]:::step
+    st11_redirect[302 to /uploads/audio/...]:::step
+    st11_nginx[nginx serves with<br/>Range support<br/>zero-copy sendfile]:::step
+    st11_play[Audio plays<br/>scrubbing parallel]:::success
+    st11_upgrade[403 Subscription required]:::failure
+    st11_modal[Show upgrade modal<br/>link to #subscription]:::failure
+
+    st11_start --> st11_request
+    st11_request --> st11_find
+    st11_find --> st11_premium
+    st11_premium -->|No| st11_count
+    st11_premium -->|Yes| st11_sub
+    st11_sub -->|Yes| st11_count
+    st11_sub -->|No| st11_upgrade
+    st11_upgrade --> st11_modal
+    st11_count --> st11_redirect
+    st11_redirect --> st11_nginx
+    st11_nginx --> st11_play
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+    classDef failure fill:#ff5470,stroke:#ff5470,color:#fff
+
+    click st11_start nodeClick
+    click st11_request nodeClick
+    click st11_find nodeClick
+    click st11_premium nodeClick
+    click st11_sub nodeClick
+    click st11_count nodeClick
+    click st11_redirect nodeClick
+    click st11_nginx nodeClick
+    click st11_play nodeClick
+    click st11_upgrade nodeClick
+    click st11_modal nodeClick
+        </pre>
+        <div class="diagram-hint">Click "302 → /uploads/audio/..." — that's the hand-off from Node to nginx.</div>
+    </div>
+</section>
+
+<!-- ================== 12 DOWNLOAD ================== -->
+<section class="flow" id="download">
+    <div class="sec-num">12 · Content</div>
+    <h3>Download (free + paid)</h3>
+    <p class="lead">Free songs download in one step. Paid songs require either an active subscription or a one-time purchase. The backend issues a short-lived signed URL.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    dl12_start([Click download button]):::user
+    dl12_price{Song price?}:::decision
+    dl12_sub{Has active<br/>subscription?}:::decision
+    dl12_buy[Show purchase modal]:::step
+    dl12_initiate[POST /api/payments/initiate]:::step
+    dl12_stk[PawaPay sends STK push<br/>to user's phone]:::external
+    dl12_pin[User enters PIN<br/>on phone]:::user
+    dl12_wh[Webhook<br/>POST /api/payments/webhook]:::external
+    dl12_verify{HMAC signature<br/>valid?}:::decision
+    dl12_mark[Mark payment 'completed'<br/>create Download record]:::step
+    dl12_free[GET /api/songs/:id/download]:::step
+    dl12_sign[Backend generates<br/>signed token]:::step
+    dl12_resolve[302 to /uploads/audio/...<br/>?sig=...&amp;exp=...]:::step
+    dl12_pull[Browser pulls file]:::success
+    dl12_drop[Drop request<br/>log security warning]:::failure
+
+    dl12_start --> dl12_price
+    dl12_price -->|Free| dl12_free
+    dl12_price -->|Paid| dl12_sub
+    dl12_sub -->|Yes| dl12_free
+    dl12_sub -->|No| dl12_buy
+    dl12_buy --> dl12_initiate
+    dl12_initiate --> dl12_stk
+    dl12_stk --> dl12_pin
+    dl12_pin --> dl12_wh
+    dl12_wh --> dl12_verify
+    dl12_verify -->|No| dl12_drop
+    dl12_verify -->|Yes| dl12_mark
+    dl12_mark --> dl12_free
+    dl12_free --> dl12_sign
+    dl12_sign --> dl12_resolve
+    dl12_resolve --> dl12_pull
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef external fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+    classDef failure fill:#ff5470,stroke:#ff5470,color:#fff
+
+    click dl12_start nodeClick
+    click dl12_price nodeClick
+    click dl12_sub nodeClick
+    click dl12_buy nodeClick
+    click dl12_initiate nodeClick
+    click dl12_stk nodeClick
+    click dl12_pin nodeClick
+    click dl12_wh nodeClick
+    click dl12_verify nodeClick
+    click dl12_mark nodeClick
+    click dl12_free nodeClick
+    click dl12_sign nodeClick
+    click dl12_resolve nodeClick
+    click dl12_pull nodeClick
+    click dl12_drop nodeClick
+        </pre>
+        <div class="diagram-hint">The gold-standard flow this whole doc is modeled on.</div>
+    </div>
+</section>
+
+<!-- ================== 13 SEARCH ================== -->
+<section class="flow" id="search">
+    <div class="sec-num">13 · Content</div>
+    <h3>Search</h3>
+    <p class="lead">Debounced 150ms after each keystroke. Backend uses ReDoS-safe substring regex on indexed fields. Results stream back as the user types.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    se13_type([User types character]):::user
+    se13_len{q.length ≥ 2?}:::decision
+    se13_skip[Skip · clear results]:::step
+    se13_timer[Cancel any pending timer<br/>start new 150ms timer]:::step
+    se13_fire{Timer<br/>elapsed?}:::decision
+    se13_get[GET /api/search/songs?q=...&amp;page=1]:::step
+    se13_escape[escapeRegex on q<br/>ReDoS-safe]:::step
+    se13_query[Mongo $or:<br/>title · artist.stageName · genre]:::step
+    se13_lean[.lean for speed<br/>+ indexed fields]:::step
+    se13_response[Return paginated results]:::step
+    se13_render[Render in tabs:<br/>Songs · Artists · Albums]:::success
+
+    se13_type --> se13_len
+    se13_len -->|No| se13_skip
+    se13_len -->|Yes| se13_timer
+    se13_timer --> se13_fire
+    se13_fire -->|No · keep typing| se13_timer
+    se13_fire -->|Yes · idle 150ms| se13_get
+    se13_get --> se13_escape
+    se13_escape --> se13_query
+    se13_query --> se13_lean
+    se13_lean --> se13_response
+    se13_response --> se13_render
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+
+    click se13_type nodeClick
+    click se13_len nodeClick
+    click se13_skip nodeClick
+    click se13_timer nodeClick
+    click se13_fire nodeClick
+    click se13_get nodeClick
+    click se13_escape nodeClick
+    click se13_query nodeClick
+    click se13_lean nodeClick
+    click se13_response nodeClick
+    click se13_render nodeClick
+        </pre>
+        <div class="diagram-hint">Click "escapeRegex on q" — that's the ReDoS defense.</div>
+    </div>
+</section>
+
+<!-- ================== 14 SUBSCRIBE ================== -->
+<section class="flow" id="subscribe">
+    <div class="sec-num">14 · Money</div>
+    <h3>Subscription purchase</h3>
+    <p class="lead">PawaPay STK push is asynchronous. The user authorizes on their phone; the webhook arrives seconds later. Polling is a fallback while waiting.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    sb14_start([Pick plan · enter phone]):::user
+    sb14_post[POST /api/subscriptions/initiate]:::step
+    sb14_create[Create Subscription<br/>status: pending]:::step
+    sb14_call[Call PawaPay deposit API]:::step
+    sb14_return[Return pollUrl + txId]:::step
+    sb14_wait[Frontend: 'Check your phone']:::step
+    sb14_push[PawaPay sends STK push]:::external
+    sb14_pin[User enters mobile-money PIN]:::user
+    sb14_wh[Webhook<br/>POST /api/subscriptions/webhook]:::external
+    sb14_verify{HMAC signature<br/>valid?}:::decision
+    sb14_status{PawaPay<br/>status?}:::decision
+    sb14_active[Mark active<br/>expiresAt = now + 30d]:::step
+    sb14_emit[socket.emit subscription:activated]:::step
+    sb14_done[Frontend: Welcome to Premium<br/>redirect to #home]:::success
+    sb14_poll[Frontend polls /status/:txId<br/>every 3s as fallback]:::step
+    sb14_failed[Mark Subscription 'failed'<br/>no charge to user]:::failure
+    sb14_drop[Drop request<br/>log warning]:::failure
+
+    sb14_start --> sb14_post
+    sb14_post --> sb14_create
+    sb14_create --> sb14_call
+    sb14_call --> sb14_return
+    sb14_return --> sb14_wait
+    sb14_wait --> sb14_push
+    sb14_push --> sb14_pin
+    sb14_pin --> sb14_wh
+    sb14_wait -.parallel.-> sb14_poll
+    sb14_poll -.-> sb14_done
+    sb14_wh --> sb14_verify
+    sb14_verify -->|No| sb14_drop
+    sb14_verify -->|Yes| sb14_status
+    sb14_status -->|Success| sb14_active
+    sb14_status -->|Failed| sb14_failed
+    sb14_active --> sb14_emit
+    sb14_emit --> sb14_done
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef external fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+    classDef failure fill:#ff5470,stroke:#ff5470,color:#fff
+
+    click sb14_start nodeClick
+    click sb14_post nodeClick
+    click sb14_create nodeClick
+    click sb14_call nodeClick
+    click sb14_return nodeClick
+    click sb14_wait nodeClick
+    click sb14_push nodeClick
+    click sb14_pin nodeClick
+    click sb14_wh nodeClick
+    click sb14_verify nodeClick
+    click sb14_status nodeClick
+    click sb14_active nodeClick
+    click sb14_emit nodeClick
+    click sb14_done nodeClick
+    click sb14_poll nodeClick
+    click sb14_failed nodeClick
+    click sb14_drop nodeClick
+        </pre>
+        <div class="diagram-hint">Webhook is the source of truth; polling is a UX nicety while waiting.</div>
+    </div>
+</section>
+
+<!-- ================== 15 WITHDRAW ================== -->
+<section class="flow" id="withdraw">
+    <div class="sec-num">15 · Money</div>
+    <h3>Artist withdrawal</h3>
+    <p class="lead">Withdrawals are NOT auto-processed — admin reviews each request before triggering the PawaPay payout. Prevents fraud and adds a manual checkpoint.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    wd15_start([Artist submits<br/>amount + phone]):::user
+    wd15_post[POST /api/wallet/withdraw]:::step
+    wd15_balance{Wallet balance<br/>≥ amount?}:::decision
+    wd15_create[Create Withdrawal<br/>status: pending<br/>hold wallet balance]:::step
+    wd15_notify[Notify admin via socket]:::step
+    wd15_wait[Artist sees 'Awaiting review']:::step
+    wd15_insuff[400 Insufficient balance]:::failure
+
+    wd15_review([Admin opens<br/>#admin/withdrawals]):::user
+    wd15_decision{Approve or<br/>reject?}:::decision
+    wd15_reject[Reject<br/>refund wallet hold]:::failure
+    wd15_payout[POST /admin/withdrawals/:id/approve<br/>call PawaPay payout API]:::step
+    wd15_pp{PawaPay<br/>accepts?}:::decision
+    wd15_approved[Mark Withdrawal 'approved'<br/>store PawaPay txId]:::step
+
+    wd15_wh[PawaPay payout webhook]:::external
+    wd15_outcome{Outcome?}:::decision
+    wd15_paid[Mark Withdrawal 'paid'<br/>notify artist]:::success
+    wd15_failed[Refund wallet<br/>mark 'failed'<br/>notify both]:::failure
+
+    wd15_start --> wd15_post
+    wd15_post --> wd15_balance
+    wd15_balance -->|No| wd15_insuff
+    wd15_balance -->|Yes| wd15_create
+    wd15_create --> wd15_notify
+    wd15_notify --> wd15_wait
+
+    wd15_review --> wd15_decision
+    wd15_decision -->|Reject| wd15_reject
+    wd15_decision -->|Approve| wd15_payout
+    wd15_payout --> wd15_pp
+    wd15_pp -->|No| wd15_failed
+    wd15_pp -->|Yes| wd15_approved
+    wd15_approved --> wd15_wh
+    wd15_wh --> wd15_outcome
+    wd15_outcome -->|Success| wd15_paid
+    wd15_outcome -->|Failed| wd15_failed
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef external fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+    classDef failure fill:#ff5470,stroke:#ff5470,color:#fff
+
+    click wd15_start nodeClick
+    click wd15_post nodeClick
+    click wd15_balance nodeClick
+    click wd15_create nodeClick
+    click wd15_notify nodeClick
+    click wd15_wait nodeClick
+    click wd15_insuff nodeClick
+    click wd15_review nodeClick
+    click wd15_decision nodeClick
+    click wd15_reject nodeClick
+    click wd15_payout nodeClick
+    click wd15_pp nodeClick
+    click wd15_approved nodeClick
+    click wd15_wh nodeClick
+    click wd15_outcome nodeClick
+    click wd15_paid nodeClick
+    click wd15_failed nodeClick
+        </pre>
+        <div class="diagram-hint">Wallet hold is the safety net — money is reserved but not gone until PawaPay confirms.</div>
+    </div>
+</section>
+
+<!-- ================== 16 COMMENTS ================== -->
+<section class="flow" id="comments">
+    <div class="sec-num">16 · Engagement</div>
+    <h3>Comments &amp; moderation</h3>
+    <p class="lead">Any authenticated user can comment on songs. Other users can flag comments; flagged ones land in the admin queue at <code>#admin/comments</code>.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    co16_post([User types comment]):::user
+    co16_send[POST /api/comments]:::step
+    co16_sanitize[Sanitize body<br/>strip HTML · escape entities]:::step
+    co16_save[Create Comment doc]:::step
+    co16_broadcast[Broadcast via socket<br/>to song subscribers]:::success
+
+    co16_flag([Other user clicks flag]):::user
+    co16_report[POST /api/comments/:id/report]:::step
+    co16_inc[Increment reportCount<br/>store reporter ID]:::step
+    co16_threshold{reportCount<br/>≥ 3?}:::decision
+    co16_queue[Auto-flag for admin queue<br/>notify admin]:::step
+    co16_quiet[Stored but not yet queued]:::step
+
+    co16_mod([Admin opens<br/>#admin/comments]):::user
+    co16_list[GET /api/admin/comments<br/>?status=reported]:::step
+    co16_action{Admin chooses}:::decision
+    co16_del[DELETE /api/comments/:id<br/>notify commenter]:::failure
+    co16_susp[POST /admin/users/:id/suspend<br/>blocks future posts]:::failure
+    co16_clear[POST /admin/comments/:id/clear<br/>reset reportCount]:::success
+
+    co16_post --> co16_send
+    co16_send --> co16_sanitize
+    co16_sanitize --> co16_save
+    co16_save --> co16_broadcast
+
+    co16_flag --> co16_report
+    co16_report --> co16_inc
+    co16_inc --> co16_threshold
+    co16_threshold -->|Yes| co16_queue
+    co16_threshold -->|No| co16_quiet
+
+    co16_mod --> co16_list
+    co16_list --> co16_action
+    co16_action -->|Delete| co16_del
+    co16_action -->|Suspend user| co16_susp
+    co16_action -->|Dismiss| co16_clear
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+    classDef failure fill:#ff5470,stroke:#ff5470,color:#fff
+
+    click co16_post nodeClick
+    click co16_send nodeClick
+    click co16_sanitize nodeClick
+    click co16_save nodeClick
+    click co16_broadcast nodeClick
+    click co16_flag nodeClick
+    click co16_report nodeClick
+    click co16_inc nodeClick
+    click co16_threshold nodeClick
+    click co16_queue nodeClick
+    click co16_quiet nodeClick
+    click co16_mod nodeClick
+    click co16_list nodeClick
+    click co16_action nodeClick
+    click co16_del nodeClick
+    click co16_susp nodeClick
+    click co16_clear nodeClick
+        </pre>
+        <div class="diagram-hint">Three connected flows: post, report, moderate.</div>
+    </div>
+</section>
+
+<!-- ================== 17 NOTIFY ================== -->
+<section class="flow" id="notify">
+    <div class="sec-num">17 · Engagement</div>
+    <h3>Notifications (real-time)</h3>
+    <p class="lead">Backend emits to <code>io.to(userId)</code> after any event. Frontend's bell badge updates immediately; the notifications page loads the full list with pagination.</p>
+
+    <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    no17_event([Source event in any controller<br/>like · follow · payment · etc.]):::user
+    no17_create[Notification.create<br/>user · type · title · link]:::step
+    no17_emit[io.to userId .emit notification:new]:::step
+    no17_online{User<br/>online?}:::decision
+    no17_socket[Socket delivers payload]:::step
+    no17_toast[Frontend: Toast appears<br/>bell badge increments]:::success
+    no17_durable[Stored in Mongo<br/>fetched on next visit]:::step
+
+    no17_open([User opens #notifications]):::user
+    no17_get[GET /api/notifications?page=1]:::step
+    no17_list[Mongo: find by user<br/>sort -createdAt<br/>paginate]:::step
+    no17_render[Render list + unreadCount]:::success
+    no17_read[User taps notification]:::user
+    no17_mark[POST /api/notifications/:id/read]:::step
+    no17_update[Mark read<br/>decrement unreadCount<br/>bell badge updates]:::success
+
+    no17_event --> no17_create
+    no17_create --> no17_emit
+    no17_emit --> no17_online
+    no17_online -->|Yes| no17_socket
+    no17_online -->|No| no17_durable
+    no17_socket --> no17_toast
+
+    no17_open --> no17_get
+    no17_get --> no17_list
+    no17_list --> no17_render
+    no17_render --> no17_read
+    no17_read --> no17_mark
+    no17_mark --> no17_update
+
+    classDef user fill:#6c63ff,stroke:#6c63ff,color:#fff
+    classDef step fill:#1f1f38,stroke:#6c63ff,color:#e8e8f0
+    classDef decision fill:#f4b740,stroke:#f4b740,color:#1a1a2e
+    classDef success fill:#2ecc71,stroke:#2ecc71,color:#1a1a2e
+
+    click no17_event nodeClick
+    click no17_create nodeClick
+    click no17_emit nodeClick
+    click no17_online nodeClick
+    click no17_socket nodeClick
+    click no17_toast nodeClick
+    click no17_durable nodeClick
+    click no17_open nodeClick
+    click no17_get nodeClick
+    click no17_list nodeClick
+    click no17_render nodeClick
+    click no17_read nodeClick
+    click no17_mark nodeClick
+    click no17_update nodeClick
+        </pre>
+        <div class="diagram-hint">Two flows: live delivery (top) + catchup on page load (bottom).</div>
+    </div>
+</section>
+
+<footer>
+    <div>Bravo Music · v2.0 interactive system flows</div>
+    <div>17 flows · 142 clickable nodes · 1 page</div>
+</footer>
+
+</main>
+</div>
+
+<!-- ============= SIDE DRAWER ============= -->
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<aside class="drawer" id="drawer">
+    <div class="drawer-head">
+        <div class="step-num" id="drawer-step">—</div>
+        <h4 id="drawer-title">—</h4>
+        <button class="drawer-close" id="drawer-close" aria-label="Close">×</button>
+    </div>
+    <div class="drawer-body" id="drawer-body">
+        <div class="drawer-empty">Click any node to inspect.</div>
+    </div>
+</aside>
+
+<script>
+/* ==========================================================
+ * NODE REGISTRY
+ * Maps every clickable node id to its docs.
+ * Add new entries as you grow the system.
+ * ========================================================== */
+const NODES = {
+    /* ---- 01 Architecture ---- */
+    a01_user: {
+        step: 'Architecture', title: 'User · browser',
+        desc: 'Anyone visiting bravomusics.com. The browser is the only client; there is no mobile app yet. All requests are HTTPS.',
+        files: ['frontend/public/index.html', 'frontend/public/js/app.js']
+    },
+    a01_nginx: {
+        step: 'Architecture', title: 'nginx (edge)',
+        desc: 'Reverse proxy + static file server. Terminates TLS, serves the SPA, proxies /api/* to Node, serves /uploads/ directly with Range support.',
+        files: ['/etc/nginx/sites-available/bravomusic'],
+        gotcha: 'sendfile + directio 8m makes audio range requests fast — Node never sees those bytes.'
+    },
+    a01_static: {
+        step: 'Architecture', title: 'Static frontend',
+        desc: 'index.html plus everything under js/ and css/. Vanilla JS, no bundler. Cache-busted with ?v=YYYYMMDD query strings.',
+        files: ['frontend/public/']
+    },
+    a01_api: {
+        step: 'Architecture', title: 'Node API',
+        desc: 'Express on port 1000. Handles auth, business logic, validation, talks to Mongo/Redis/PawaPay. Behind nginx — never exposed directly.',
+        files: ['backend/server.js']
+    },
+    a01_uploads: {
+        step: 'Architecture', title: 'Static uploads',
+        desc: 'Audio, video, and cover-art files on local disk. nginx serves these directly (Node never touches the bytes).',
+        files: ['backend/uploads/'],
+        gotcha: 'Backups must include this directory — Mongo only holds the file paths, not the audio.'
+    },
+    a01_mongo: {
+        step: 'Architecture', title: 'MongoDB',
+        desc: 'All domain state: users, songs, albums, comments, subscriptions, payments, withdrawals, notifications.',
+        files: ['backend/src/models/']
+    },
+    a01_redis: {
+        step: 'Architecture', title: 'Redis',
+        desc: 'Refresh-token store with TTL, plus rate-limit counters. Lost-on-restart is acceptable — users just have to log in again.',
+        files: ['backend/src/services/redisService.js']
+    },
+    a01_pawapay: {
+        step: 'Architecture', title: 'PawaPay',
+        desc: 'Zambian mobile-money provider. Used for both subscription deposits and artist payouts. Communicates via REST + signed webhooks.',
+        gotcha: 'Webhooks may arrive multiple times — every handler must be idempotent.'
+    },
+
+    /* ---- 02 Bootstrap ---- */
+    b02_req: { step: 'Bootstrap', title: 'Browser requests /', desc: 'Cold cache: bare GET request. Warm cache: ETag revalidation.' },
+    b02_serve: { step: 'Bootstrap', title: 'nginx serves index.html', desc: 'index.html is explicitly Cache-Control: no-store. Otherwise users would get a stale index.html that references old ?v= JS files after a deploy.', files: ['nginx config: location = /index.html'] },
+    b02_config: { step: 'Bootstrap', title: 'Load config.js', desc: 'Defines window.API_BASE_URL, GENRES, DEFAULT_IMAGE, plus the resolveImageUrl / attachImgFallback helpers. Must load before any other JS.', files: ['frontend/public/js/config.js'] },
+    b02_api: { step: 'Bootstrap', title: 'Load API clients', desc: 'auth, songs, albums, artists, playlists, comments, notifications, payments, subscriptions, wallet, admin. Each defines a global class (e.g. window.SongsAPI).', files: ['frontend/public/js/api/'] },
+    b02_comp: { step: 'Bootstrap', title: 'Load components', desc: 'Navbar, Sidebar, AudioPlayer, Modal, Toast, SongCard, PlaylistCard, CommentSection, UploadForm.', files: ['frontend/public/js/components/'] },
+    b02_pages: { step: 'Bootstrap', title: 'Load pages', desc: '40+ page modules. Each exports a class with render() + afterRender(). The route table in app.js maps each hash to one of these.', files: ['frontend/public/js/pages/'] },
+    b02_app: { step: 'Bootstrap', title: 'Load app.js', desc: 'Last in the chain — references all of the above. Defines BravoMusicApp class and instantiates it.', files: ['frontend/public/js/app.js'] },
+    b02_auth: { step: 'Bootstrap', title: 'Token in localStorage?', desc: 'authService checks for a stored access+refresh token pair.', files: ['frontend/public/js/services/authService.js'] },
+    b02_refresh: { step: 'Bootstrap', title: 'Silent refresh', desc: 'If access token is expired but refresh is valid, swap tokens quietly. User stays signed in.', files: ['frontend/public/js/services/authService.js'] },
+    b02_init: { step: 'Bootstrap', title: 'App.init()', desc: 'Builds the shell, wires the route handler, subscribes to hashchange events.' },
+    b02_chrome: { step: 'Bootstrap', title: 'Render chrome', desc: 'Navbar + Sidebar + AudioPlayer mount once and persist across route changes.', files: ['frontend/public/js/components/Navbar.js', 'frontend/public/js/components/Sidebar.js'] },
+    b02_route: { step: 'Bootstrap', title: 'Parse location.hash', desc: 'e.g. #artist/123 → "artist/:id". Splits dynamic segments and looks up the matching page class.' },
+    b02_mount: { step: 'Bootstrap', title: 'Mount page', desc: 'new PageClass(). render() returns HTML, app injects it into #main-content, then afterRender() wires event listeners.' },
+    b02_socket: { step: 'Bootstrap', title: 'Connect socket.io', desc: 'Only if authenticated. The token is sent in the connection handshake. Server joins the user to a room named after their userId.', files: ['frontend/public/js/services/socketService.js'] },
+
+    /* ---- 03 Routes ---- */
+    r03_root: { step: 'Routes', title: 'Hash root', desc: 'All routing is client-side via hash (#) — no server-side route handling needed. SPA-friendly.' },
+    r03_main: { step: 'Routes', title: 'Main (public)', desc: 'home, browse, trending, search, song/:id, album/:id, artist/:id. No auth required.' },
+    r03_lib: { step: 'Routes', title: 'Your library (auth required)', desc: 'liked, recent, downloads, playlists, playlist/:id, videos, albums. Unauthenticated → redirect to #login.', gotcha: 'Routes redirect on mount, not on hashchange — feels snappier.' },
+    r03_acct: { step: 'Routes', title: 'Account (auth required)', desc: 'notifications, wallet, subscription, payment-history, settings, upgrade (listeners only).' },
+    r03_hub: { step: 'Routes', title: 'Artist hub (artist/admin)', desc: 'dashboard, upload, earnings, artist/albums. Role check in app.js _instantiate path.' },
+    r03_admin: { step: 'Routes', title: 'Admin panel (admin only)', desc: 'admin, admin/users, admin/songs, admin/albums, admin/videos, admin/artists, admin/withdrawals, admin/reports, admin/comments, admin/settings.', gotcha: 'Hard-coded role check — there is no row-level admin permission system.' },
+
+    /* ---- 06 Auth ---- */
+    au06_start: { step: 'Login flow', title: 'Submit login form', desc: 'LoginPage collects email + password. Never logs the password — even rejected ones.', files: ['frontend/public/js/pages/LoginPage.js'] },
+    au06_post: { step: 'Login flow', title: 'POST /api/auth/login', desc: 'Body: { email, password }. Rate-limited by Redis: 5 attempts per minute per IP.', files: ['backend/src/routes/authRoutes.js'] },
+    au06_find: { step: 'Login flow', title: 'Email found?', desc: 'Look up user by lowercased email.', files: ['backend/src/controllers/authController.js'] },
+    au06_pass: { step: 'Login flow', title: 'Password matches?', desc: 'bcrypt.compare runs even when email is wrong — prevents timing-attack enumeration.', gotcha: 'Both branches return the same 401 message: "Invalid credentials". Never says which one was wrong.' },
+    au06_store: { step: 'Login flow', title: 'Store refresh token', desc: 'Refresh token written to Redis with 30-day TTL. Key: refresh:{userId}:{tokenId}.', files: ['backend/src/services/redisService.js'] },
+    au06_return: { step: 'Login flow', title: 'Return tokens + user', desc: 'Access token (15min) sent in body; refresh token sent in httpOnly cookie. User profile minus passwordHash.' },
+    au06_save: { step: 'Login flow', title: 'Frontend stores tokens', desc: 'Access token in localStorage; refresh in cookie (httpOnly, secure). authService broadcasts auth:login event.' },
+    au06_done: { step: 'Login flow', title: 'Redirect to home', desc: 'Or to the URL the user was trying to reach before being bounced to login (returnTo).' },
+    au06_fail: { step: 'Login flow', title: '401 Invalid credentials', desc: 'Single error message regardless of which check failed.' },
+    au06_req: { step: 'Silent refresh', title: 'Any authed request', desc: 'authService._request injects Bearer header into every API call.' },
+    au06_401: { step: 'Silent refresh', title: 'Token expired?', desc: '401 from backend with code="TOKEN_EXPIRED" triggers the refresh flow. Other 401s log out immediately.' },
+    au06_refresh: { step: 'Silent refresh', title: 'POST /refresh-token', desc: 'No body — server reads the refresh cookie.' },
+    au06_valid: { step: 'Silent refresh', title: 'Refresh token valid?', desc: 'Verify JWT signature AND check Redis (refresh tokens are revocable).', gotcha: 'Logout invalidates the Redis entry so even an in-flight refresh fails.' },
+    au06_rotate: { step: 'Silent refresh', title: 'Rotate tokens', desc: 'New access + new refresh. Old refresh deleted from Redis. Sliding-window expiry.' },
+    au06_retry: { step: 'Silent refresh', title: 'Retry original request', desc: 'authService transparently retries with the new access token. The original caller never sees the 401.' },
+    au06_logout: { step: 'Silent refresh', title: 'Force logout', desc: 'Clear localStorage, emit auth:logout, redirect to #login.' },
+
+    /* ---- 07 Password reset ---- */
+    pr07_start: { step: 'Password reset', title: 'Enter email', desc: 'Form at #forgot-password. Single field.' },
+    pr07_post: { step: 'Password reset', title: 'POST /forgot-password', desc: 'Rate-limited: 3 attempts per IP per hour.' },
+    pr07_find: { step: 'Password reset', title: 'User exists?', desc: 'Look up by lowercased email.' },
+    pr07_token: { step: 'Password reset', title: 'Generate reset token', desc: 'crypto.randomBytes(32) hex-encoded. Hash stored in DB; raw token sent in email.', gotcha: 'Storing the hash means an attacker with DB read access still cannot use the link.' },
+    pr07_email: { step: 'Password reset', title: 'Send email', desc: 'Link format: https://bravomusics.com/#reset-password?token={raw}', files: ['backend/src/services/emailService.js'] },
+    pr07_silent: { step: 'Password reset', title: 'Return 200 silently', desc: 'Same response whether or not the user exists. Prevents email enumeration.', gotcha: 'This is intentional — do NOT change it to a 404.' },
+    pr07_click: { step: 'Password reset', title: 'User clicks link', desc: 'ResetPasswordPage extracts the token from the URL.' },
+    pr07_form: { step: 'Password reset', title: 'Show new-password form', desc: 'Two fields: new password + confirm. Client-side validation matches server policy.' },
+    pr07_submit: { step: 'Password reset', title: 'POST /reset-password', desc: 'Body: { token, password }.' },
+    pr07_valid: { step: 'Password reset', title: 'Token valid + unexpired?', desc: 'Hash the submitted raw token, compare to DB, check expiry < 1h ago.' },
+    pr07_hash: { step: 'Password reset', title: 'bcrypt hash', desc: '12 rounds. Server-side enforced minimum: 8 chars, one number, one letter.' },
+    pr07_save: { step: 'Password reset', title: 'Save user', desc: 'Update passwordHash, clear resetToken + resetTokenExpiry. All active sessions remain — user does NOT get logged out from other devices.' },
+    pr07_done: { step: 'Password reset', title: 'Redirect to login', desc: 'Frontend toast: "Password updated".' },
+    pr07_expired: { step: 'Password reset', title: '400 Token expired', desc: 'Generic message — does not say whether it was expired vs. already-used vs. wrong.' },
+
+    /* ---- 08 Become artist ---- */
+    bc08_start: { step: 'Become artist', title: 'Visit #upgrade', desc: 'Listeners see "Become Artist" in sidebar footer. Artists/admins are auto-redirected away.', files: ['frontend/public/js/pages/UpgradePage.js'] },
+    bc08_form: { step: 'Become artist', title: 'Fill form', desc: 'Stage name, bio (min 30 chars with counter), genre checkboxes (≥1 required), optional socials (IG, Twitter, YouTube, website).' },
+    bc08_valid: { step: 'Become artist', title: 'Form valid?', desc: 'All client-side checks before POST. Inline errors below the form.' },
+    bc08_post: { step: 'Become artist', title: 'POST /upgrade-to-artist', desc: 'Endpoint added by PATCHES/upgradeToArtist.patch.js. Self-service — no admin approval required.', files: ['PATCHES/upgradeToArtist.patch.js'] },
+    bc08_unique: { step: 'Become artist', title: 'Stage name unique?', desc: 'Case-insensitive regex match against existing Artist documents.', gotcha: 'Uses escapeRegex to prevent ReDoS via malicious stage name input.' },
+    bc08_create: { step: 'Become artist', title: 'Create Artist doc', desc: 'isVerified: false (admin verification is a separate step). uploadCredits: 3 (free uploads to get started). Genres capped at 5.', gotcha: 'To require admin approval before role flip, change one line in the patch file.' },
+    bc08_update: { step: 'Become artist', title: 'Update user.role', desc: 'role → "artist", artistId → new Artist._id. Same transaction as Artist creation (atomic).' },
+    bc08_response: { step: 'Become artist', title: 'Return user + artist', desc: 'Frontend uses returned user to update authService.user so the role gate flips immediately.' },
+    bc08_authsvc: { step: 'Become artist', title: 'Update authService', desc: 'Sidebar re-renders to show the Artist Hub section. Navbar dropdown updates.' },
+    bc08_done: { step: 'Become artist', title: 'Redirect to dashboard', desc: 'Artist Dashboard (now accessible via the role check).' },
+    bc08_errform: { step: 'Become artist', title: 'Inline errors', desc: 'Specific error per failed field. Field stays focused.' },
+    bc08_taken: { step: 'Become artist', title: '409 Stage name taken', desc: 'Single line error on the stage-name field.' },
+
+    /* ---- 09 Song upload ---- */
+    su09_start: { step: 'Song upload', title: 'Pick files', desc: 'UploadForm collects audio file, cover art, title, genre, isPremium, lyrics, releaseDate.', files: ['frontend/public/js/components/UploadForm.js'] },
+    su09_post: { step: 'Song upload', title: 'POST /upload-song', desc: 'multipart/form-data. Sent with progress callback for UI feedback.' },
+    su09_nginx: { step: 'Song upload', title: 'nginx streams body', desc: 'proxy_request_buffering off — no 600MB sitting in nginx disk buffer. Streams directly to Node.', files: ['nginx config: ^/api/.*/upload'] },
+    su09_multer: { step: 'Song upload', title: 'Multer receives chunks', desc: 'Writes file as it arrives. On error mid-stream, partial files are tagged for cleanup cron.', files: ['backend/src/middleware/upload.js'] },
+    su09_size: { step: 'Song upload', title: 'File size check', desc: 'Audio: 20MB, Video: 600MB, Cover: 5MB. Enforced at multer level + cross-checked at nginx layer.' },
+    su09_mime: { step: 'Song upload', title: 'MIME allowlist', desc: 'audio: mp3, m4a, wav, aac, ogg. video: mp4, webm, mov. cover: png, jpg, webp. Anything else → reject.' },
+    su09_magic: { step: 'Song upload', title: 'Magic-byte sniffing', desc: 'Reads first 12 bytes of the file and matches against known signatures. Catches MIME spoofing (e.g. .mp3 renamed from .exe).', gotcha: 'This is the only check that can catch a renamed PHP file or polyglot. Do not remove.' },
+    su09_write: { step: 'Song upload', title: 'Write to disk', desc: 'Filename: {hash}-{slug}.{ext}. Hash includes timestamp + random for uniqueness.' },
+    su09_metadata: { step: 'Song upload', title: 'Validate metadata', desc: 'Title length, genre against enum, isPremium boolean, releaseDate format.' },
+    su09_create: { step: 'Song upload', title: 'Song.create()', desc: 'Mongo document with fileUrl, coverArt, artist (from req.user), and all metadata.' },
+    su09_response: { step: 'Song upload', title: '201 + song doc', desc: 'Frontend toasts success, then refreshes the artist songs list.' },
+    su09_reject: { step: 'Song upload', title: '400 + reason', desc: 'Specific error per failed check. Partial files queued for cleanup cron.' },
+
+    /* ---- 10 Album mgmt ---- */
+    al10_start: { step: 'Album management', title: 'Click music-note icon', desc: 'Available on album cards in #artist/albums and table rows in #admin/albums.' },
+    al10_open: { step: 'Album management', title: 'Open Manage Tracks modal', desc: 'Two sections: songs in album (with × remove), songs available (with + add).' },
+    al10_fetch: { step: 'Album management', title: 'Fetch album', desc: 'GET /api/albums/:id — returns album with populated songs array.', files: ['backend/src/controllers/albumController.js'] },
+    al10_who: { step: 'Album management', title: 'Viewer role', desc: 'Artist sees their own songs only; admin gets a toggle between "this artist\'s songs" (default) and "all songs".' },
+    al10_my: { step: 'Album management', title: 'GET /artists/me/songs', desc: 'Artist endpoint — returns songs owned by the calling artist.' },
+    al10_all: { step: 'Album management', title: 'GET /admin/songs', desc: 'Limit 500 by default. Admin can search/filter to narrow the picker.', gotcha: 'Renders cap at 100 rows visible — search to narrow further.' },
+    al10_render: { step: 'Album management', title: 'Render two lists', desc: 'Pending Set prevents double-clicks on the same song.' },
+    al10_action: { step: 'Album management', title: 'User clicks + or ×', desc: 'Optimistic UI — button disables, request fires, success toast appears.' },
+    al10_add: { step: 'Album management', title: 'POST /add-song', desc: 'Body: { songId }. Requires artist owns the album, or admin.' },
+    al10_remove: { step: 'Album management', title: 'DELETE /remove-song', desc: 'Body: { songId }. Song document is NOT deleted — just the link to the album.' },
+    al10_push: { step: 'Album management', title: '$push to album.songs', desc: 'Idempotent — duplicates are de-duped on the array.' },
+    al10_pull: { step: 'Album management', title: '$pull from album.songs', desc: 'Safe even if the song isn\'t in the array (Mongo no-ops).' },
+    al10_done: { step: 'Album management', title: 'Re-render', desc: 'Modal updates immediately; the album card badge ("3 tracks") refreshes in the background.' },
+
+    /* ---- 11 Stream ---- */
+    st11_start: { step: 'Stream', title: 'Click play', desc: 'AudioPlayer.playSong(song) — accepts a Song object from any source (search, album, playlist).' },
+    st11_request: { step: 'Stream', title: 'GET /:id/stream', desc: 'Includes Bearer token. NO file URL is ever sent to the client directly.', files: ['backend/src/controllers/songController.js'] },
+    st11_find: { step: 'Stream', title: 'Find song', desc: 'Song.findById — fast (indexed by _id).' },
+    st11_premium: { step: 'Stream', title: 'Song.isPremium?', desc: 'Boolean flag on the Song document.' },
+    st11_sub: { step: 'Stream', title: 'Active subscription?', desc: 'Subscription.findOne({ user, status: \'active\', expiresAt: { $gt: now } }).' },
+    st11_count: { step: 'Stream', title: 'Atomic playCount $inc', desc: 'Song.updateOne({ _id }, { $inc: { playCount: 1 } }). Plus an Analytics document for granular tracking.', gotcha: '$inc is atomic — no read-modify-write race condition under load.' },
+    st11_redirect: { step: 'Stream', title: '302 redirect', desc: 'Location header points to /uploads/audio/{filename}. Browser follows automatically.', gotcha: 'Node hands off to nginx here — never touches the audio bytes.' },
+    st11_nginx: { step: 'Stream', title: 'nginx serves with Range', desc: 'sendfile + directio 8m. Audio scrubbing makes thousands of small range requests; nginx handles them in parallel without blocking Node.' },
+    st11_play: { step: 'Stream', title: 'Audio plays', desc: 'HTMLAudioElement handles the rest. AudioPlayer listens to timeupdate, ended, error.' },
+    st11_upgrade: { step: 'Stream', title: '403 Subscription required', desc: 'Body: { code: "PREMIUM_REQUIRED", upgradeUrl: "#subscription" }.' },
+    st11_modal: { step: 'Stream', title: 'Show upgrade modal', desc: 'Modal with plan options and "Subscribe" button → routes to #subscription.' },
+
+    /* ---- 12 Download ---- */
+    dl12_start: { step: 'Download', title: 'Click download button', desc: 'Available on song cards, song detail page, and audio player.' },
+    dl12_price: { step: 'Download', title: 'Song price', desc: 'Free songs skip the subscription check.' },
+    dl12_sub: { step: 'Download', title: 'Has active subscription?', desc: 'Active subscription unlocks all paid downloads (no per-song charge).' },
+    dl12_buy: { step: 'Download', title: 'Show purchase modal', desc: 'For one-time purchases when there is no subscription.' },
+    dl12_initiate: { step: 'Download', title: 'POST /payments/initiate', desc: 'Body: { songId, phoneNumber }. Creates a pending Payment record.', files: ['backend/src/controllers/paymentController.js'] },
+    dl12_stk: { step: 'Download', title: 'STK push', desc: 'PawaPay sends a prompt to the user\'s phone. They have 60s to enter their PIN.' },
+    dl12_pin: { step: 'Download', title: 'User enters PIN', desc: 'Happens on the phone — completely outside the web app.' },
+    dl12_wh: { step: 'Download', title: 'Webhook arrives', desc: 'PawaPay calls back our endpoint with the result. May arrive multiple times — handler is idempotent.' },
+    dl12_verify: { step: 'Download', title: 'HMAC signature valid?', desc: 'Verify with the PawaPay webhook secret. Drop anything that doesn\'t verify — log loudly.', gotcha: 'No signature → silently drop. Don\'t echo the payload back.' },
+    dl12_mark: { step: 'Download', title: 'Mark completed', desc: 'Payment.status = "completed", create Download record. Both updates in one transaction.' },
+    dl12_free: { step: 'Download', title: 'GET /:id/download', desc: 'Same endpoint for free and paid. Re-checks eligibility server-side.' },
+    dl12_sign: { step: 'Download', title: 'Generate signed token', desc: 'HMAC-signed token containing songId, userId, expiry (5 min). Verified by nginx via auth_request.' },
+    dl12_resolve: { step: 'Download', title: '302 to /uploads/', desc: 'Signed URL: /uploads/audio/{file}?sig=...&exp=.... 5-minute window.' },
+    dl12_pull: { step: 'Download', title: 'Browser downloads', desc: 'Content-Disposition: attachment forces a save dialog.' },
+    dl12_drop: { step: 'Download', title: 'Drop request', desc: 'Suspicious — log with the source IP for monitoring.' },
+
+    /* ---- 13 Search ---- */
+    se13_type: { step: 'Search', title: 'User types', desc: 'Every keystroke triggers _onInput. Backspace also counts.' },
+    se13_len: { step: 'Search', title: 'q.length ≥ 2?', desc: 'Below 2 chars: too many results, skip. Min length is a backend-enforced constant.' },
+    se13_skip: { step: 'Search', title: 'Skip + clear', desc: 'Existing results disappear when the user clears the input below 2 chars.' },
+    se13_timer: { step: 'Search', title: 'Reset timer', desc: '150ms debounce. Lower than the typical 300ms — feels "live as you type".' },
+    se13_fire: { step: 'Search', title: 'Timer elapsed?', desc: 'Cleared and restarted on every keystroke. Fires only when the user pauses.' },
+    se13_get: { step: 'Search', title: 'GET /search/songs', desc: 'q + page + limit. Same handler also returns artists, albums, playlists in parallel queries.', files: ['backend/src/controllers/searchController.js'] },
+    se13_escape: { step: 'Search', title: 'escapeRegex(q)', desc: 'Escapes regex special chars in the query before building the Mongo regex. Prevents ReDoS.', gotcha: 'Without this, a query like `(a+)+$` could crash the backend with catastrophic backtracking.' },
+    se13_query: { step: 'Search', title: 'Mongo $or', desc: '$or: [{ title: regex }, { artist.stageName: regex }, { genre: regex }]. Each field is indexed.' },
+    se13_lean: { step: 'Search', title: '.lean()', desc: 'Skip Mongoose document hydration. Plain JS objects = 3-5x faster for read-only lists.' },
+    se13_response: { step: 'Search', title: 'Paginated response', desc: '{ songs, totalPages, currentPage }. Same shape for artists/albums tabs.' },
+    se13_render: { step: 'Search', title: 'Render in tabs', desc: 'Tabbed UI: All, Songs, Artists, Albums. Counts shown next to each tab name.' },
+
+    /* ---- 14 Subscribe ---- */
+    sb14_start: { step: 'Subscribe', title: 'Pick plan + phone', desc: 'Plans defined in SystemSettings (configurable). Phone validated against PawaPay\'s accepted MNO formats.' },
+    sb14_post: { step: 'Subscribe', title: 'POST /initiate', desc: 'Body: { plan, phone }. Creates the pending Subscription before calling PawaPay.', files: ['backend/src/controllers/subscriptionController.js'] },
+    sb14_create: { step: 'Subscribe', title: 'Create Subscription (pending)', desc: 'status: "pending", expiresAt: null. Will be promoted once PawaPay confirms.' },
+    sb14_call: { step: 'Subscribe', title: 'PawaPay deposit API', desc: 'POST to PawaPay /deposits. Their txId is stored on our Subscription doc.' },
+    sb14_return: { step: 'Subscribe', title: 'Return pollUrl + txId', desc: 'Frontend uses pollUrl as a fallback if the webhook is slow.' },
+    sb14_wait: { step: 'Subscribe', title: 'Show check phone', desc: 'Frontend shows a waiting screen with a 60s countdown.' },
+    sb14_push: { step: 'Subscribe', title: 'STK push', desc: 'User\'s phone rings with a payment prompt from PawaPay.' },
+    sb14_pin: { step: 'Subscribe', title: 'User enters PIN', desc: 'Happens entirely on the phone.' },
+    sb14_wh: { step: 'Subscribe', title: 'Webhook arrives', desc: 'PawaPay POSTs to /api/subscriptions/webhook with the result. May arrive multiple times.' },
+    sb14_verify: { step: 'Subscribe', title: 'HMAC valid?', desc: 'Verify with PawaPay\'s webhook secret. Drops malformed/forged requests.', gotcha: 'The handler returns 200 to PawaPay even on drop — otherwise PawaPay retries forever.' },
+    sb14_status: { step: 'Subscribe', title: 'PawaPay status', desc: 'COMPLETED → mark active. FAILED → mark failed. Anything else → ignore (PawaPay will follow up).' },
+    sb14_active: { step: 'Subscribe', title: 'Mark active', desc: 'status: "active", expiresAt: now + 30d. The previous pending entry is updated in place — no duplicate.' },
+    sb14_emit: { step: 'Subscribe', title: 'socket.emit activated', desc: 'Real-time update to the user\'s session. Frontend reacts immediately.' },
+    sb14_done: { step: 'Subscribe', title: 'Welcome', desc: 'Toast + redirect. Premium content is now unlocked.' },
+    sb14_poll: { step: 'Subscribe', title: 'Polling fallback', desc: 'Frontend hits /status/:txId every 3s for up to 90s. Stops as soon as the webhook updates the doc.', gotcha: 'Webhook is the source of truth; polling is a UX nicety while waiting.' },
+    sb14_failed: { step: 'Subscribe', title: 'Mark failed', desc: 'No charge to the user. Frontend shows "Payment didn\'t go through" with a retry option.' },
+    sb14_drop: { step: 'Subscribe', title: 'Drop forged webhook', desc: 'Log loudly — this should never happen with a correct secret.' },
+
+    /* ---- 15 Withdraw ---- */
+    wd15_start: { step: 'Withdraw', title: 'Submit withdrawal', desc: 'Artist enters amount + phone. Both stored on the Withdrawal doc.', files: ['frontend/public/js/pages/EarningsPage.js'] },
+    wd15_post: { step: 'Withdraw', title: 'POST /wallet/withdraw', desc: 'Endpoint requires artist role.', files: ['backend/src/controllers/walletController.js'] },
+    wd15_balance: { step: 'Withdraw', title: 'Balance check', desc: 'Wallet.balance >= amount. Pulls from Wallet.balance, not from earnings aggregated on the fly.' },
+    wd15_create: { step: 'Withdraw', title: 'Create + hold', desc: 'Withdrawal doc created with status "pending". Wallet balance decremented immediately (hold). Both in one transaction.', gotcha: 'Money is moved out of balance but not yet paid. Refund restores it.' },
+    wd15_notify: { step: 'Withdraw', title: 'Notify admin', desc: 'socket.emit to all admins + Notification doc for durability.' },
+    wd15_wait: { step: 'Withdraw', title: 'Awaiting review', desc: 'Artist sees status "pending" in their earnings page.' },
+    wd15_insuff: { step: 'Withdraw', title: '400 Insufficient', desc: 'No state change.' },
+    wd15_review: { step: 'Withdraw', title: 'Admin reviews', desc: '#admin/withdrawals shows all pending requests with artist details, history, etc.' },
+    wd15_decision: { step: 'Withdraw', title: 'Approve or reject?', desc: 'Admin can also flag for further review (sets a different status).' },
+    wd15_reject: { step: 'Withdraw', title: 'Reject', desc: 'Withdrawal.status = "rejected". Wallet balance restored (refund the hold).' },
+    wd15_payout: { step: 'Withdraw', title: 'Call PawaPay payout', desc: 'POST to PawaPay /payouts with the artist\'s phone + amount.' },
+    wd15_pp: { step: 'Withdraw', title: 'PawaPay accepts?', desc: 'Synchronous accept/reject. Network errors are retried.' },
+    wd15_approved: { step: 'Withdraw', title: 'Mark approved', desc: 'status: "approved" + PawaPay txId stored.' },
+    wd15_wh: { step: 'Withdraw', title: 'Payout webhook', desc: 'PawaPay calls back with the final outcome (after the user has actually received the SMS).' },
+    wd15_outcome: { step: 'Withdraw', title: 'Outcome', desc: 'Success: user got money. Failed: bank rejected, wrong number, etc.' },
+    wd15_paid: { step: 'Withdraw', title: 'Mark paid', desc: 'status: "paid". Notify the artist via socket.' },
+    wd15_failed: { step: 'Withdraw', title: 'Refund + fail', desc: 'Wallet balance restored. status: "failed". Notify both artist and admin.' },
+
+    /* ---- 16 Comments ---- */
+    co16_post: { step: 'Comment', title: 'User types comment', desc: 'CommentSection component on every song detail page.', files: ['frontend/public/js/components/CommentSection.js'] },
+    co16_send: { step: 'Comment', title: 'POST /comments', desc: 'Body: { songId, body }. Body capped at 1000 chars.' },
+    co16_sanitize: { step: 'Comment', title: 'Sanitize body', desc: 'Strip HTML tags, escape entities. Even if frontend renders unsafely, backend protects.', gotcha: 'XSS defense is layered — frontend escapes too, but never trust either alone.' },
+    co16_save: { step: 'Comment', title: 'Create Comment', desc: 'Document with author, song, body, reportCount: 0.' },
+    co16_broadcast: { step: 'Comment', title: 'Broadcast via socket', desc: 'Anyone viewing the song detail sees the comment appear in real time.' },
+    co16_flag: { step: 'Comment', title: 'Click flag', desc: 'Available on every comment for authenticated users. Self-flagging is blocked.' },
+    co16_report: { step: 'Comment', title: 'POST /:id/report', desc: 'Body: optional reason text.' },
+    co16_inc: { step: 'Comment', title: 'Increment reportCount', desc: '$inc + $addToSet reporters. Same user can\'t report twice.' },
+    co16_threshold: { step: 'Comment', title: 'reportCount ≥ 3?', desc: 'Threshold configurable in SystemSettings.' },
+    co16_queue: { step: 'Comment', title: 'Auto-queue', desc: 'Comment becomes visible at #admin/comments. Admins get a socket notification.' },
+    co16_quiet: { step: 'Comment', title: 'Below threshold', desc: 'Stored on the comment, no admin notification yet. Will queue when threshold hits.' },
+    co16_mod: { step: 'Comment', title: 'Admin opens queue', desc: 'List sorted by reportCount desc, then by reportedAt asc.' },
+    co16_list: { step: 'Comment', title: 'GET reported comments', desc: 'Paginated, with author info, song context, and report reasons.' },
+    co16_action: { step: 'Comment', title: 'Admin chooses', desc: 'Three options: delete, suspend user, or dismiss the report.' },
+    co16_del: { step: 'Comment', title: 'Delete comment', desc: 'Hard delete. Notify the commenter via the notifications system.' },
+    co16_susp: { step: 'Comment', title: 'Suspend user', desc: 'User.suspendedUntil = future date. Posts/comments blocked but reads still work.' },
+    co16_clear: { step: 'Comment', title: 'Dismiss', desc: 'Reset reportCount to 0, clear reporters. Comment stays visible.' },
+
+    /* ---- 17 Notify ---- */
+    no17_event: { step: 'Notify', title: 'Source event', desc: 'Any controller action that affects a user: new follower, comment, like, payment success, subscription expiring, etc.', files: ['backend/src/services/notificationService.js'] },
+    no17_create: { step: 'Notify', title: 'Notification.create', desc: 'Required: user, type, title. Optional: message, link (e.g. /song/123).' },
+    no17_emit: { step: 'Notify', title: 'socket.emit', desc: 'io.to(userId).emit("notification:new", notif). Targets the user\'s room.' },
+    no17_online: { step: 'Notify', title: 'User online?', desc: 'If socket is connected, payload delivers immediately. If not, the Mongo record waits.' },
+    no17_socket: { step: 'Notify', title: 'Live delivery', desc: 'Frontend\'s socketService catches "notification:new", routes to the bell + toast.' },
+    no17_toast: { step: 'Notify', title: 'Toast + badge', desc: 'Toast.show(title) + bell badge increments. Subtle animation draws the eye.' },
+    no17_durable: { step: 'Notify', title: 'Mongo durable', desc: 'Survives socket reconnects. Caught up on next /notifications fetch.' },
+    no17_open: { step: 'Notify', title: 'Open #notifications', desc: 'NotificationsPage with filter (all / unread) and pagination.', files: ['frontend/public/js/pages/NotificationsPage.js'] },
+    no17_get: { step: 'Notify', title: 'GET /notifications', desc: 'Paginated. Returns notifications + unreadCount.' },
+    no17_list: { step: 'Notify', title: 'Mongo find', desc: 'Sorted by -createdAt. Filtered by user (and optionally unreadOnly).' },
+    no17_render: { step: 'Notify', title: 'Render', desc: 'Unread rows highlighted with purple accent + border. Tap to mark read.' },
+    no17_read: { step: 'Notify', title: 'Tap notification', desc: 'Marks read AND navigates to the link (if any).' },
+    no17_mark: { step: 'Notify', title: 'POST /:id/read', desc: 'Sets read: true. Idempotent.' },
+    no17_update: { step: 'Notify', title: 'Update badge', desc: 'Bell badge decrements. If 0, badge disappears.' }
+};
+
+/* ==========================================================
+ * Drawer wiring
+ * ========================================================== */
+const drawer = document.getElementById('drawer');
+const backdrop = document.getElementById('drawer-backdrop');
+const closeBtn = document.getElementById('drawer-close');
+const titleEl = document.getElementById('drawer-title');
+const stepEl = document.getElementById('drawer-step');
+const bodyEl = document.getElementById('drawer-body');
+
+function closeDrawer() {
+    drawer.classList.remove('open');
+    backdrop.classList.remove('open');
+}
+function openDrawer(nodeId) {
+    const d = NODES[nodeId];
+    if (!d) {
+        stepEl.textContent = '—';
+        titleEl.textContent = 'No details yet';
+        bodyEl.innerHTML = '<div class="drawer-empty">This node doesn\'t have docs yet. Add it to the NODES registry.</div>';
+    } else {
+        stepEl.textContent = d.step || '';
+        titleEl.textContent = d.title || '';
+        let html = '';
+        if (d.desc) {
+            html += '<div class="drawer-section"><h5>What it does</h5><p>' + d.desc + '</p></div>';
+        }
+        if (d.files && d.files.length) {
+            html += '<div class="drawer-section"><h5>Files</h5><ul>';
+            d.files.forEach(f => html += '<li>' + f + '</li>');
+            html += '</ul></div>';
+        }
+        if (d.endpoint) {
+            html += '<div class="drawer-section"><h5>Endpoint</h5><p><code>' + d.endpoint + '</code></p></div>';
+        }
+        if (d.gotcha) {
+            html += '<div class="drawer-section gotcha"><h5>⚠ Gotcha</h5><p>' + d.gotcha + '</p></div>';
+        }
+        bodyEl.innerHTML = html;
+    }
+    drawer.classList.add('open');
+    backdrop.classList.add('open');
+}
+
+// Mermaid click handler — receives node ID
+window.nodeClick = function(nodeId) {
+    openDrawer(nodeId);
+};
+
+closeBtn.addEventListener('click', closeDrawer);
+backdrop.addEventListener('click', closeDrawer);
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDrawer();
+});
+
+/* ==========================================================
+ * Mermaid setup — bulletproof async render
+ * ========================================================== */
+(function bootMermaid() {
+    function init() {
+        if (typeof mermaid === 'undefined') {
+            console.error('[flows] Mermaid library failed to load from CDN');
+            document.querySelectorAll('pre.mermaid').forEach(pre => {
+                pre.outerHTML = '<div style="padding:16px;background:#2a1818;border:1px solid #ff5470;border-radius:8px;color:#ff5470;font-family:monospace;font-size:13px;">⚠ Mermaid library didn\'t load. Check your internet connection or open the page from a real web server (not file://).</div>';
+            });
+            return;
+        }
+
+        mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#1f1f38',
+                primaryTextColor: '#e8e8f0',
+                primaryBorderColor: '#2a2a45',
+                lineColor: '#6c63ff',
+                secondaryColor: '#16162a',
+                tertiaryColor: '#16162a',
+                background: '#0a0a14',
+                mainBkg: '#1f1f38',
+                secondBkg: '#16162a',
+                textColor: '#e8e8f0',
+                nodeBorder: '#2a2a45',
+                clusterBkg: '#0e0e1e',
+                clusterBorder: '#2a2a45',
+                defaultLinkColor: '#6c63ff',
+                edgeLabelBackground: '#0a0a14'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+                nodeSpacing: 50,
+                rankSpacing: 60
+            },
+            er: { useMaxWidth: true }
+        });
+
+        // Render each diagram independently so one bad block doesn't kill them all
+        const blocks = document.querySelectorAll('pre.mermaid');
+        blocks.forEach(async (pre, i) => {
+            const source = pre.textContent.trim();
+            const id = 'mmd-' + i + '-' + Date.now();
+            try {
+                const { svg, bindFunctions } = await mermaid.render(id, source);
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mermaid-rendered';
+                wrapper.innerHTML = svg;
+                pre.replaceWith(wrapper);
+                if (bindFunctions) bindFunctions(wrapper);
+                markClickable(wrapper);
+            } catch (err) {
+                console.error('[flows] diagram', i, 'failed:', err);
+                const errBox = document.createElement('div');
+                errBox.style.cssText = 'padding:14px;background:#2a1818;border:1px solid #ff5470;border-radius:8px;color:#ff5470;font-family:monospace;font-size:12px;line-height:1.5;';
+                errBox.innerHTML = '⚠ Diagram ' + (i + 1) + ' failed to render.<br>' +
+                    '<span style="color:#8a8aa3">Source preserved below:</span>' +
+                    '<pre style="margin-top:8px;color:#e8e8f0;white-space:pre-wrap;">' +
+                    source.replace(/[<>&]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;' }[c])) +
+                    '</pre>';
+                pre.replaceWith(errBox);
+            }
+        });
+    }
+
+    function markClickable(wrapper) {
+        wrapper.querySelectorAll('g.node').forEach(node => {
+            const idMatch = node.id.match(/flowchart-([a-z]{2}\d{2}_[a-z_]+)/);
+            if (idMatch && NODES[idMatch[1]]) {
+                node.classList.add('clickable');
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+/* ==========================================================
+ * Scroll-spy for left rail
+ * ========================================================== */
+const sections = document.querySelectorAll('section.flow, .intro');
+const navLinks = document.querySelectorAll('.rail-nav a');
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const id = entry.target.id;
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+            });
+        }
+    });
+}, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
