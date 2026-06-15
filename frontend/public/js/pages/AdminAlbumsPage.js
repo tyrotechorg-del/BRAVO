@@ -201,21 +201,24 @@ class AdminAlbumsPage {
     async _showManageTracksModal(albumStub) {
         // Admin: can add ANY song to ANY album. Fetch the full album
         // (populated songs) + all songs in the system.
+        // albumsAPI.getById returns raw data (or null), not a {success, data}
+        // wrapper. adminAPI.getAllSongs returns the {success, data} wrapper.
         const albumsAPI = new AlbumsAPI();
-        const [albumResult, allSongsResult] = await Promise.all([
+        const [albumData, allSongsResult] = await Promise.all([
             albumsAPI.getById(albumStub._id),
-            this.adminAPI.getAllSongs(1, 500)   // capped at 500 — admin tools rarely need more
+            this.adminAPI.getAllSongs(1, 500)
         ]);
 
-        const album = albumResult?.success ? (albumResult.data?.album || albumResult.data) : null;
-        if (!album) {
+        // Backend returns { album: {...} } or just the album doc directly
+        const album = albumData?.album || albumData || albumStub;
+        if (!album || !album._id) {
             Toast.show?.('Could not load album', 'error');
             return;
         }
 
         const allSongs = allSongsResult?.success
             ? (allSongsResult.data?.songs || allSongsResult.data || [])
-            : Array.isArray(allSongsResult) ? allSongsResult : [];
+            : (Array.isArray(allSongsResult) ? allSongsResult : []);
 
         const songsInAlbum = Array.isArray(album.songs) ? album.songs : [];
         const inAlbumIds = new Set(songsInAlbum.map(s => String(s._id || s)));

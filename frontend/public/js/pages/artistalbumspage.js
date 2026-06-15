@@ -409,20 +409,24 @@ class ArtistAlbumsPage {
     async _showManageTracksModal(albumStub) {
         // Fetch the full album (with populated songs) + the artist's
         // own songs (so we know what's available to add).
-        const [albumResult, mySongsResult] = await Promise.all([
+        // albumsAPI.getById returns the raw data (or null) — not a
+        // {success, data} wrapper. Same for artistsAPI.getMySongs.
+        const [albumData, mySongsData] = await Promise.all([
             this.albumsAPI.getById(albumStub._id),
             this.artistsAPI.getMySongs()
         ]);
 
-        const album = albumResult?.success ? (albumResult.data?.album || albumResult.data) : null;
-        if (!album) {
+        // Backend returns { album: {...} } or just the album doc directly
+        const album = albumData?.album || albumData || albumStub;
+        if (!album || !album._id) {
             Toast.show?.('Could not load album', 'error');
             return;
         }
 
-        const mySongs = mySongsResult?.success
-            ? (mySongsResult.data?.songs || mySongsResult.data || [])
-            : Array.isArray(mySongsResult) ? mySongsResult : [];
+        // mySongs may be { songs: [...] } or a plain array
+        const mySongs = Array.isArray(mySongsData)
+            ? mySongsData
+            : (mySongsData?.songs || mySongsData?.data?.songs || []);
 
         // IDs currently in this album. The album.songs field may be an
         // array of ObjectId strings OR populated Song objects depending
