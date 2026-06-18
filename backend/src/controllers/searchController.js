@@ -1,13 +1,10 @@
 import Song from '../models/Song.js';
 import Artist from '../models/Artist.js';
 import Album from '../models/Album.js';
-import Playlist from '../models/Playlist.js'; // FIX: was dynamic-imported
+import Playlist from '../models/Playlist.js';
 
-// ============================================================
 // SECURITY: ReDoS-safe search
-// ============================================================
 //
-// The original code did `{ $regex: q, $options: 'i' }` in every search
 // method. This passes user input directly into a regex engine, which
 // allows two distinct attacks:
 //
@@ -61,17 +58,11 @@ function buildPrefixMatch(q) {
   return { $regex: `^${escapeRegex(trimmed)}`, $options: 'i' };
 }
 
-/**
- * Parse and clamp a limit param. Centralised so all search endpoints
- * agree on the cap (was unbounded in the original code).
- */
 function parseLimit(limitParam, defaultLimit = 20, maxLimit = 50) {
   return Math.min(maxLimit, Math.max(1, parseInt(limitParam, 10) || defaultLimit));
 }
 
-// ============================================================
 // GET /api/search                        (public)
-// ============================================================
 export const searchAll = async (req, res) => {
   try {
     const { q } = req.query;
@@ -84,7 +75,6 @@ export const searchAll = async (req, res) => {
       });
     }
 
-    // All three queries run in parallel — already the case in the original.
     const [songs, artists, albums] = await Promise.all([
       Song.find({
         $or: [{ title: match }, { tags: match }],
@@ -92,7 +82,7 @@ export const searchAll = async (req, res) => {
       })
         .limit(limit)
         .populate('artist', 'stageName')
-        .lean(), // FIX: .lean() — faster, smaller payload for search results.
+        .lean(),
 
       Artist.find({
         $or: [{ stageName: match }, { genres: match }],
@@ -117,9 +107,7 @@ export const searchAll = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/search/songs                  (public)
-// ============================================================
 export const searchSongs = async (req, res) => {
   try {
     const match = buildContainsMatch(req.query.q);
@@ -146,9 +134,7 @@ export const searchSongs = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/search/artists                (public)
-// ============================================================
 export const searchArtists = async (req, res) => {
   try {
     const match = buildContainsMatch(req.query.q);
@@ -174,9 +160,7 @@ export const searchArtists = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/search/albums                 (public)
-// ============================================================
 export const searchAlbums = async (req, res) => {
   try {
     const match = buildContainsMatch(req.query.q);
@@ -203,11 +187,8 @@ export const searchAlbums = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/search/playlists              (public)
-// ============================================================
-// FIX: Playlist is now imported at the top of the file — was dynamic
-// imported inside the handler in the original.
+
 export const searchPlaylists = async (req, res) => {
   try {
     const match = buildContainsMatch(req.query.q);
@@ -234,16 +215,12 @@ export const searchPlaylists = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/search/suggestions            (public)
-// ============================================================
 //
 // Autosuggest endpoint. Uses prefix-anchored regex (`^q`) so a user
 // typing "Bob" matches "Bob Marley" but not "Reggae Bob".
 //
-// FIX: ReDoS-safe via escapeRegex.
-// FIX: parallel queries (was sequential).
-// FIX: tight limit cap (5 each is fine for autosuggest dropdowns).
+
 //
 export const getSuggestions = async (req, res) => {
   try {

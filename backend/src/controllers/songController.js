@@ -17,21 +17,11 @@ const VALID_GENRES = [
   'Traditional', 'Amapiano', 'Cuundu', 'Soul', 'Rock', 'Kalindula', 'Other',
 ];
 
-/**
- * Escape user-supplied input for use inside a RegExp.
- *
- * `getSongsByGenre` previously did `new RegExp(req.params.genre, 'i')`
- * — feeding raw user input into a regex constructor enables ReDoS
- * (regex denial-of-service) via catastrophic backtracking patterns.
- * This escapes special chars so the regex matches literally.
- */
 function escapeRegex(s) {
   return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// ============================================================
 // GET /api/songs                         (public, uses optionalAuth)
-// ============================================================
 export const getSongs = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
@@ -66,9 +56,7 @@ export const getSongs = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/songs/:id                     (public, uses optionalAuth)
-// ============================================================
 export const getSong = async (req, res) => {
   try {
     const song = await Song.findById(req.params.id)
@@ -94,9 +82,7 @@ export const getSong = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/songs/trending                (public)
-// ============================================================
 export const getTrendingSongs = async (req, res) => {
   try {
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
@@ -113,9 +99,7 @@ export const getTrendingSongs = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/songs/featured                (public)
-// ============================================================
 export const getFeaturedSongs = async (req, res) => {
   try {
     const featured = await Song.find({ status: 'featured' })
@@ -130,9 +114,7 @@ export const getFeaturedSongs = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/songs/recent                  (public)
-// ============================================================
 export const getRecentSongs = async (req, res) => {
   try {
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
@@ -149,9 +131,7 @@ export const getRecentSongs = async (req, res) => {
   }
 };
 
-// ============================================================
 // POST /api/songs                        (auth required)
-// ============================================================
 export const uploadSong = async (req, res) => {
   try {
     const artist = await Artist.findOne({ userId: req.user._id });
@@ -261,9 +241,7 @@ export const uploadSong = async (req, res) => {
   }
 };
 
-// ============================================================
 // POST /api/songs/:id/like               (auth required)
-// ============================================================
 //
 // RACE FIX: The old toggle-by-checking-then-mutating pattern is racy.
 // Two simultaneous "like" requests can both pass the "doesn't exist"
@@ -319,9 +297,7 @@ export const likeSong = async (req, res) => {
   }
 };
 
-// ============================================================
 // DELETE /api/songs/:id/like             (auth required)
-// ============================================================
 export const unlikeSong = async (req, res) => {
   try {
     const songId = req.params.id;
@@ -346,9 +322,7 @@ export const unlikeSong = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/songs/:id/stream              (uses optionalAuth)
-// ============================================================
 //
 // HTTP Range-aware audio streaming. Supports seeking in HTML5 <audio>
 // players, partial-content requests from mobile media players, and
@@ -375,7 +349,6 @@ export const streamSong = async (req, res) => {
     const song = await Song.findById(req.params.id);
     if (!song) return res.status(404).json({ error: 'Song not found' });
 
-    // Premium gate — was missing entirely in the original code.
     if (song.isPremium) {
       if (!req.user) {
         return res.status(401).json({ error: 'Premium content requires sign-in' });
@@ -414,9 +387,7 @@ export const streamSong = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/songs/by-artist/:artistId     (public)
-// ============================================================
 export const getSongsByArtist = async (req, res) => {
   try {
     // The param can be either a User ID (looked up via Artist.findOne
@@ -436,12 +407,10 @@ export const getSongsByArtist = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/songs/by-genre/:genre         (public)
-// ============================================================
 export const getSongsByGenre = async (req, res) => {
   try {
-    // FIX: Old code did `new RegExp(req.params.genre, 'i')` — feeding
+
     // raw user input into a regex constructor is a ReDoS attack vector.
     // We escape special chars so the match is literal.
     const safeGenre = escapeRegex(req.params.genre);
@@ -460,9 +429,7 @@ export const getSongsByGenre = async (req, res) => {
   }
 };
 
-// ============================================================
 // POST /api/songs/:id/share              (uses optionalAuth)
-// ============================================================
 export const shareSong = async (req, res) => {
   try {
     // Atomic increment — was read-modify-write.
@@ -481,9 +448,7 @@ export const shareSong = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/songs/:id/comments            (public, uses optionalAuth)
-// ============================================================
 export const getSongComments = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
@@ -519,7 +484,7 @@ export const getSongComments = async (req, res) => {
       total,
     });
   } catch (err) {
-    // Old code swallowed errors and returned an empty array — that's
+
     // arguably nice UX for a comments section but it hides real bugs.
     // Log and return a clear error instead.
     console.error('getSongComments error:', err);
@@ -527,9 +492,7 @@ export const getSongComments = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/songs/videos                  (public)
-// ============================================================
 export const getAllVideos = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
@@ -557,9 +520,7 @@ export const getAllVideos = async (req, res) => {
   }
 };
 
-// ============================================================
 // GET /api/songs/:id/video               (uses optionalAuth)
-// ============================================================
 // Same range-aware streaming as streamSong. Video files are bigger
 // (max 500MB vs 20MB for audio) which makes Range support even more
 // important — without it, seeking in a 30-minute music video would
@@ -604,9 +565,7 @@ export const streamVideo = async (req, res) => {
   }
 };
 
-// ============================================================
 // DELETE /api/songs/:id                  (auth required)
-// ============================================================
 export const deleteSong = async (req, res) => {
   try {
     const song = await Song.findById(req.params.id);

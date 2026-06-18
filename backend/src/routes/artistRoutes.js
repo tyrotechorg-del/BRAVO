@@ -21,7 +21,6 @@ import { uploadLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
-// FIX: Was `requireRole(['artist'])` which EXCLUDED admins entirely.
 // Admins couldn't trigger artist actions or view artist dashboards.
 // Now allows both — the controller looks up the artist profile via
 // req.user._id, so admins can only act on their own (if they happen
