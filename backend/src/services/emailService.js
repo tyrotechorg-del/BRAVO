@@ -1,27 +1,45 @@
-import sgMail from '@sendgrid/mail';
-
 /**
- * Email service.
+ * Email service — Cloudflare Email Service.
  *
- * Fixes from the original:
- *   1. User-controlled values (username, etc.) are now HTML-escaped
- *      before being interpolated into email templates. The original
- *      did raw string interpolation — a username like
- *      `<script>alert(1)</script>` would embed the script into the
- *      verification email. Email clients block JavaScript in most
- *      cases, but it's still HTML injection.
- *   2. Plain-text fallback (`text` field) now uses a proper
- *      strip-tags + decode pass instead of a single regex that
- *      misses entities, nested tags, and script/style content.
- *   3. Recipient email is validated. The original passed whatever
- *      it received straight to SendGrid; a malformed address would
- *      surface as an opaque SendGrid 400 only after the API call.
- *   4. URL-base + token are encoded; safer than raw interpolation.
+ * Switched from SendGrid to Cloudflare's REST API (public beta from
+ * April 2026, generally available since). Reasons:
+ *   - Domain is already on Cloudflare DNS, so SPF/DKIM/DMARC records
+ *     get added automatically when onboarding for Email Sending.
+ *   - No SDK to install. Native fetch() only. One less dependency to
+ *     audit and update.
+ *   - Same global anycast network as Cloudflare's other products,
+ *     which means low-latency dispatch from anywhere in the world.
+ *
+ * Setup (one-time, in Cloudflare dashboard):
+ *   1. Compute -> Email Service -> Email Sending
+ *   2. Onboard bravomusics.com (Cloudflare adds the DNS records itself)
+ *   3. My Profile -> API Tokens -> Create Token with
+ *      "Email Sending: Edit" permission scoped to this account
+ *
+ * Required env vars:
+ *   CLOUDFLARE_ACCOUNT_ID        - 32-char hex on the API Tokens page
+ *   CLOUDFLARE_EMAIL_API_TOKEN   - the token created above
+ *   EMAIL_FROM                   - e.g. "Bravo Music <noreply@bravomusics.com>"
+ *                                  (the @bravomusics.com sender domain must be onboarded)
+ *   FRONTEND_URL                 - https://bravomusics.com
+ *
+ * If account ID OR token is missing, the service runs in MOCK mode and
+ * logs what it would have sent. This keeps `npm run dev` working without
+ * real credentials.
+ *
+ * Security hardening preserved from the SendGrid version:
+ *   - All user-controlled values (username, etc.) are HTML-escaped
+ *     before going into email templates.
+ *   - Plain-text fallback uses a tag-aware strip (drops script/style
+ *     blocks, decodes the entities we emit).
+ *   - Recipient address is validated before the API call so a malformed
+ *     address fails locally instead of surfacing as an opaque 400.
+ *   - URL tokens are URL-encoded defensively.
  */
 
-// Same escapeHtml used in commentController. Keeping it here avoids
-// importing a separate util in a Node service that may run before app
-// startup completes.
+const CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4';
+const REQUEST_TIMEOUT_MS = 10_000;
+
 function safe(value) {
   if (value === null || value === undefined) return '';
   return String(value)
@@ -38,19 +56,14 @@ function isLikelyEmail(addr) {
 
 function htmlToPlainText(html) {
   return String(html || '')
-    // Drop <script> and <style> blocks entirely.
     .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
-    // Replace block-level tags with newlines.
     .replace(/<\/?(div|p|br|h[1-6]|li|tr)[^>]*>/gi, '\n')
-    // Strip remaining tags.
     .replace(/<[^>]*>/g, '')
-    // Decode the handful of entities we actually emit above.
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#x27;/g, "'")
-    // Collapse whitespace.
     .replace(/[ \t]+/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
@@ -59,20 +72,35 @@ function htmlToPlainText(html) {
 
 class EmailService {
   constructor() {
-    const key = process.env.SENDGRID_API_KEY;
-    if (key && key !== 'your_sendgrid_api_key_here') {
-      sgMail.setApiKey(key);
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+    const apiToken = process.env.CLOUDFLARE_EMAIL_API_TOKEN;
+
+    const looksLikePlaceholder = (v) =>
+      !v || v === 'your_account_id_here' || v === 'your_api_token_here';
+
+    if (!looksLikePlaceholder(accountId) && !looksLikePlaceholder(apiToken)) {
+      this.accountId = accountId;
+      this.apiToken = apiToken;
       this.isConfigured = true;
-      this.fromEmail = process.env.EMAIL_FROM || 'noreply@bravomusics.com';
-      console.log('SendGrid configured');
+      this.endpoint = `${CLOUDFLARE_API_BASE}/accounts/${accountId}/email/sending/send`;
+      console.log('Cloudflare Email Service configured');
     } else {
       this.isConfigured = false;
-      this.fromEmail = process.env.EMAIL_FROM || 'noreply@bravomusics.com';
-      console.log('SendGrid not configured — emails will be logged in mock mode');
+      console.log(
+        'Cloudflare Email Service not configured — emails will be logged in mock mode. ' +
+        'Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_EMAIL_API_TOKEN to enable.'
+      );
     }
+
+    this.fromEmail = process.env.EMAIL_FROM || 'Bravo Music <support@bravomusics.com>';
     this.frontendUrl = process.env.FRONTEND_URL || 'https://bravomusics.com';
   }
 
+  /**
+   * Core sender. Posts the message to Cloudflare's REST endpoint and
+   * normalises the response shape so callers don't have to know which
+   * provider is behind this.
+   */
   async sendEmail(to, subject, html, text = null) {
     if (!isLikelyEmail(to)) {
       console.error('Refused to send email to invalid address:', to);
@@ -84,20 +112,64 @@ class EmailService {
       return { success: true, mock: true };
     }
 
-    const msg = {
+    const body = {
+      from: this.fromEmail,
       to,
-      from: { email: this.fromEmail, name: 'Bravo Music' },
       subject,
       html,
       text: text || htmlToPlainText(html),
     };
 
+    // AbortController so a hung Cloudflare request doesn't block the
+    // calling controller forever (and keep its DB transaction open).
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
     try {
-      const response = await sgMail.send(msg);
-      return { success: true, response };
-    } catch (error) {
-      console.error('SendGrid error:', error.response?.body || error.message);
-      return { success: false, error: error.message };
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        // Cloudflare returns { success: false, errors: [{ code, message }] }
+        // on validation/auth failures. Surface the first error for logs.
+        const cfError = data?.errors?.[0]?.message
+          || `HTTP ${response.status} ${response.statusText}`;
+        console.error(`Cloudflare email error (to=${to}): ${cfError}`);
+        return { success: false, error: cfError, status: response.status };
+      }
+
+      // Even with HTTP 200, Cloudflare can mark some recipients as
+      // permanent bounces (typo'd domain, etc.). Treat that as failure
+      // for the calling code.
+      const bounced = data?.result?.permanent_bounces || [];
+      if (bounced.length > 0) {
+        console.warn(`Cloudflare reported permanent bounce for ${to}`);
+        return { success: false, error: 'Recipient address bounced', bounced };
+      }
+
+      return {
+        success: true,
+        delivered: data?.result?.delivered || [],
+        queued: data?.result?.queued || [],
+      };
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        console.error(`Cloudflare email timeout after ${REQUEST_TIMEOUT_MS}ms (to=${to})`);
+        return { success: false, error: 'Email service timeout' };
+      }
+      console.error('Cloudflare email fetch failed:', err.message);
+      return { success: false, error: err.message };
     }
   }
 
@@ -105,8 +177,6 @@ class EmailService {
   // Verification email
   // ============================================================
   async sendVerificationEmail(email, token, username) {
-    // Token is 32 random hex bytes from authController — already URL-safe.
-    // But encodeURIComponent is defensive in case the policy ever changes.
     const verificationUrl = `${this.frontendUrl}/#verify-email/${encodeURIComponent(token)}`;
     const safeUsername = safe(username);
 
@@ -129,7 +199,7 @@ class EmailService {
     <p style="word-break:break-all;background:#eee;padding:10px;border-radius:5px">${safe(verificationUrl)}</p>
     <p>This link expires in 24 hours.</p>
   </div>
-  <div class="footer">Bravo Music — Zambia's Premier Music Platform</div>
+  <div class="footer">Bravo Music &mdash; Zambia's Premier Music Platform</div>
 </div></body></html>`;
 
     return this.sendEmail(email, 'Verify Your Email - Bravo Music', html);
@@ -208,7 +278,7 @@ class EmailService {
 <body><div class="container">
   <div class="header"><h1>Password Changed</h1></div>
   <div class="content">
-    <div class="check">✓</div>
+    <div class="check">&#10003;</div>
     <h2>Hi ${safeUsername || 'there'},</h2>
     <p>Your Bravo Music account password has been changed.</p>
     <p>If you didn't make this change, contact support immediately at support@bravomusics.com.</p>
