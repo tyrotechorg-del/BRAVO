@@ -169,6 +169,12 @@ class BravoMusicApp {
         } else if (route.startsWith('song/')) {
             const id = route.split('/')[1];
             if (window.SongDetailPage) pageInstance = new SongDetailPage(id);
+        } else if (route.startsWith('verify-email/')) {
+            const token = decodeURIComponent(route.slice('verify-email/'.length));
+            if (window.VerifyEmailPage) pageInstance = new VerifyEmailPage(token);
+        } else if (route.startsWith('reset-password/')) {
+            const token = decodeURIComponent(route.slice('reset-password/'.length));
+            if (window.ResetPasswordPage) pageInstance = new ResetPasswordPage(token);
         } else {
             pageInstance = this._instantiateStaticRoute(route);
         }
