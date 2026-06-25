@@ -177,7 +177,7 @@ class EmailService {
   // Verification email
   // ============================================================
   async sendVerificationEmail(email, token, username) {
-    const verificationUrl = `${this.frontendUrl}/#verify-email/${encodeURIComponent(token)}`;
+    const verificationUrl = `${this.frontendUrl}/verify-email/${encodeURIComponent(token)}`;
     const safeUsername = safe(username);
 
     const html = `<!DOCTYPE html>
@@ -210,7 +210,7 @@ class EmailService {
   // ============================================================
   async sendWelcomeEmail(email, username) {
     const safeUsername = safe(username);
-    const dashboardUrl = `${this.frontendUrl}/#dashboard`;
+    const dashboardUrl = `${this.frontendUrl}/dashboard`;
 
     const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><style>
@@ -236,7 +236,7 @@ class EmailService {
   // Password reset request
   // ============================================================
   async sendPasswordResetEmail(email, token, username) {
-    const resetUrl = `${this.frontendUrl}/#reset-password/${encodeURIComponent(token)}`;
+    const resetUrl = `${this.frontendUrl}/reset-password/${encodeURIComponent(token)}`;
     const safeUsername = safe(username);
 
     const html = `<!DOCTYPE html>
@@ -323,7 +323,7 @@ class EmailService {
     const safeMinutes = safe(stats.minutesListened || 0);
     const safeNewSongs = safe(stats.newSongs || 0);
     const safeTopGenre = safe(stats.topGenre || 'Various');
-    const dashboardUrl = `${this.frontendUrl}/#dashboard`;
+    const dashboardUrl = `${this.frontendUrl}/dashboard`;
 
     const html = `<!DOCTYPE html>
 <html><head><style>

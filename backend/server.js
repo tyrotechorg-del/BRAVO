@@ -134,8 +134,9 @@ function buildAllowedOrigins() {
         'https://bravomusics.com',
         'https://www.bravomusics.com',
 	    'https://api.bravomusics.com',
-        'http://10.220.201.139:3000',
-        'http://10.220.201.139:1000',
+        'http://192.168.0.112:3000',
+        'http://192.168.0.112:1000',
+        'http://192.168.0.112:8080',
         'http://localhost:3000',
         'http://127.0.0.1:5500'
     ];

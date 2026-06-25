@@ -435,16 +435,8 @@
 }
 
 /* ============================================================
- * Mobile menu (slide-down) + hamburger animation
+ * Mobile sidebar hamburger
  * ============================================================ */
-.mobile-menu {
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
-  transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
-}
-.mobile-menu.open { max-height: 420px; opacity: 1; }
-
 .hamburger { width: 22px; height: 16px; position: relative; display: inline-block; }
 .hamburger span {
   position: absolute; left: 0; height: 2px; width: 100%; background: currentColor;
