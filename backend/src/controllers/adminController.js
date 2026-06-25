@@ -231,7 +231,7 @@ const deleteUser = async (req, res) => {
             if (
               song.coverArt &&
               !song.coverArt.startsWith('http') &&
-              !song.coverArt.includes('unsplash')
+              !song.coverArt.includes('unsplash') && !song.coverArt.includes('bravo.png')
             ) {
               coverFilesToDelete.push(song.coverArt);
             }
@@ -332,6 +332,23 @@ const verifyArtist = async (req, res) => {
   } catch (err) {
     console.error('verifyArtist error:', err);
     res.status(500).json({ error: 'Failed to verify artist' });
+  }
+};
+
+// POST /api/admin/artists/:artistId/unverify
+const unverifyArtist = async (req, res) => {
+  try {
+    const artist = await Artist.findByIdAndUpdate(
+      req.params.artistId,
+      { $set: { verified: false } },
+      { new: true }
+    );
+    if (!artist) return res.status(404).json({ error: 'Artist not found' });
+    await logAdminAction(req.user._id, 'unverify_artist', artist._id, { stageName: artist.stageName });
+    res.json({ message: 'Artist unverified successfully', artist });
+  } catch (err) {
+    console.error('unverifyArtist error:', err);
+    res.status(500).json({ error: 'Failed to unverify artist' });
   }
 };
 
@@ -518,7 +535,7 @@ const deleteSong = async (req, res) => {
         console.error('Failed to delete video:', err.message)
       );
     }
-    if (song.coverArt && !song.coverArt.startsWith('http') && !song.coverArt.includes('unsplash')) {
+    if (song.coverArt && !song.coverArt.startsWith('http') && !song.coverArt.includes('unsplash') && !song.coverArt.includes('bravo.png')) {
       storageService.deleteFile(song.coverArt).catch((err) =>
         console.error('Failed to delete cover:', err.message)
       );
@@ -596,7 +613,7 @@ const adminUploadSong = async (req, res) => {
       storageService.uploadAudio(audioFile, artistId),
       coverFile
         ? storageService.uploadImage(coverFile, 'covers')
-        : Promise.resolve('https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=300'),
+        : Promise.resolve('images/bravo.png'),
       audioService.getDuration(audioFile.path).catch(() => 180),
     ]);
 
@@ -623,6 +640,9 @@ const adminUploadSong = async (req, res) => {
         await song.save();
       }
     }
+
+    // Keep the artist's song counter in sync so it shows on their dashboard.
+    await Artist.findByIdAndUpdate(artistId, { $inc: { songsUploaded: 1 } });
 
     await logAdminAction(req.user._id, 'admin_upload_song', song._id, {
       title,
@@ -664,7 +684,7 @@ const adminUploadVideo = async (req, res) => {
       audioFile ? storageService.uploadAudio(audioFile, artistId) : Promise.resolve(null),
       coverFile
         ? storageService.uploadImage(coverFile, 'covers')
-        : Promise.resolve('https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=300'),
+        : Promise.resolve('images/bravo.png'),
       audioService.getDuration(videoFile.path).catch(() => 180),
     ]);
 
@@ -1188,6 +1208,23 @@ const deleteComment = async (req, res) => {
   }
 };
 
+// POST /api/admin/comments/:commentId/dismiss
+const dismissComment = async (req, res) => {
+  try {
+    const comment = await Comment.findByIdAndUpdate(
+      req.params.commentId,
+      { $set: { isFlagged: false }, $unset: { flaggedAt: '', flaggedReason: '' } },
+      { new: true }
+    );
+    if (!comment) return res.status(404).json({ error: 'Comment not found' });
+    await logAdminAction(req.user._id, 'dismiss_comment_report', comment._id);
+    res.json({ message: 'Report dismissed', comment });
+  } catch (err) {
+    console.error('dismissComment error:', err);
+    res.status(500).json({ error: 'Failed to dismiss report' });
+  }
+};
+
 // ============================================================
 // PLATFORM ANALYTICS
 // ============================================================
@@ -1448,7 +1485,7 @@ const adminBulkAction = async (req, res) => {
           if (song.videoUrl && !song.videoUrl.startsWith('http')) {
             storageService.deleteFile(song.videoUrl).catch(() => {});
           }
-          if (song.coverArt && !song.coverArt.includes('unsplash') && !song.coverArt.startsWith('http')) {
+          if (song.coverArt && !song.coverArt.includes('unsplash') && !song.coverArt.includes('bravo.png') && !song.coverArt.startsWith('http')) {
             storageService.deleteFile(song.coverArt).catch(() => {});
           }
         }
@@ -1604,6 +1641,7 @@ export {
   // Artist Management
   getAllArtists,
   verifyArtist,
+  unverifyArtist,
   featureArtist,
 
   // Song Management
@@ -1639,6 +1677,7 @@ export {
   // Reported Comments
   getReportedComments,
   deleteComment,
+  dismissComment,
 
   // Analytics
   getPlatformAnalytics,

@@ -4,12 +4,14 @@ import Artist from '../models/Artist.js';
 import {
   getProfile,
   updateProfile,
+  uploadAvatar,
   getFollowers,
   getFollowing,
   followUser,
   unfollowUser,
   getListeningHistory,
   getUserPlaylists,
+  getMyLiked,
   getSettings,
   updateSettings,
   deleteAccount,
@@ -22,6 +24,7 @@ const router = express.Router();
 // Own profile (settings, history, etc.)
 router.get('/profile', auth, getProfile);
 router.put('/profile', auth, upload.single('avatar'), updateProfile);
+router.post('/profile/avatar', auth, upload.single('avatar'), uploadAvatar);
 
 router.get('/followers', auth, getFollowers);
 router.get('/following', auth, getFollowing);
@@ -30,6 +33,7 @@ router.delete('/unfollow/:userId', auth, unfollowUser);
 
 router.get('/history', auth, getListeningHistory);
 router.get('/playlists', auth, getUserPlaylists);
+router.get('/liked', auth, getMyLiked);
 
 router.get('/settings', auth, getSettings);
 router.put('/settings', auth, updateSettings);

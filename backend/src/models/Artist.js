@@ -66,7 +66,7 @@ const artistSchema = new mongoose.Schema(
     bannerImage: String,
     avatar: {
       type: String,
-      default: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
+      default: 'images/bravo.png',
     },
     bio: { type: String, default: '', maxlength: 1000 },
   },

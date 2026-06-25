@@ -428,6 +428,25 @@ export const refresh = async (req, res) => {
 export const refreshToken = refresh;
 
 // ============================================================
+// GET /api/auth/me                       (auth required)
+// ============================================================
+export const getMe = async (req, res) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
+
+    const user = await User.findById(req.user._id).select(
+      '-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires'
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json({ user });
+  } catch (err) {
+    console.error('getMe error:', err);
+    res.status(500).json({ error: 'Failed to fetch current user' });
+  }
+};
+
+// ============================================================
 // POST /api/auth/logout
 // ============================================================
 // TODO: Implement proper token revocation using a Redis blocklist.

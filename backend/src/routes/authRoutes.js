@@ -9,6 +9,7 @@ import {
   logout,
   resendVerification,
   updatePassword,
+  getMe,
 } from '../controllers/authController.js';
 import { authLimiter, passwordLimiter } from '../middleware/rateLimiter.js';
 import { auth } from '../middleware/auth.js';
@@ -31,5 +32,8 @@ router.post('/reset-password/:token', passwordLimiter, resetPassword);
 router.post('/update-password', auth, passwordLimiter, updatePassword);
 
 router.post('/logout', logout);
+
+// Current authenticated user (session re-hydration)
+router.get('/me', auth, getMe);
 
 export default router;

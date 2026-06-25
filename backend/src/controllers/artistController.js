@@ -15,7 +15,7 @@ import audioService from '../services/audioService.js';
 import { parsePagination } from '../utils/apiResponse.js';
 import { streamFileWithRange } from '../utils/streamRange.js';
 
-const DEFAULT_COVER_ART = 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=300';
+const DEFAULT_COVER_ART = 'images/bravo.png';
 
 // ============================================================
 // GET /api/artists/dashboard             (auth required)
@@ -278,6 +278,38 @@ export const getArtistAlbums = async (req, res) => {
   } catch (err) {
     console.error('getArtistAlbums error:', err);
     res.status(500).json({ error: 'Failed to fetch albums' });
+  }
+};
+
+// ============================================================
+// GET /api/artists/:id                   (public, optionalAuth)
+// ============================================================
+// Public artist profile by Artist _id. `userId` is populated so the client
+// knows which User to follow (follow targets a User, not an Artist profile).
+export const getArtistById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid artist id' });
+    }
+
+    const artist = await Artist.findById(id)
+      .populate('userId', 'username fullName avatar');
+
+    if (!artist) return res.status(404).json({ error: 'Artist not found' });
+
+    let isFollowing = false;
+    if (req.user && artist.userId) {
+      const followedId = artist.userId._id || artist.userId;
+      isFollowing = (req.user.following || []).some(
+        (f) => f.toString() === followedId.toString()
+      );
+    }
+
+    res.json({ artist, isFollowing });
+  } catch (err) {
+    console.error('getArtistById error:', err);
+    res.status(500).json({ error: 'Failed to fetch artist' });
   }
 };
 

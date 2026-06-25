@@ -1,0 +1,379 @@
+openapi: 3.0.0
+info:
+  title: Bravo Music API
+  description: API documentation for Bravo Music Platform
+  version: 1.0.0
+  contact:
+    name: Bravo Music Support
+    email: support@bravomusic.com
+  license:
+    name: MIT
+
+servers:
+  - url: https://api.bravomusic.com/api
+    description: Production server
+  - url: http://localhost:5000/api
+    description: Development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        fullName:
+          type: string
+        role:
+          type: string
+          enum: [listener, artist, admin]
+        avatar:
+          type: string
+        isVerified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    Song:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        artist:
+          type: string
+        genre:
+          type: string
+        duration:
+          type: number
+        audioUrl:
+          type: string
+        coverArt:
+          type: string
+        playCount:
+          type: number
+        likeCount:
+          type: number
+        isPremium:
+          type: boolean
+        price:
+          type: number
+        status:
+          type: string
+          enum: [pending, approved, rejected, featured]
+
+    Album:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        artist:
+          type: string
+        songs:
+          type: array
+          items:
+            type: string
+        coverArt:
+          type: string
+        genre:
+          type: string
+        type:
+          type: string
+          enum: [album, ep, single]
+        isPremium:
+          type: boolean
+        price:
+          type: number
+
+    Payment:
+      type: object
+      properties:
+        _id:
+          type: string
+        user:
+          type: string
+        amount:
+          type: number
+        type:
+          type: string
+          enum: [subscription, upload_credit, promotion, song_purchase, album_purchase]
+        method:
+          type: string
+          enum: [mtn_money, airtel_money, zamtel_kwacha, card]
+        status:
+          type: string
+          enum: [pending, completed, failed, refunded]
+        reference:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+                - fullName
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                fullName:
+                  type: string
+                role:
+                  type: string
+                  enum: [listener, artist]
+      responses:
+        201:
+          description: User registered successfully
+        400:
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      summary: Login user
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  refreshToken:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        401:
+          description: Invalid credentials
+
+  /songs:
+    get:
+      summary: Get all songs
+      tags: [Songs]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: genre
+          in: query
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of songs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  songs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Song'
+                  totalPages:
+                    type: integer
+                  currentPage:
+                    type: integer
+
+  /songs/{id}:
+    get:
+      summary: Get song by ID
+      tags: [Songs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Song details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        404:
+          description: Song not found
+
+  /songs/upload:
+    post:
+      summary: Upload a new song (Artist only)
+      tags: [Songs]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                genre:
+                  type: string
+                audio:
+                  type: string
+                  format: binary
+                coverArt:
+                  type: string
+                  format: binary
+                isPremium:
+                  type: boolean
+                price:
+                  type: number
+      responses:
+        201:
+          description: Song uploaded successfully
+        403:
+          description: Artist account required
+
+  /artists/dashboard:
+    get:
+      summary: Get artist dashboard data
+      tags: [Artists]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Dashboard data
+        403:
+          description: Artist account required
+
+  /admin/users:
+    get:
+      summary: Get all users (Admin only)
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: role
+          in: query
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of users
+        403:
+          description: Admin access required
+
+  /payments/initiate:
+    post:
+      summary: Initiate a payment
+      tags: [Payments]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - type
+                - method
+              properties:
+                amount:
+                  type: number
+                type:
+                  type: string
+                method:
+                  type: string
+                phoneNumber:
+                  type: string
+      responses:
+        200:
+          description: Payment initiated
+        400:
+          description: Invalid request
+
+  /subscriptions/plans:
+    get:
+      summary: Get available subscription plans
+      tags: [Subscriptions]
+      responses:
+        200:
+          description: List of plans
+
+tags:
+  - name: Authentication
+  - name: Songs
+  - name: Albums
+  - name: Artists
+  - name: Playlists
+  - name: Payments
+  - name: Subscriptions
+  - name: Admin
+  - name: Search

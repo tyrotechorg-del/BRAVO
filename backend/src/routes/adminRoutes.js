@@ -12,6 +12,7 @@ import {
   getAllArtists,
   getAllArtistsForAdmin,
   verifyArtist,
+  unverifyArtist,
   featureArtist,
 
   // Song Management
@@ -41,6 +42,7 @@ import {
   resolveReport,
   getReportedComments,
   deleteComment,
+  dismissComment,
 
   // Analytics
   getPlatformAnalytics,
@@ -71,6 +73,7 @@ router.delete('/users/:userId', deleteUser);
 router.get('/artists/list', getAllArtistsForAdmin);
 router.get('/artists', getAllArtists);
 router.post('/artists/:artistId/verify', verifyArtist);
+router.post('/artists/:artistId/unverify', unverifyArtist);
 router.post('/artists/:artistId/feature', featureArtist);
 
 // ============ SONGS ============
@@ -166,6 +169,7 @@ router.post('/backup', triggerBackup);
 // ============ MODERATION ============
 router.get('/comments/reported', getReportedComments);
 router.delete('/comments/:commentId', deleteComment);
+router.post('/comments/:commentId/dismiss', dismissComment);
 router.get('/reports', getReports);
 router.post('/reports/:reportId/resolve', (req, res, next) => {
   // Same convenience mirror as the withdrawal route.

@@ -15,7 +15,7 @@ const playlistSchema = new mongoose.Schema(
 
     coverArt: {
       type: String,
-      default: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=300',
+      default: 'images/bravo.png',
     },
     isPublic: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },

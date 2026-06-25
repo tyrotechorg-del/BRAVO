@@ -1,0 +1,309 @@
+# =============================================================
+# Bravo Music — nginx configuration
+# =============================================================
+# Place at: /etc/nginx/sites-available/bravomusic
+# Symlink:  /etc/nginx/sites-enabled/bravomusic
+# Reload:   sudo nginx -t && sudo systemctl reload nginx
+#
+# Assumes:
+#   - Node backend runs on localhost:1000
+#   - Frontend static files at /var/www/BRAVO/frontend/public
+#   - Uploaded files at /var/www/BRAVO/backend/uploads
+#   - Let's Encrypt certs already exist for bravomusics.com
+# =============================================================
+
+# Rate limit zones (defined at http{} level — put in /etc/nginx/nginx.conf or
+# wrap this whole file in `http {}` if you're not using sites-enabled)
+# limit_req_zone $binary_remote_addr zone=api_limit:10m rate=20r/s;
+# limit_req_zone $binary_remote_addr zone=auth_limit:10m rate=5r/m;
+
+# Map for WebSocket upgrade — proper conditional handling
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+# ============================================================
+# 1. FRONTEND — main domain (HTTPS)
+# ============================================================
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name bravomusics.com www.bravomusics.com;
+
+    ssl_certificate     /etc/letsencrypt/live/bravomusics.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/bravomusics.com/privkey.pem;
+
+    # Modern TLS only (drop TLSv1.0/1.1 if you don't need IE11)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+    # ===== Security headers for the frontend =====
+    # HSTS — only after you've confirmed HTTPS works for ALL users + subdomains
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    # CSP — relax 'unsafe-inline' if you can refactor inline styles/handlers
+    add_header Content-Security-Policy "
+        default-src 'self';
+        script-src 'self' https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        img-src 'self' data: blob: https:;
+        media-src 'self' blob: https://api.bravomusics.com;
+        connect-src 'self' https://api.bravomusics.com wss://api.bravomusics.com;
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+    " always;
+
+    root /var/www/BRAVO/frontend/public;
+    index index.html;
+
+    # Body limits for the frontend (it doesn't accept uploads — be strict)
+    client_max_body_size 1M;
+
+    # Compression
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json
+               image/svg+xml application/xml text/xml;
+    gzip_min_length 256;
+    gzip_proxied any;
+
+    # ===== Cache busting for hashed/versioned assets =====
+    # Your config.js uses `?v=YYYYMMDD` — those URLs are safe to cache 1y.
+    # HTML must NEVER cache (always re-fetch to get the latest ?v= refs).
+    location = /index.html {
+        add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+        # Re-emit security headers (add_header doesn't inherit into location)
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    location ~* \.(jpg|jpeg|png|gif|ico|webp|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable" always;
+        access_log off;
+    }
+
+    location ~* \.(css|js)$ {
+        # Your ?v= query string handles cache invalidation, so 1y immutable is safe
+        expires 1y;
+        add_header Cache-Control "public, immutable" always;
+        access_log off;
+    }
+
+    # SPA routing fallback — every non-asset URL serves index.html so the
+    # client-side router can handle the hash route.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Canonical redirect: www → apex (or flip if you prefer www)
+    if ($host = "www.bravomusics.com") {
+        return 301 https://bravomusics.com$request_uri;
+    }
+}
+
+# ============================================================
+# 2. API SUBDOMAIN (HTTPS)
+# ============================================================
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name api.bravomusics.com;
+
+    ssl_certificate     /etc/letsencrypt/live/bravomusics.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/bravomusics.com/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+
+    # Backend handles CORS + most security headers via helmet. We just
+    # need to make sure we don't override or strip them.
+
+    # HSTS still applies on this domain
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+    # ==== Body size limits per endpoint family ====
+    # Default: 10MB (matches the backend's express.json limit)
+    client_max_body_size 10M;
+    client_body_buffer_size 128k;
+    client_body_timeout 60s;
+
+    # Compression for JSON responses
+    gzip on;
+    gzip_types application/json text/plain;
+    gzip_min_length 256;
+    gzip_proxied any;
+    gzip_vary on;
+
+    # ==== Rate limiting (uncomment after defining zones above) ====
+    # limit_req zone=api_limit burst=40 nodelay;
+
+
+     # ============================================================
+    # CRITICAL: Audio streaming uses HTTP Range requests for scrubbing.
+    # nginx handles these natively for static files — don't proxy them
+    # to Node (Node's express.static handles ranges but it's slower and
+    # blocks the event loop on large files).
+    location /uploads/ {
+        alias /var/www/BRAVO/backend/uploads/;
+
+        # Tell clients we accept range requests (essential for audio seek)
+        add_header Accept-Ranges bytes always;
+
+        # CORS — explicit allowlist via map (simpler than per-header logic)
+        # Allow both apex + www; the regex below picks the matching one.
+        set $cors_origin "";
+        if ($http_origin ~* "^https://(www\.)?bravomusics\.com$") {
+            set $cors_origin $http_origin;
+        }
+        add_header Access-Control-Allow-Origin "$cors_origin" always;
+        add_header Access-Control-Allow-Credentials "true" always;
+        add_header Access-Control-Expose-Headers "Content-Length, Content-Range, Accept-Ranges" always;
+        add_header Vary "Origin" always;
+
+        # COEP/COOP compatibility for audio in modern browsers
+        add_header Cross-Origin-Resource-Policy "cross-origin" always;
+
+        # Cache: 30d for static files but NOT immutable (admin may re-upload
+        # under the same filename when fixing typos).
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000" always;
+
+        # OPTIONS preflight short-circuit (avoids hitting the alias path)
+        if ($request_method = OPTIONS) {
+            add_header Access-Control-Allow-Origin "$cors_origin";
+            add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS";
+            add_header Access-Control-Allow-Headers "Authorization, Content-Type, Range";
+            add_header Access-Control-Max-Age 86400;
+            return 204;
+          }
+
+        # MIME types (nginx defaults cover most; add the audio ones we use)
+        types {
+            audio/mpeg            mp3;
+            audio/mp4             m4a;
+            audio/wav             wav;
+            audio/aac             aac;
+            audio/ogg             ogg;
+            video/mp4             mp4;
+            video/webm            webm;
+            video/quicktime       mov;
+            image/jpeg            jpg jpeg;
+            image/png             png;
+            image/webp            webp;
+            image/gif             gif;
+        }
+
+        # Performance: send-file (zero-copy), disable buffering, large output buffers
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        directio 8m;       # files >8mb use direct I/O (audio/video)
+        output_buffers 2 1m;
+
+        access_log off;    # noisy and disk-hungry for static media
+    }
+
+    # ============================================================
+    # /api/admin/upload-* — admin uploads (larger limit)
+    # ============================================================
+    location ~ ^/api/(admin/upload-(song|video|album)|upload) {
+        client_max_body_size 600M;
+        client_body_timeout 300s;
+        proxy_request_buffering off;       # stream uploads through; don't buffer
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+         proxy_connect_timeout 60s;
+
+        proxy_pass http://localhost:1000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+    }
+
+    # ============================================================
+    # /socket.io/ — WebSocket upgrade for real-time notifications
+    # ============================================================
+    location /socket.io/ {
+        proxy_pass http://localhost:1000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400s;          # long-lived sockets
+        proxy_send_timeout 86400s;
+    }
+
+    # ============================================================
+    # /api/auth/login + /api/auth/refresh-token — stricter rate limiting
+    # ============================================================
+    # location ~ ^/api/auth/(login|register|refresh-token|forgot-password) {
+    #     limit_req zone=auth_limit burst=10 nodelay;
+    #     proxy_pass http://localhost:1000;
+    #     # ... same proxy_set_header block as default
+    # }
+
+   # ============================================================
+# /api/ — everything else (default proxy to Node backend)
+# ============================================================
+location /api/ {
+
+    proxy_pass http://localhost:1000;
+    proxy_http_version 1.1;
+
+    # Forward real client info — required for batch 16's
+    # `app.set('trust proxy', 1)` to work correctly
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $host;
+
+    # WebSocket-friendly (the conditional handles non-WS requests too)
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_cache_bypass $http_upgrade;
+
+    # Timeouts (in seconds)
+    proxy_connect_timeout 60s;
+    proxy_send_timeout 60s;
+    proxy_read_timeout 60s;
+
+    # Buffering
+    proxy_buffering on;
+    proxy_buffer_size 16k;
+    proxy_buffers 8 16k;
+    proxy_busy_buffers_size 32k;
+
+    # Important: Don't strip CORS headers from the backend
+    proxy_pass_header Access-Control-Allow-Origin;
+    proxy_pass_header Access-Control-Allow-Methods;
+    proxy_pass_header Access-Control-Allow-Headers;
+    proxy_pass_header Access-Control-Allow-Credentials;
+  }
+}
+
+# ============================================================
+# HTTP → HTTPS redirects (both domains)
+# ============================================================
+server {
+    listen 80;
+    listen [::]:80;
+    server_name bravomusics.com www.bravomusics.com api.bravomusics.com;
+    return 301 https://$host$request_uri;
+}

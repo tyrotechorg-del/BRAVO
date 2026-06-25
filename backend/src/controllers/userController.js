@@ -111,6 +111,43 @@ export const updateProfile = async (req, res) => {
 };
 
 // ============================================================
+// POST /api/users/profile/avatar         (auth required)
+// ============================================================
+export const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    let avatarUrl;
+    try {
+      avatarUrl = await storageService.uploadImage(req.file, 'avatars');
+    } catch (uploadErr) {
+      return res.status(415).json({ error: uploadErr.message || 'Failed to process image' });
+    }
+
+    if (!avatarUrl) {
+      return res.status(400).json({ error: 'Failed to store image' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { avatar: avatarUrl, updatedAt: new Date() } },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (req.user.role === 'artist') {
+      await Artist.findOneAndUpdate({ userId: req.user._id }, { $set: { avatar: avatarUrl } });
+    }
+
+    res.json({ message: 'Profile picture updated', avatar: avatarUrl, user });
+  } catch (err) {
+    console.error('uploadAvatar error:', err);
+    res.status(500).json({ error: 'Failed to upload profile picture' });
+  }
+};
+
+// ============================================================
 // GET /api/users/followers               (auth required)
 // ============================================================
 // FIX: Was unpaginated. Top users could have 100k+ followers.
@@ -540,7 +577,7 @@ export const deleteAccount = async (req, res) => {
             if (
               song.coverArt &&
               !song.coverArt.startsWith('http') &&
-              !song.coverArt.includes('unsplash')
+              !song.coverArt.includes('unsplash') && !song.coverArt.includes('bravo.png')
             ) {
               coverFilesToDelete.push(song.coverArt);
             }

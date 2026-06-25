@@ -136,7 +136,7 @@ function buildAllowedOrigins() {
 	    'https://api.bravomusics.com',
         'http://10.220.201.139:3000',
         'http://10.220.201.139:1000',
-        'http://localhost:5500',
+        'http://localhost:3000',
         'http://127.0.0.1:5500'
     ];
 }
@@ -237,6 +237,9 @@ const STATIC_IMAGES  = process.env.STATIC_IMAGES_PATH  || path.join(process.cwd(
 app.use('/uploads',      express.static(STATIC_UPLOADS,  { maxAge: '7d', etag: true, immutable: false }));
 app.use('/static/music', express.static(STATIC_MUSIC,    { maxAge: '30d', etag: true, immutable: false }));
 app.use('/static/images', express.static(STATIC_IMAGES,  { maxAge: '30d', etag: true, immutable: false }));
+// Also serve images at /images so the default "images/bravo.png" placeholder
+// resolves both on the backend and matches the frontend's bundled asset path.
+app.use('/images',       express.static(STATIC_IMAGES,  { maxAge: '30d', etag: true, immutable: false }));
 
 // 7. Rate limiting (global). Per-route limits live in their respective route files.
 const globalLimiter = rateLimit({

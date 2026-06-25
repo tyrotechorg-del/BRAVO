@@ -180,7 +180,7 @@ export const uploadSong = async (req, res) => {
       storageService.uploadAudio(audioFile, artistId),
       coverArt
         ? storageService.uploadImage(coverArt, 'covers')
-        : Promise.resolve('https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=300'),
+        : Promise.resolve('images/bravo.png'),
       audioService.getDuration(audioFile.path).catch(() => 0),
     ]);
 
@@ -589,7 +589,7 @@ export const deleteSong = async (req, res) => {
         console.error('Failed to delete audio file:', err.message)
       );
     }
-    if (song.coverArt && !song.coverArt.startsWith('http') && !song.coverArt.includes('unsplash')) {
+    if (song.coverArt && !song.coverArt.startsWith('http') && !song.coverArt.includes('unsplash') && !song.coverArt.includes('bravo.png')) {
       storageService.deleteFile(song.coverArt).catch((err) =>
         console.error('Failed to delete cover art:', err.message)
       );

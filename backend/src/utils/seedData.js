@@ -51,7 +51,7 @@ const seedDatabase = async () => {
             role: 'admin',
             isVerified: true,
             isActive: true,
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100'
+            avatar: 'images/bravo.png'
         });
         await admin.save();
         
@@ -68,7 +68,7 @@ const seedDatabase = async () => {
             role: 'listener',
             isVerified: true,
             isActive: true,
-            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'
+            avatar: 'images/bravo.png'
         });
         await listener.save();
         
@@ -85,7 +85,7 @@ const seedDatabase = async () => {
             role: 'artist',
             isVerified: true,
             isActive: true,
-            avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100'
+            avatar: 'images/bravo.png'
         });
         await artistUser.save();
         
@@ -190,7 +190,7 @@ const seedDatabase = async () => {
             const audioFullPath = path.join(MUSIC_PATH, songData.filename);
             const coverFullPath = songData.coverImage 
                 ? path.join(IMAGES_PATH, songData.coverImage)
-                : 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=300';
+                : 'images/bravo.png';
             
             const song = new Song({
                 title: songData.title,

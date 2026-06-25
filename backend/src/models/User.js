@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      default: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
+      default: 'images/bravo.png',
     },
     coverImage: {
       type: String,

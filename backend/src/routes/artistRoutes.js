@@ -14,35 +14,34 @@ import {
   publishAlbum,
   getArtistVideos,
   uploadAlbum,
+  getArtistById,
 } from '../controllers/artistController.js';
-import { auth, requireRole } from '../middleware/auth.js';
+import { auth, requireRole, optionalAuth } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import { uploadLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
-// Admins couldn't trigger artist actions or view artist dashboards.
-// Now allows both — the controller looks up the artist profile via
-// req.user._id, so admins can only act on their own (if they happen
-// to also have an Artist profile). For acting on OTHER artists, admins
-// use /api/admin/* endpoints.
-router.use(auth, requireRole(['artist', 'admin']));
+// Shared guard for artist-owner actions. Applied per-route (not as a global
+// router.use) so the public GET /:id below can stay unauthenticated.
+const artistAuth = [auth, requireRole(['artist', 'admin'])];
 
-router.get('/dashboard', getDashboard);
-router.get('/analytics', getAnalytics);
-router.get('/earnings', getEarnings);
-router.put('/profile', upload.single('banner'), updateArtistProfile);
-router.get('/songs', getArtistSongs);
-router.get('/albums', getArtistAlbums);
+router.get('/dashboard', artistAuth, getDashboard);
+router.get('/analytics', artistAuth, getAnalytics);
+router.get('/earnings', artistAuth, getEarnings);
+router.put('/profile', artistAuth, upload.single('banner'), updateArtistProfile);
+router.get('/songs', artistAuth, getArtistSongs);
+router.get('/albums', artistAuth, getArtistAlbums);
 
-router.post('/withdraw', requestWithdrawal);
-router.get('/withdrawals', getWithdrawalHistory);
-router.post('/purchase-credits', purchaseUploadCredits);
-router.get('/subscription', getSubscriptionStatus);
+router.post('/withdraw', artistAuth, requestWithdrawal);
+router.get('/withdrawals', artistAuth, getWithdrawalHistory);
+router.post('/purchase-credits', artistAuth, purchaseUploadCredits);
+router.get('/subscription', artistAuth, getSubscriptionStatus);
 
 // Upload routes use the upload rate limiter (10/hour).
 router.post(
   '/upload-video',
+  artistAuth,
   uploadLimiter,
   upload.fields([
     { name: 'video', maxCount: 1 },
@@ -51,9 +50,14 @@ router.post(
   uploadVideoSong
 );
 
-router.post('/upload-album', uploadLimiter, upload.single('coverArt'), uploadAlbum);
+router.post('/upload-album', artistAuth, uploadLimiter, upload.single('coverArt'), uploadAlbum);
 
-router.put('/album/:albumId/publish', publishAlbum);
-router.get('/videos', getArtistVideos);
+router.put('/album/:albumId/publish', artistAuth, publishAlbum);
+router.get('/videos', artistAuth, getArtistVideos);
+
+// Public artist profile by id — declared LAST so the literal routes above take
+// precedence over the `/:id` wildcard. optionalAuth populates `isFollowing`
+// for logged-in viewers.
+router.get('/:id', optionalAuth, getArtistById);
 
 export default router;
