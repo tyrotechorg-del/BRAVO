@@ -93,22 +93,22 @@ export default function Navbar() {
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 bg-[rgba(5,5,5,0.95)] backdrop-blur border-b border-[#2a2a2a] z-[1000]">
-        <div className="max-w-[1400px] mx-auto h-[60px] px-4 sm:px-6 flex items-center gap-3">
+        <div className="max-w-[1400px] mx-auto h-[60px] px-2 sm:px-4 md:px-6 flex items-center gap-2 sm:gap-3">
           {/* Mobile hamburger (left) */}
-          <button className="md:hidden bg-transparent border-none text-white p-1 shrink-0" onClick={() => setMobileOpen(true)} aria-label="Open menu" aria-expanded={mobileOpen}>
+          <button className="md:hidden bg-transparent border-none text-white p-2 shrink-0" onClick={() => setMobileOpen(true)} aria-label="Open menu" aria-expanded={mobileOpen}>
             <span className="hamburger"><span /><span /><span /></span>
           </button>
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 text-xl font-bold text-primary no-underline shrink-0" onClick={closeMobile}>
+          {/* Logo — icon always; wordmark only when there's room */}
+          <Link to="/" className="flex items-center gap-2 text-lg sm:text-xl font-bold text-primary no-underline shrink-0" onClick={closeMobile}>
             <img src="/images/bravo.png" alt="Bravo Music" className="w-8 h-8 rounded-lg object-cover" />
-            <span className="hidden sm:inline">Bravo Music</span>
+            <span className="hidden lg:inline">Bravo Music</span>
           </Link>
 
-          {/* Search — always visible (mobile too) */}
-          <form onSubmit={onSearch} className="flex items-center bg-[#1a1a1a] rounded-full px-4 py-1.5 flex-1 max-w-[340px] border border-[#2a2a2a]">
+          {/* Search — the only growing element, so it fills remaining space */}
+          <form onSubmit={onSearch} className="flex items-center bg-[#1a1a1a] rounded-full px-3 sm:px-4 py-1.5 flex-1 min-w-0 max-w-[340px] border border-[#2a2a2a]">
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." className="flex-1 bg-transparent border-none text-white outline-none text-sm placeholder:text-[#b3b3b3] min-w-0" />
-            <button type="submit" className="bg-transparent border-none text-[#b3b3b3] hover:text-white"><i className="fas fa-search" /></button>
+            <button type="submit" className="bg-transparent border-none text-[#b3b3b3] hover:text-white shrink-0 pl-2"><i className="fas fa-search" /></button>
           </form>
 
           {/* Desktop quick links */}
@@ -119,8 +119,8 @@ export default function Navbar() {
           </div>
 
           {/* Profile (right) — visible on all sizes */}
-          <div ref={ref} className="relative shrink-0 ml-auto md:ml-0">
-            <button onClick={() => setOpen(!open)} className="flex items-center gap-2 bg-transparent border-none text-white px-1 py-1">
+          <div ref={ref} className="relative shrink-0">
+            <button onClick={() => setOpen(!open)} className="flex items-center gap-2 bg-transparent border-none text-white p-1" aria-label="Account menu">
               <Avatar src={user?.avatar} className="w-8 h-8 rounded-full object-cover" />
               <span className="text-sm hidden md:inline">{user?.username || 'Guest'}</span>
               <i className="fas fa-chevron-down text-xs hidden md:inline" />
