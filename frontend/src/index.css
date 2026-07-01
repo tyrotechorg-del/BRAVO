@@ -363,7 +363,7 @@
   50%      { box-shadow: 0 4px 20px rgba(108, 99, 255, 0.7); }
 }
 .player-btn--shuffle, .player-btn--repeat { display: none; }
-@media (min-width: 1024px) { .player-btn--shuffle, .player-btn--repeat { display: inline-flex; } }
+@media (min-width: 768px) { .player-btn--shuffle, .player-btn--repeat { display: inline-flex; } }
 
 .player-progress { display: flex; align-items: center; gap: 8px; flex: 2 1 0; min-width: 120px; order: 3; }
 .current-time, .duration { font-size: 10px; color: #aaa; min-width: 28px; text-align: center; font-variant-numeric: tabular-nums; flex-shrink: 0; }

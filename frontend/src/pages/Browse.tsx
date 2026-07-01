@@ -42,7 +42,7 @@ export default function Browse() {
       {loading && songs.length === 0 ? <Spinner /> : songs.length > 0 ? (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-            {songs.map((s) => <SongCard key={s._id} song={s} />)}
+            {songs.map((s) => <SongCard key={s._id} song={s} playlist={songs} />)}
           </div>
           {hasMore && <div className="text-center mt-10"><button className="btn-primary" onClick={loadMore} disabled={loading}>{loading ? 'Loading…' : 'Load More'}</button></div>}
         </>

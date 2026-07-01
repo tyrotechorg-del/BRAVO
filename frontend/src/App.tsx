@@ -14,6 +14,7 @@ import Trending from './pages/Trending'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import { NotFound } from './pages/Misc'
+import { Terms, Privacy, ArtistResources, Promotion } from './pages/Legal'
 import ArtistDashboard from './pages/ArtistDashboard'
 import Settings from './pages/Settings'
 import { ForgotPassword, ResetPassword, VerifyEmail } from './pages/AuthFlow'
@@ -105,6 +106,10 @@ export default function App() {
       </Route>
 
       <Route element={<Layout />}>
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/artist-resources" element={<ArtistResources />} />
+        <Route path="/promotion" element={<Promotion />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

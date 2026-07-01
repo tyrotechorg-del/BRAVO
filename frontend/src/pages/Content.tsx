@@ -75,7 +75,7 @@ export function SongDetail() {
             {song.genre && <><span>·</span><span className="genre-badge">{song.genre}</span></>}
           </div>
           <div className="flex gap-3 flex-wrap">
-            <button className="btn-primary" onClick={() => play(song)}><i className="fas fa-play" /> Play</button>
+            <button className="btn-primary" onClick={() => play(song, [song, ...related])}><i className="fas fa-play" /> Play</button>
             {song.isPremium && (song.price || 0) > 0 && (
               <button className="btn-primary" style={{ background: 'linear-gradient(135deg,#ffc107,#ff9800)' }} onClick={() => buySong(song)}>
                 <i className="fas fa-shopping-cart" /> Buy · K{Number(song.price).toFixed(2)}
@@ -93,7 +93,7 @@ export function SongDetail() {
         <section>
           <h2 className="text-2xl font-bold mb-5">More from this artist</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-            {related.map((s) => <SongCard key={s._id} song={s} />)}
+            {related.map((s) => <SongCard key={s._id} song={s} playlist={related} />)}
           </div>
         </section>
       )}
@@ -190,7 +190,7 @@ export function ArtistProfilePage() {
         <h2 className="text-2xl font-bold mb-5">Songs</h2>
         {songs.length === 0 ? <EmptyState icon="fa-music" title="No songs yet" /> : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-            {songs.map((s) => <SongCard key={s._id} song={s} />)}
+            {songs.map((s) => <SongCard key={s._id} song={s} playlist={songs} />)}
           </div>
         )}
       </section>

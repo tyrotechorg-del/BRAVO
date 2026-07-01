@@ -11,13 +11,11 @@ import ShareModal from '../ui/ShareModal'
 
 export default function AudioPlayer() {
   const navigate = useNavigate()
-  const { currentSong, isPlaying, volume, toggle, next, prev } = usePlayerStore()
+  const { currentSong, isPlaying, volume, toggle, next, prev, repeat, shuffle, cycleRepeat, toggleShuffle } = usePlayerStore()
   const isAuth = useAuthStore((s) => s.isAuthenticated())
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(0)
-  const [repeat, setRepeat] = useState(false)
-  const [shuffle, setShuffle] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
 
   useEffect(() => {
@@ -57,7 +55,7 @@ export default function AudioPlayer() {
         ref={audioRef}
         onTimeUpdate={(e) => setProgress((e.target as HTMLAudioElement).currentTime)}
         onLoadedMetadata={(e) => setDuration((e.target as HTMLAudioElement).duration)}
-        onEnded={() => { if (repeat && audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play() } else next() }}
+        onEnded={() => { if (repeat === 'one' && audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play().catch(() => {}) } else next(true) }}
       />
       <div className="player-container">
         {/* Info */}
@@ -71,11 +69,14 @@ export default function AudioPlayer() {
 
         {/* Controls */}
         <div className="player-controls">
-          <button className={`player-btn player-btn--shuffle ${shuffle ? 'text-primary' : ''}`} onClick={() => setShuffle(!shuffle)} title="Shuffle" aria-label="Shuffle"><i className="fas fa-random" /></button>
+          <button className={`player-btn player-btn--shuffle ${shuffle ? 'text-primary' : ''}`} onClick={toggleShuffle} title="Shuffle" aria-label="Shuffle" aria-pressed={shuffle}><i className="fas fa-random" /></button>
           <button className="player-btn" onClick={prev} title="Previous" aria-label="Previous"><i className="fas fa-backward" /></button>
           <button className={`player-btn play-pause ${isPlaying ? 'playing' : ''}`} onClick={toggle} title="Play/Pause" aria-label="Play"><i className={`fas fa-${isPlaying ? 'pause' : 'play'}`} /></button>
-          <button className="player-btn" onClick={next} title="Next" aria-label="Next"><i className="fas fa-forward" /></button>
-          <button className={`player-btn player-btn--repeat ${repeat ? 'text-primary' : ''}`} onClick={() => setRepeat(!repeat)} title="Repeat" aria-label="Repeat"><i className="fas fa-redo-alt" /></button>
+          <button className="player-btn" onClick={() => next(false)} title="Next" aria-label="Next"><i className="fas fa-forward" /></button>
+          <button className={`player-btn player-btn--repeat relative ${repeat !== 'off' ? 'text-primary' : ''}`} onClick={cycleRepeat} title={repeat === 'one' ? 'Repeat one' : repeat === 'all' ? 'Repeat all' : 'Repeat off'} aria-label="Repeat">
+            <i className="fas fa-redo-alt" />
+            {repeat === 'one' && <span className="absolute -top-1 -right-1 text-[8px] font-bold bg-primary text-white rounded-full w-3 h-3 flex items-center justify-center">1</span>}
+          </button>
         </div>
 
         {/* Progress */}

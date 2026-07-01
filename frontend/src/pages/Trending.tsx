@@ -26,7 +26,7 @@ export default function Trending() {
           {songs.map((s, i) => (
             <div key={s._id} className="relative">
               <span className="absolute top-2 left-2 z-10 w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">{i + 1}</span>
-              <SongCard song={s} />
+              <SongCard song={s} playlist={songs} />
             </div>
           ))}
         </div>
